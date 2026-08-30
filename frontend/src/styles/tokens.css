@@ -1,0 +1,121 @@
+/* Design tokens — Πάμε Σέντρα UI Kit v3.
+   Hex values are copied verbatim from the kit. If a colour changes there it
+   changes here and nowhere else; components reference these names only.
+
+   Note on naming: the kit lists the greens under --color-navy-500/300/100 while
+   its own prose calls them green-600/green-100. They are greens, so they are
+   named green-* here. The values are unchanged. */
+
+:root {
+  /* --- Navy: primary ------------------------------------------------
+     navy-900 carries headers and nav. */
+  --color-navy-900: #003c71;
+  --color-navy-700: #0a5591;
+
+  /* --- Green: action ------------------------------------------------
+     Two greens, and they are not interchangeable (kit v3): green-600 on light
+     backgrounds, green-400 when green sits on navy. green-600 on navy is
+     2.6:1 and effectively invisible; green-400 on white is 2.0:1 and just as
+     bad. green-100 tints table zones. */
+  --color-green-600: #128c40;
+  --color-green-400: #4fd07c;
+  --color-green-300: #7fd79c;
+  --color-green-100: #dcf3e4;
+
+  /* --- Terracotta / Amber: accent -----------------------------------
+     Terracotta only for live and goals. Amber always takes dark ink. */
+  --color-terra-700: #a63a12;
+  --color-terra-500: #e0521f;
+  --color-terra-300: #f0a98a;
+  --color-amber-600: #fcbf49;
+  --color-amber-200: #fde7b4;
+
+  /* --- Neutrals: cool grey ------------------------------------------ */
+  --color-grey-50: #ffffff;
+  --color-grey-100: #f5f5f5;
+  --color-grey-200: #e4e5e6;
+  --color-grey-400: #9ea1a4;
+  --color-grey-600: #6c6f72;
+  --color-grey-800: #3a3a3a;
+
+  --color-canvas: #ecedee;
+
+  /* --- Semantic ------------------------------------------------------ */
+  --color-win: var(--color-green-600);
+  --color-draw: var(--color-amber-600);
+  --color-loss: #b4392c; /* dark brick, not alarm red */
+  --color-live: var(--color-terra-500);
+
+  /* Ink for small text sitting on each result colour. White on green-600 is
+     only 4.3:1 and on terra-500 only 3.9:1 — both fail AA at the 10px the form
+     pills and status chips actually use, so the tints below carry dark ink and
+     the one solid fill (loss) is dark enough for white. */
+  --color-win-surface: var(--color-green-300);
+  --color-win-ink: var(--color-grey-800);
+  --color-draw-surface: var(--color-amber-600);
+  --color-draw-ink: var(--color-grey-800);
+  --color-loss-surface: var(--color-loss);
+  --color-loss-ink: var(--color-grey-50);
+  --color-live-surface: var(--color-terra-700);
+  --color-live-ink: var(--color-grey-50);
+
+  --color-text: var(--color-grey-800);
+  --color-text-muted: var(--color-grey-600);
+  --color-heading: var(--color-navy-900);
+  --color-border: var(--color-grey-200);
+  --color-surface: var(--color-grey-50);
+
+  --color-link: var(--color-navy-900);
+  --color-link-hover: var(--color-green-600);
+  /* Accent for anything drawn on the navy header or nav bar. */
+  --color-on-navy-accent: var(--color-green-400);
+
+  /* --- Type ---------------------------------------------------------
+     Tahoma / DejaVu Sans last: both ship on Windows and Linux with full
+     Greek coverage, so a failed webfont never drops accents. */
+  --font-display: var(--font-fira), "Fira Sans Condensed", "Noto Sans",
+    "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-body: var(--font-noto), "Noto Sans", "Segoe UI", Tahoma,
+    "DejaVu Sans", sans-serif;
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-card: 0 1px 2px rgba(0, 60, 113, 0.07),
+    0 4px 14px rgba(0, 60, 113, 0.06);
+
+  /* Height of the mobile tab bar, so scroll containers can clear it. */
+  --nav-height: 62px;
+}
+
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(224, 82, 31, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(224, 82, 31, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 82, 31, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -220px 0;
+  }
+  100% {
+    background-position: 260px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

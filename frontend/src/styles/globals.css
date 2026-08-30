@@ -1,0 +1,100 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* Numbers line up in every table and score without per-element opt-in. */
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  color: var(--color-heading);
+  margin: 0;
+  letter-spacing: -0.2px;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+h2 {
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+h3 {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+/* The kit specifies green-600 on hover. It is 4.3:1 on white, which clears
+   AA only for large text — acceptable for a transient state that is always
+   accompanied by the pointer, but it is why green never sets resting text. */
+a:hover {
+  color: var(--color-link-hover);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Visible only to screen readers, but still focusable — used for the skip link
+   and for table captions that the visual design carries in a heading instead. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-terra-500);
+  outline-offset: 2px;
+  border-radius: 3px;
+}

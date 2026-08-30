@@ -1,0 +1,22 @@
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.heading {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--color-grey-600);
+}
+
+.action {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-navy-900);
+  white-space: nowrap;
+}

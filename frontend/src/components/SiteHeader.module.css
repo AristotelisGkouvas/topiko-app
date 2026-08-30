@@ -1,0 +1,99 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-navy-900);
+  color: var(--color-grey-50);
+}
+
+.inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  min-width: 0;
+}
+
+.brand:hover {
+  color: inherit;
+}
+
+.mark {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  /* A light badge on the navy bar: terracotta is reserved for live, and
+     white on it would be 3.9:1 at this size anyway. */
+  background: var(--color-grey-50);
+  color: var(--color-navy-900);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+}
+
+.brandText {
+  display: grid;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.6px;
+  line-height: 1.15;
+}
+
+.tagline {
+  font-size: 10.5px;
+  color: var(--color-on-navy-accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.navLink {
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--color-green-100);
+}
+
+.navLink:hover {
+  color: var(--color-grey-50);
+  background: rgba(250, 247, 241, 0.1);
+}
+
+.navActive,
+.navActive:hover {
+  background: var(--color-grey-50);
+  color: var(--color-navy-900);
+}
+
+@media (min-width: 860px) {
+  .nav {
+    display: flex;
+  }
+}

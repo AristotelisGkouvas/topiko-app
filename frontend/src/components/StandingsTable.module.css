@@ -1,0 +1,210 @@
+.wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* The table is the one element allowed to scroll sideways; the page never does. */
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  font-size: 13.5px;
+  min-width: 100%;
+}
+
+.table thead th {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--color-grey-600);
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table tbody td {
+  /* Fixed row height keeps the skeleton and the loaded table the same size, so
+     nothing jumps when data arrives. */
+  height: 44px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--color-grey-100);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--color-grey-100);
+}
+
+.posCol {
+  width: 34px;
+  text-align: center !important;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.teamCol {
+  min-width: 150px;
+}
+
+.num,
+.table thead th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pointsCol {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-heading);
+  padding-right: 12px !important;
+}
+
+.teamLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-heading);
+}
+
+.teamLink:hover {
+  color: var(--color-terra-500);
+}
+
+.teamName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sortButton {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  padding: 2px 0;
+}
+
+.sortButton:hover {
+  color: var(--color-terra-700);
+}
+
+.sortActive {
+  color: var(--color-terra-700);
+}
+
+.sortActive::after {
+  content: " ↓";
+}
+
+/* --- Zone rails --------------------------------------------------------
+   A 3px inset border rather than a tinted row: the tint would fight the
+   hover state and reduce contrast on the small metadata text. */
+.zone_promotion td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-green-600);
+}
+.zone_promotion_playoff td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-green-300);
+}
+.zone_relegation_playoff td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-amber-600);
+}
+.zone_relegation td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-loss);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 10px 12px 12px;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendSwatch {
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.swatch_promotion {
+  background: var(--color-green-600);
+}
+.swatch_promotion_playoff {
+  background: var(--color-green-300);
+}
+.swatch_relegation_playoff {
+  background: var(--color-amber-600);
+}
+.swatch_relegation {
+  background: var(--color-loss);
+}
+
+/* --- Form pills -------------------------------------------------------- */
+.form {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.pill {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Ink is per-pill: at 10px none of these can ride on a 4:1 fill. */
+.pillWin {
+  background: var(--color-win-surface);
+  color: var(--color-win-ink);
+}
+.pillDraw {
+  background: var(--color-draw-surface);
+  color: var(--color-draw-ink);
+}
+.pillLoss {
+  background: var(--color-loss-surface);
+  color: var(--color-loss-ink);
+}
+
+/* Below ~560px the win/draw/loss split, the goals column and the form pills are
+   the first things to go — position, name, played and points are what the table
+   is actually for. */
+@media (max-width: 560px) {
+  .wide,
+  .formCol {
+    display: none;
+  }
+  .teamCol {
+    min-width: 0;
+  }
+}

@@ -1,0 +1,42 @@
+/* Scrolls sideways on a phone rather than wrapping to a second row, which would
+   push the content below the fold on the home screen. */
+.scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.tab {
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-grey-600);
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--color-navy-900);
+  border-color: var(--color-green-300);
+}
+
+.active,
+.active:hover {
+  background: var(--color-navy-900);
+  border-color: var(--color-navy-900);
+  color: var(--color-grey-50);
+}

@@ -1,0 +1,133 @@
+import type {
+  Association,
+  Field,
+  League,
+  Match,
+  MatchStatus,
+  Meta,
+  Season,
+  Standing,
+  Team,
+} from "./types";
+
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+
+/**
+ * Which ΕΠΣ this deployment serves.
+ *
+ * The backend is tenant-scoped by URL, but the reader-facing URLs are not:
+ * pamesentra.gr/vathmologia reads better than
+ * pamesentra.gr/epsip-ipeirou/vathmologia, and the design mockups show the
+ * short form. So the tenant is resolved here and nowhere else. When a second
+ * association arrives this is the one function that changes — to read the
+ * subdomain from the request headers instead of the environment.
+ */
+export const ASSOCIATION =
+  process.env.NEXT_PUBLIC_ASSOCIATION ?? "epsip-ipeirou";
+
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly path: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+interface FetchOptions {
+  /** Seconds before Next.js revalidates its cache. 0 disables caching, which is
+   *  what live data wants. */
+  revalidate?: number;
+  searchParams?: Record<string, string | number | undefined>;
+}
+
+async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
+  const url = new URL(`${API_URL}${path}`);
+  for (const [key, value] of Object.entries(options.searchParams ?? {})) {
+    if (value !== undefined) url.searchParams.set(key, String(value));
+  }
+
+  const response = await fetch(url, {
+    next:
+      options.revalidate === 0
+        ? undefined
+        : { revalidate: options.revalidate ?? 60 },
+    cache: options.revalidate === 0 ? "no-store" : undefined,
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      const body = (await response.json()) as { detail?: string };
+      if (body.detail) detail = body.detail;
+    } catch {
+      // A non-JSON error body is not worth failing twice over.
+    }
+    throw new ApiError(response.status, path, detail);
+  }
+
+  return (await response.json()) as T;
+}
+
+const scoped = (path: string) => `/api/v1/${ASSOCIATION}${path}`;
+
+export const api = {
+  listAssociations: () => request<Association[]>("/api/v1/associations"),
+
+  getAssociation: () => request<Association>(scoped("")),
+
+  listSeasons: () => request<Season[]>(scoped("/seasons")),
+
+  listLeagues: (season?: string) =>
+    request<League[]>(scoped("/leagues"), { searchParams: { season } }),
+
+  getLeague: (leagueSlug: string, season?: string) =>
+    request<League>(scoped(`/leagues/${leagueSlug}`), {
+      searchParams: { season },
+    }),
+
+  getStandings: (leagueSlug: string, season?: string) =>
+    request<Standing[]>(scoped(`/leagues/${leagueSlug}/standings`), {
+      searchParams: { season },
+    }),
+
+  listMatches: (
+    leagueSlug: string,
+    params: { matchday?: number; status?: MatchStatus; season?: string } = {},
+  ) =>
+    request<Match[]>(scoped(`/leagues/${leagueSlug}/matches`), {
+      searchParams: {
+        matchday: params.matchday,
+        status: params.status,
+        season: params.season,
+      },
+    }),
+
+  // Never cached: this is the endpoint the live strip polls.
+  listLiveMatches: () =>
+    request<Match[]>(scoped("/matches/live"), { revalidate: 0 }),
+
+  listTeams: (q?: string) =>
+    request<Team[]>(scoped("/teams"), { searchParams: { q } }),
+
+  getTeam: (teamSlug: string) => request<Team>(scoped(`/teams/${teamSlug}`)),
+
+  getTeamMatches: (teamSlug: string, season?: string) =>
+    request<Match[]>(scoped(`/teams/${teamSlug}/matches`), {
+      searchParams: { season },
+    }),
+
+  listFields: (q?: string) =>
+    request<Field[]>(scoped("/fields"), { searchParams: { q } }),
+
+  getField: (fieldSlug: string) => request<Field>(scoped(`/fields/${fieldSlug}`)),
+
+  getMeta: () => request<Meta>(scoped("/meta"), { revalidate: 0 }),
+};
+
+/** Absolute URL for a path, for client-side fetchers that cannot use `api`. */
+export const apiUrl = (path: string) => `${API_URL}${scoped(path)}`;

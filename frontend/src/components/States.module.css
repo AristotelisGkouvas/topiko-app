@@ -1,0 +1,68 @@
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 34px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.emptyMark {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-grey-100);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--color-grey-400);
+  margin-bottom: 4px;
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.emptyBody {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  max-width: 34ch;
+}
+
+.emptyAction {
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.skeleton {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Same 44px row height as the real table, so loading and loaded occupy exactly
+   the same space and nothing shifts. */
+.skeletonRow {
+  height: 44px;
+  border-bottom: 1px solid var(--color-grey-100);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-grey-100) 0%,
+    var(--color-grey-200) 40%,
+    var(--color-grey-100) 80%
+  );
+  background-size: 480px 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeletonRow:last-child {
+  border-bottom: none;
+}

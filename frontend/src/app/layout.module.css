@@ -1,0 +1,27 @@
+.main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 16px calc(var(--nav-height) + 24px);
+}
+
+@media (min-width: 860px) {
+  .main {
+    padding-bottom: 48px;
+  }
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--color-grey-50);
+  color: var(--color-navy-900);
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-md) 0;
+  font-weight: 600;
+}
+
+.skip:focus {
+  left: 0;
+}

@@ -1,0 +1,64 @@
+.subtitle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  }
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 13px 14px 12px;
+  display: grid;
+  gap: 9px;
+  align-content: start;
+}
+
+.cardHead {
+  display: grid;
+  gap: 2px;
+}
+
+.name {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.city {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-grey-100);
+  color: var(--color-grey-600);
+}
+
+.directions {
+  font-size: 12.5px;
+  font-weight: 600;
+  justify-self: start;
+}

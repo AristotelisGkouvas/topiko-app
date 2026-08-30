@@ -1,0 +1,75 @@
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--color-grey-50);
+  border-top: 1px solid var(--color-border);
+  /* Clears the iOS home indicator without eating space on other devices. */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  /* 48px minimum hit target, per the kit. */
+  min-height: 48px;
+  padding: 8px 2px 7px;
+  color: var(--color-grey-600);
+}
+
+.tab:hover {
+  color: var(--color-navy-900);
+}
+
+.glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 20px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.label {
+  font-size: 9.5px;
+  letter-spacing: 0.2px;
+  text-align: center;
+}
+
+.active {
+  color: var(--color-navy-900);
+}
+
+.active .glyph {
+  background: var(--color-green-100);
+  border-radius: 999px;
+  width: 34px;
+}
+
+.active .label {
+  font-weight: 600;
+}
+
+.badge {
+  position: absolute;
+  top: -1px;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-live);
+  animation: livePulse 1.9s ease-out infinite;
+}
+
+@media (min-width: 860px) {
+  .bar {
+    display: none;
+  }
+}

@@ -1,0 +1,54 @@
+.page {
+  display: grid;
+  gap: 22px;
+}
+
+.titleBlock {
+  display: grid;
+  gap: 6px;
+}
+
+.section {
+  display: grid;
+  gap: 0;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 4px 14px;
+}
+
+.fixtureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+/* Desktop: table on the left, live and fixtures on the right, as in the kit. */
+@media (min-width: 1000px) {
+  .twoCol {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .aside {
+    display: grid;
+    gap: 22px;
+  }
+}

@@ -1,0 +1,207 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 12px 14px 11px;
+}
+
+.cardLive {
+  border-color: var(--color-terra-300);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* terra-700, not the brighter terra-500: white on terra-500 is 3.9:1 and
+   this chip sets 10.5px text. terra-500 still carries the pulsing dot. */
+.chipLive {
+  background: var(--color-live-surface);
+  color: var(--color-live-ink);
+}
+
+.chipDone {
+  background: var(--color-grey-100);
+  color: var(--color-grey-600);
+}
+
+.chipNext {
+  background: var(--color-green-100);
+  color: var(--color-navy-900);
+}
+
+.chipWarn {
+  background: var(--color-amber-200);
+  color: var(--color-terra-700);
+}
+
+.pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-grey-50);
+  animation: livePulse 1.9s ease-out infinite;
+}
+
+.matchday {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.teams {
+  display: grid;
+  gap: 7px;
+}
+
+.teamRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+/* The losing side recedes rather than the winner shouting — keeps the score
+   column the only thing carrying weight. */
+.dim {
+  opacity: 0.62;
+}
+
+.teamName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-heading);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamName:hover {
+  color: var(--color-terra-500);
+}
+
+.score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-heading);
+}
+
+.fixture {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.fixtureTeams {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fixtureTeam {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fixtureTeam .teamName {
+  font-size: 14px;
+}
+
+.kickoff {
+  text-align: right;
+  flex: none;
+}
+
+.kickoffTime {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--color-navy-900);
+  line-height: 1.1;
+}
+
+.kickoffDay {
+  display: block;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.postponed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.postponedTeams {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--color-heading);
+}
+
+.postponedNote {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.footer {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--color-border);
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.fixtureRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fixtureRow:last-child {
+  border-bottom: none;
+}
+
+.fixtureRowTeams {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-heading);
+}
+
+.fixtureRowTime {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
