@@ -3,6 +3,19 @@
   gap: 22px;
 }
 
+/* A grid item's min-width defaults to auto, which means "as wide as my
+   content" — and that beats overflow-x:auto on a child. The league tab strip
+   then widens the whole page instead of scrolling inside itself, pushing
+   scores and points off a phone screen. min-width:0 lets the item shrink and
+   the strip scroll, which is what it was always meant to do.
+
+   Invisible while an association published two leagues; the moment the
+   backfill brought in seventeen, every mobile page lost its right-hand
+   columns. */
+.page > * {
+  min-width: 0;
+}
+
 .titleBlock {
   display: grid;
   gap: 6px;
