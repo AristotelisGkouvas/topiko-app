@@ -1,0 +1,48 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-grey-600);
+}
+
+.select {
+  appearance: none;
+  padding: 6px 30px 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-navy-900);
+  cursor: pointer;
+}
+
+.select:hover {
+  border-color: var(--color-green-300);
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-navy-700);
+  outline-offset: 2px;
+}
+
+/* The native arrow is hidden by appearance:none, so draw one and keep it out of
+   the pointer's way — clicks must reach the select underneath. */
+.chevron {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-grey-600);
+}

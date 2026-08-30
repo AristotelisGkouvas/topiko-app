@@ -4,6 +4,7 @@ import { LastUpdated } from "@/components/LastUpdated";
 import { LeagueTabs } from "@/components/LeagueTabs";
 import { MatchGrid } from "@/components/MatchGrid";
 import { MatchdayPicker } from "@/components/MatchdayPicker";
+import { SeasonPicker } from "@/components/SeasonPicker";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
@@ -20,7 +21,7 @@ export default async function FixturesPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const [{ leagues, league }, meta] = await Promise.all([
+  const [{ seasons, season, leagues, league }, meta] = await Promise.all([
     resolveLeague(params),
     api.getMeta(),
   ]);
@@ -45,7 +46,7 @@ export default async function FixturesPage({
         league.total_matchdays ?? Number.MAX_SAFE_INTEGER,
       );
 
-  const matches = await api.listMatches(league.slug, { matchday });
+  const matches = await api.listMatches(league.slug, { matchday, season });
 
   return (
     <div className={styles.page}>
@@ -57,7 +58,10 @@ export default async function FixturesPage({
         />
       </div>
 
-      <LeagueTabs leagues={leagues} active={league.slug} />
+      <div className={styles.pickers}>
+        <SeasonPicker seasons={seasons} active={season} />
+        <LeagueTabs leagues={leagues} active={league.slug} />
+      </div>
 
       <MatchdayPicker current={matchday} total={league.total_matchdays} />
 

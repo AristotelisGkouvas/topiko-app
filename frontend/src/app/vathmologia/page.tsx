@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { LastUpdated } from "@/components/LastUpdated";
 import { LeagueTabs } from "@/components/LeagueTabs";
+import { SeasonPicker } from "@/components/SeasonPicker";
 import { StandingsTable } from "@/components/StandingsTable";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
@@ -19,7 +20,7 @@ export default async function StandingsPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const [{ leagues, league }, meta] = await Promise.all([
+  const [{ seasons, season, leagues, league }, meta] = await Promise.all([
     resolveLeague(params),
     api.getMeta(),
   ]);
@@ -33,7 +34,7 @@ export default async function StandingsPage({
     );
   }
 
-  const standings = await api.getStandings(league.slug);
+  const standings = await api.getStandings(league.slug, season);
   const played = league.current_matchday
     ? `μετά την ${matchdayLabel(league.current_matchday)}`
     : undefined;
@@ -49,7 +50,10 @@ export default async function StandingsPage({
         />
       </div>
 
-      <LeagueTabs leagues={leagues} active={league.slug} />
+      <div className={styles.pickers}>
+        <SeasonPicker seasons={seasons} active={season} />
+        <LeagueTabs leagues={leagues} active={league.slug} />
+      </div>
 
       {standings.length > 0 ? (
         <StandingsTable standings={standings} league={league} />

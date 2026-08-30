@@ -22,7 +22,10 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const [{ leagues, league }, meta, association] = await Promise.all([
-    resolveLeague(params),
+    // The home screen is about today — live scores and the next αγωνιστική —
+    // so it stays on the current season even if ?periodos= is in the URL.
+    // Honouring it here would show a 2016 table beside a live strip.
+    resolveLeague({ ...params, periodos: undefined }),
     api.getMeta(),
     api.getAssociation(),
   ]);

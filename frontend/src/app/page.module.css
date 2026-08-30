@@ -13,6 +13,20 @@
   gap: 0;
 }
 
+/* Season picker and league tabs share a line on a wide screen and stack on a
+   phone, where the tab strip needs the full width to scroll in. */
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.pickers > :last-child {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);

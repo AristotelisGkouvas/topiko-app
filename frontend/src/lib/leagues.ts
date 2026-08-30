@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { League } from "./types";
+import type { League, Season } from "./types";
 
 /** Next 15 hands search params in as a promise. */
 export type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -13,22 +13,38 @@ export function readParam(
 }
 
 export interface LeagueContext {
+  seasons: Season[];
+  /** The season slug to pass on to the API, or undefined for the current one. */
+  season: string | undefined;
   leagues: League[];
   league: League | null;
 }
 
 /**
- * Resolve which league a page is showing from ?liga=, falling back to the first
- * one the association publishes (leagues come back ordered by tier).
+ * Resolve which season and league a page is showing, from ?periodos= and
+ * ?liga=.
+ *
+ * Season comes first because the league list depends on it: league slugs are
+ * only unique *within* a season — six seasons each have a
+ * "stefanos-gerasis-k10-a" — so every later call has to carry the season too,
+ * or the API resolves the slug against the current one and 404s.
+ *
+ * An unknown ?periodos= falls back to the current season rather than erroring:
+ * a stale link should still show football.
  */
 export async function resolveLeague(
   params: Record<string, string | string[] | undefined>,
 ): Promise<LeagueContext> {
-  const leagues = await api.listLeagues();
+  const seasons = await api.listSeasons();
+  const wantedSeason = readParam(params, "periodos");
+  const season = seasons.some((s) => s.slug === wantedSeason)
+    ? wantedSeason
+    : undefined;
+
+  const leagues = await api.listLeagues(season);
   const wanted = readParam(params, "liga");
-  const league =
-    leagues.find((l) => l.slug === wanted) ?? leagues[0] ?? null;
-  return { leagues, league };
+  const league = leagues.find((l) => l.slug === wanted) ?? leagues[0] ?? null;
+  return { seasons, season, leagues, league };
 }
 
 /** Which αγωνιστική to show: ?agonistiki=, else the league's current one. */
