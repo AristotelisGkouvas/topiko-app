@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pamesentra-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pamesentra
+      POSTGRES_PASSWORD: pamesentra
+      POSTGRES_DB: pamesentra
+      # Greek-aware collation, so ORDER BY on team names follows the Greek
+      # alphabet. Must go through ICU: the alpine image is musl-based and
+      # silently degrades a glibc locale like el_GR.UTF-8 to byte order,
+      # which sorts accented capitals (Ή) before unaccented ones (Ζ).
+      POSTGRES_INITDB_ARGS: >-
+        --encoding=UTF8 --locale-provider=icu --icu-locale=el-GR --locale=C
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pamesentra -d pamesentra"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
