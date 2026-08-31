@@ -183,6 +183,37 @@ def same_club(a: str, b: str) -> bool:
     return any(len(t) > _INITIAL_LEN for t in smaller)
 
 
+def distinct_clubs(a: str, b: str) -> bool:
+    """Whether two near-matching names are two clubs rather than one misspelt.
+
+    Whole-name similarity is the wrong measure when clubs share a word. Every
+    club in this federation plays near Ioannina, so "ΑΙΑΣ ΙΩΑΝΝΙΝΩΝ" and
+    "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ" score 89% on a word neither of them is named after — and
+    the guard against typos then refuses both, losing every match they played.
+
+    Compare the words that actually differ instead. ΑΙΑ against ΑΤΛΑ is 57%,
+    ΕΡΜΗ against ΑΣΤΕΡΑ is 40%: different words, so different clubs. A real
+    misspelling stays close — ΘΥΕΛΑ against ΘΥΕΛΛΑ is 91% — and remains a
+    question for a human.
+
+    Only decides when both names bring a substantive word the other lacks.
+    "ΑΙΑΣ ΠΕΡΙΒΛΕΠΤΟΥ" against "Π.Α.Σ.ΠΕΡΙΒΛΕΠΤΟΥ" is one name spelling out
+    what the other abbreviates, or two clubs from one village, and nothing in
+    the text says which.
+    """
+    ta = [t for t in _tokens(a) if len(t) > _INITIAL_LEN]
+    tb = [t for t in _tokens(b) if len(t) > _INITIAL_LEN]
+    only_a = [t for t in ta if t not in tb]
+    only_b = [t for t in tb if t not in ta]
+    if not only_a or not only_b:
+        return False
+    return all(
+        SequenceMatcher(None, wa, wb).ratio() < SUGGEST_THRESHOLD
+        for wa in only_a
+        for wb in only_b
+    )
+
+
 def _significant_words(name: str) -> list[str]:
     """The words in a club name that could stand for it on a crest.
 

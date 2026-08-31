@@ -242,7 +242,11 @@ class Resolver:
             # of this run resolves the spelling without re-deriving it.
             self._teams_by_key[naming.normalize(name)] = found.value
             return found.value
-        if found is not None and naming.same_squad(name, found.value.name):
+        if (
+            found is not None
+            and naming.same_squad(name, found.value.name)
+            and not naming.distinct_clubs(name, found.value.name)
+        ):
             # A near miss is a suggestion for a human, never an action: acting
             # on it is how results end up on the wrong club.
             self.stats.warn(
