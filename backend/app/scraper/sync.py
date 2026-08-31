@@ -750,6 +750,11 @@ class Syncer:
                 **plan.changes,
             )
             self.db.add(match)
+            # Register it before moving on. One schedule page can print the same
+            # fixture twice — epsip.gr does it for 91 of the 273 rows in the
+            # 2018-19 Κ10 Γ group — and without this the second printing is
+            # created again instead of recognised.
+            existing[(item.matchday, home.id, away.id)] = match
             self.stats.matches_created += 1
             return
 

@@ -65,3 +65,29 @@ class TestSameSquad:
         """ΑΙΑΣ and ΑΤΛΑΣ score 89%; neither carries a squad letter, so this
         stays a refusal rather than becoming a silent new club."""
         assert naming.same_squad("ΑΙΑΣ ΙΩΑΝΝΙΝΩΝ", "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ")
+
+
+class TestParenthesisedSides:
+    """"(W)" marks a club's women's side.
+
+    Its single letter is indistinguishable, to the dropped-prefix rule, from
+    the initial of an abbreviation — so without this the women's championship
+    is filed under the men's club.
+    """
+
+    def test_the_marker_is_read(self):
+        assert naming.squad("ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ (W)") == "W"
+
+    def test_a_womens_side_is_not_its_mens_club(self):
+        assert not naming.same_club("Π.Α.Σ.ΓΙΑΝΝΙΝΑ (W)", "Π.Α.Σ. ΓΙΑΝΝΙΝΑ")
+        assert not naming.same_club("ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ (W)", "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ")
+
+    def test_it_still_gets_its_own_monogram(self):
+        got = naming.assign_monograms(
+            ["ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ", "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ (W)", "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ Β"]
+        )
+        assert len(set(got.values())) == 3
+
+    def test_a_dropped_prefix_is_still_the_same_club(self):
+        """The rule this guards must keep working."""
+        assert naming.same_club("ΣΤΑΥΡ.ΣΥΡΡΑΚΟΥ", "Α.Ο.Ν.ΣΤΑΥΡ.ΣΥΡΡΑΚΟΥ")

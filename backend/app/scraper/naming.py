@@ -94,13 +94,18 @@ def find(name: str, candidates: dict[str, str]) -> Match | None:
 #: ΣΤ is spelled out because Greek counts Α Β Γ Δ Ε ΣΤ Ζ Η Θ Ι — the sixth is
 #: two characters, and a pattern of single letters silently reads "ΑΤΛΑΣ
 #: ΙΩΑΝΝΙΝΩΝ ΣΤ" as a misspelling of the parent club.
-_SQUAD = re.compile(r"[\s.]+(ΣΤ|[Α-ΩA-Z])\s*$")
+#:
+#: A parenthesised suffix counts too. "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ (W)" is the club's
+#: women's side, and its single letter would otherwise look exactly like the
+#: dropped initial of a club-type prefix — which would file a whole women's
+#: championship under the men's club.
+_SQUAD = re.compile(r"(?:[\s.]+(ΣΤ|[Α-ΩA-Z])|\s*\(([Α-ΩA-Z]{1,3})\))\s*$")
 
 
 def squad(name: str) -> str | None:
-    """The squad letter a club name ends with, if any."""
+    """The squad or side marker a club name ends with, if any."""
     m = _SQUAD.search(strip_accents(name).upper())
-    return m.group(1) if m else None
+    return (m.group(1) or m.group(2)) if m else None
 
 
 def same_squad(a: str, b: str) -> bool:
