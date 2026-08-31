@@ -2,24 +2,38 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Crest } from "@/components/Crest";
+import { SearchBox } from "@/components/SearchBox";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
+import { readParam, type SearchParams } from "@/lib/leagues";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Σωματεία" };
 
-export default async function ClubsPage() {
-  const teams = await api.listTeams();
+export default async function ClubsPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const query = readParam(params, "anazitisi");
+  const teams = await api.listTeams(query);
 
   return (
     <div className={pageStyles.page}>
       <div className={pageStyles.titleBlock}>
         <h1>Σωματεία</h1>
         <p className={styles.subtitle}>
-          {teams.length} {teams.length === 1 ? "σωματείο" : "σωματεία"} στην ένωση.
+          {query
+            ? `${teams.length} ${teams.length === 1 ? "σωματείο" : "σωματεία"} για «${query}».`
+            : `${teams.length} ${teams.length === 1 ? "σωματείο" : "σωματεία"} στην ένωση.`}
         </p>
       </div>
+
+      <SearchBox placeholder="Αναζήτηση σωματείου…" label="Αναζήτηση σωματείου" />
 
       {teams.length > 0 ? (
         <div className={styles.grid}>
@@ -44,7 +58,11 @@ export default async function ClubsPage() {
       ) : (
         <Empty
           title="Κανένα σωματείο"
-          body="Δεν έχουν καταχωρηθεί σωματεία για αυτή την ένωση."
+          body={
+            query
+              ? `Δεν βρέθηκε σωματείο για «${query}».`
+              : "Δεν έχουν καταχωρηθεί σωματεία για αυτή την ένωση."
+          }
         />
       )}
     </div>

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 import { Empty } from "@/components/States";
+import { SearchBox } from "@/components/SearchBox";
 import { api } from "@/lib/api";
+import { readParam, type SearchParams } from "@/lib/leagues";
 import type { Field } from "@/lib/types";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
@@ -69,17 +71,29 @@ function FieldCard({ field }: { field: Field }) {
   );
 }
 
-export default async function FieldsPage() {
-  const fields = await api.listFields();
+export const dynamic = "force-dynamic";
+
+export default async function FieldsPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const query = readParam(params, "anazitisi");
+  const fields = await api.listFields(query);
 
   return (
     <div className={pageStyles.page}>
       <div className={pageStyles.titleBlock}>
         <h1>Γήπεδα</h1>
         <p className={styles.subtitle}>
-          {fields.length} {fields.length === 1 ? "γήπεδο" : "γήπεδα"} της ένωσης.
+          {query
+            ? `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} για «${query}».`
+            : `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} της ένωσης.`}
         </p>
       </div>
+
+      <SearchBox placeholder="Αναζήτηση γηπέδου…" label="Αναζήτηση γηπέδου" />
 
       {fields.length > 0 ? (
         <div className={styles.grid}>
@@ -90,7 +104,11 @@ export default async function FieldsPage() {
       ) : (
         <Empty
           title="Κανένα γήπεδο"
-          body="Δεν έχουν καταχωρηθεί γήπεδα για αυτή την ένωση."
+          body={
+            query
+              ? `Δεν βρέθηκε γήπεδο για «${query}».`
+              : "Δεν έχουν καταχωρηθεί γήπεδα για αυτή την ένωση."
+          }
         />
       )}
     </div>

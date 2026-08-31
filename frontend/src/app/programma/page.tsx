@@ -7,7 +7,7 @@ import { MatchdayPicker } from "@/components/MatchdayPicker";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
-import { matchdayLabel } from "@/lib/format";
+import { matchdayGenitive } from "@/lib/format";
 import { readParam, resolveLeague, type SearchParams } from "@/lib/leagues";
 import styles from "../page.module.css";
 
@@ -69,7 +69,7 @@ export default async function FixturesPage({
         matches={matches}
         empty={{
           title: "Καμία αναμέτρηση",
-          body: `Το πρόγραμμα της ${matchdayLabel(matchday)} δεν έχει ανακοινωθεί ακόμη.`,
+          body: `Το πρόγραμμα της ${matchdayGenitive(matchday)} δεν έχει ανακοινωθεί ακόμη.`,
           action: {
             href: `/apotelesmata?liga=${league.slug}`,
             label: "Δες τα αποτελέσματα",

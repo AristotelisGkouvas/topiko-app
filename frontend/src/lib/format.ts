@@ -106,6 +106,24 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
 
 export const statusLabel = (status: MatchStatus) => STATUS_LABELS[status];
 
+/** What to call a match, given that its kick-off may be long past.
+ *
+ *  "scheduled" is the source's way of saying it has published no result, not a
+ *  promise that the match is still to come. Two thirds of the archive is in
+ *  that state — whole youth divisions where scores are never recorded — and
+ *  labelling a fixture from November 2025 "ΠΡΟΣΕΧΩΣ" is simply wrong.
+ */
+export function matchStatusLabel(
+  status: MatchStatus,
+  kickoffAt: string | null,
+): string {
+  if (status !== "scheduled") return STATUS_LABELS[status];
+  if (kickoffAt && new Date(kickoffAt).getTime() < Date.now()) {
+    return "ΧΩΡΙΣ ΑΠΟΤΕΛΕΣΜΑ";
+  }
+  return STATUS_LABELS[status];
+}
+
 const ZONE_LABELS: Record<StandingZone, string> = {
   promotion: "Άνοδος",
   promotion_playoff: "Play-off ανόδου",
@@ -121,3 +139,7 @@ export const formatGoalDifference = (value: number) =>
 
 /** Ordinal for a matchday: 14 -> "14η". */
 export const matchdayLabel = (matchday: number) => `${matchday}η αγωνιστική`;
+
+/** Genitive: "το πρόγραμμα της 27ης αγωνιστικής". */
+export const matchdayGenitive = (matchday: number) =>
+  `${matchday}ης αγωνιστικής`;

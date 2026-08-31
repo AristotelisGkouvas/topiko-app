@@ -6,7 +6,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { StandingsTable } from "@/components/StandingsTable";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
-import { matchdayLabel } from "@/lib/format";
+import { matchdayGenitive } from "@/lib/format";
 import { resolveLeague, type SearchParams } from "@/lib/leagues";
 import styles from "./page.module.css";
 
@@ -42,11 +42,18 @@ export default async function HomePage({
     );
   }
 
-  const nextMatchday = (league.current_matchday ?? 0) + 1;
-  const [live, standings, upcoming] = await Promise.all([
+  const played = league.current_matchday ?? 0;
+  const total = league.total_matchdays;
+  // Between seasons there is no next αγωνιστική, and asking for one leaves the
+  // home screen showing a table and an empty box. Fall back to the last round
+  // played, which is what a reader wants in the summer anyway.
+  const seasonOver = total !== null && played >= total;
+  const shownMatchday = seasonOver ? played : played + 1;
+
+  const [live, standings, fixtures] = await Promise.all([
     api.listLiveMatches(),
     api.getStandings(league.slug),
-    api.listMatches(league.slug, { matchday: nextMatchday }),
+    api.listMatches(league.slug, { matchday: shownMatchday }),
   ]);
 
   return (
@@ -86,16 +93,18 @@ export default async function HomePage({
       <section className={styles.section} aria-labelledby="upcoming-heading">
         <SectionHeader
           id="upcoming-heading"
-          title="Επόμενη αγωνιστική"
+          title={seasonOver ? "Τελευταία αγωνιστική" : "Επόμενη αγωνιστική"}
           action={{
-            href: `/programma?liga=${league.slug}&agonistiki=${nextMatchday}`,
-            label: "Πρόγραμμα",
+            href: seasonOver
+              ? `/apotelesmata?liga=${league.slug}&agonistiki=${shownMatchday}`
+              : `/programma?liga=${league.slug}&agonistiki=${shownMatchday}`,
+            label: seasonOver ? "Αποτελέσματα" : "Πρόγραμμα",
           }}
         />
-        {upcoming.length > 0 ? (
+        {fixtures.length > 0 ? (
           <div className={styles.card}>
             <ul className={styles.fixtureList}>
-              {upcoming.map((match) => (
+              {fixtures.map((match) => (
                 <FixtureRow key={match.id} match={match} />
               ))}
             </ul>
@@ -103,7 +112,7 @@ export default async function HomePage({
         ) : (
           <Empty
             title="Καμία αναμέτρηση"
-            body={`Το πρόγραμμα της ${matchdayLabel(nextMatchday)} δεν έχει ανακοινωθεί ακόμη.`}
+            body={`Το πρόγραμμα της ${matchdayGenitive(shownMatchday)} δεν έχει ανακοινωθεί ακόμη.`}
             action={{
               href: `/apotelesmata?liga=${league.slug}`,
               label: "Δες τα αποτελέσματα",

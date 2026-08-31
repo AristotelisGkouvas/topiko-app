@@ -6,7 +6,7 @@ import {
   formatShortKickoff,
   formatTime,
   formatWeekday,
-  statusLabel,
+  matchStatusLabel,
 } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchCard.module.css";
@@ -17,7 +17,7 @@ const isPlayed = (m: Match) =>
 /** The chip in the card header. Its wording carries the date for anything that
  *  is not currently running, because that is the first thing a reader checks. */
 function StatusChip({ match }: { match: Match }) {
-  const label = statusLabel(match.status);
+  const label = matchStatusLabel(match.status, match.kickoff_at);
 
   if (match.status === "live" || match.status === "halftime") {
     return (

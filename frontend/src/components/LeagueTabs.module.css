@@ -40,3 +40,20 @@
   border-color: var(--color-navy-900);
   color: var(--color-grey-50);
 }
+
+/* The toggle is a tab in shape but not in kind: it changes what the strip
+   shows rather than where the page goes, so it is dimmer and never "active". */
+.toggle {
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-grey-600);
+  border-style: dashed;
+}
+
+.toggle:hover {
+  color: var(--color-navy-900);
+  border-color: var(--color-green-300);
+}

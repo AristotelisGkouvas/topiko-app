@@ -7,13 +7,15 @@ import { MatchGrid } from "@/components/MatchGrid";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
 import { formatGoalDifference } from "@/lib/format";
-import type { League, Standing, Team } from "@/lib/types";
+import { SeasonPicker } from "@/components/SeasonPicker";
+import { readParam, type SearchParams } from "@/lib/leagues";
+import type { League, Standing, TeamDetail } from "@/lib/types";
 import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-async function loadTeam(slug: string): Promise<Team> {
+async function loadTeam(slug: string): Promise<TeamDetail> {
   try {
     return await api.getTeam(slug);
   } catch (error) {
@@ -29,11 +31,12 @@ async function loadTeam(slug: string): Promise<Team> {
  *  stops being true it becomes one endpoint on the backend, not a cache here.
  */
 async function findStanding(
-  team: Team,
+  team: TeamDetail,
+  season: string | undefined,
 ): Promise<{ league: League; standing: Standing } | null> {
-  const leagues = await api.listLeagues();
+  const leagues = await api.listLeagues(season);
   for (const league of leagues) {
-    const standings = await api.getStandings(league.slug);
+    const standings = await api.getStandings(league.slug, season);
     const standing = standings.find((row) => row.team.id === team.id);
     if (standing) return { league, standing };
   }
@@ -77,14 +80,25 @@ function FormPills({ form }: { form: string }) {
 
 export default async function TeamPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: SearchParams;
 }) {
   const { slug } = await params;
   const team = await loadTeam(slug);
+  const query = readParam(await searchParams, "periodos");
+
+  // A club that folded in 2019 has no current season, so opening on "now"
+  // shows an empty page for half the register. Fall back to the last season it
+  // actually played instead.
+  const season = team.seasons.includes(query ?? "")
+    ? query
+    : team.seasons[0];
+
   const [placement, matches] = await Promise.all([
-    findStanding(team),
-    api.getTeamMatches(slug),
+    findStanding(team, season),
+    api.getTeamMatches(slug, season),
   ]);
 
   const standing = placement?.standing;
@@ -168,6 +182,20 @@ export default async function TeamPage({
         </Link>
       )}
 
+      {team.seasons.length > 1 && (
+        <SeasonPicker
+          seasons={team.seasons.map((slug) => ({
+            slug,
+            name: slug,
+            // The club's own seasons, so "current" here means the latest it
+            // played rather than the one the federation is running.
+            is_current: slug === team.seasons[0],
+          }))}
+          active={season}
+          markerLabel="τελευταία"
+        />
+      )}
+
       <section aria-labelledby="upcoming">
         <SectionHeader id="upcoming" title="Επόμενοι αγώνες" />
         <MatchGrid
@@ -180,7 +208,12 @@ export default async function TeamPage({
         <SectionHeader id="results" title="Τελευταία αποτελέσματα" />
         <MatchGrid
           matches={played.slice(-6).reverse()}
-          empty={{ title: "Κανένα αποτέλεσμα ακόμη" }}
+          empty={{
+            title: "Κανένα αποτέλεσμα",
+            body: season
+              ? `Δεν υπάρχουν καταχωρημένα αποτελέσματα για την περίοδο ${season}.`
+              : undefined,
+          }}
         />
       </section>
     </div>

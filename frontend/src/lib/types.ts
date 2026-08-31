@@ -79,6 +79,11 @@ export interface Team extends TeamRef {
   home_field: FieldRef | null;
 }
 
+export interface TeamDetail extends Team {
+  /** Season slugs the club actually played in, newest first. */
+  seasons: string[];
+}
+
 export interface League {
   id: number;
   slug: string;
@@ -86,6 +91,8 @@ export interface League {
   short_name: string | null;
   kind: LeagueKind;
   tier: number | null;
+  /** "Κ10", "Παίδων", … null for the open-age divisions. */
+  age_group: string | null;
   group_name: string | null;
   total_matchdays: number | null;
   current_matchday: number | null;

@@ -8,6 +8,7 @@ import type {
   Season,
   Standing,
   Team,
+  TeamDetail,
 } from "./types";
 
 export const API_URL =
@@ -114,7 +115,8 @@ export const api = {
   listTeams: (q?: string) =>
     request<Team[]>(scoped("/teams"), { searchParams: { q } }),
 
-  getTeam: (teamSlug: string) => request<Team>(scoped(`/teams/${teamSlug}`)),
+  getTeam: (teamSlug: string) =>
+    request<TeamDetail>(scoped(`/teams/${teamSlug}`)),
 
   getTeamMatches: (teamSlug: string, season?: string) =>
     request<Match[]>(scoped(`/teams/${teamSlug}/matches`), {

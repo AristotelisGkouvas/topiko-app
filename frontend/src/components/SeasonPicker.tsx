@@ -13,10 +13,14 @@ import styles from "./SeasonPicker.module.css";
 export function SeasonPicker({
   seasons,
   active,
+  markerLabel = "τρέχουσα",
 }: {
   seasons: { slug: string; name: string; is_current: boolean }[];
   /** undefined while the current season is showing, as the URL omits it then. */
   active: string | undefined;
+  /** What the marked season is. On a club page the newest one it played is
+   *  not the season the federation is running, so it is not "τρέχουσα". */
+  markerLabel?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -53,7 +57,7 @@ export function SeasonPicker({
         {seasons.map((season) => (
           <option key={season.slug} value={season.slug}>
             {season.slug}
-            {season.is_current ? " (τρέχουσα)" : ""}
+            {season.is_current ? ` (${markerLabel})` : ""}
           </option>
         ))}
       </select>

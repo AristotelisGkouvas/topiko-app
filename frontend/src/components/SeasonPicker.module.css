@@ -3,6 +3,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  /* Shrink to the control. As a grid item it would otherwise stretch the full
+     row and strand the chevron at the far right of the page. */
+  justify-self: start;
 }
 
 .label {
