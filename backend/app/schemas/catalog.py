@@ -65,6 +65,18 @@ class TeamOut(TeamRef):
     home_field: FieldRef | None = None
 
 
+class TeamDetailOut(TeamOut):
+    """One club, with the seasons it actually played in.
+
+    A club that folded in 2019 has ten years of matches and none this season,
+    so a page pinned to the current one is blank for half the register. The
+    list is only computed for a single club — doing it for all 172 would be a
+    query per row.
+    """
+
+    seasons: list[str] = []
+
+
 class LeagueOut(ORMModel):
     id: int
     slug: str
@@ -72,6 +84,9 @@ class LeagueOut(ORMModel):
     short_name: str | None = None
     kind: LeagueKind
     tier: int | None = None
+    #: "Κ10", "Παίδων", … Absent for the open-age divisions, which is how the
+    #: reader tells a club championship from an academy one.
+    age_group: str | None = None
     group_name: str | None = None
     total_matchdays: int | None = None
     current_matchday: int | None = None

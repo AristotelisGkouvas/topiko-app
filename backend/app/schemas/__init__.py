@@ -4,6 +4,7 @@ from app.schemas.catalog import (
     FieldRef,
     LeagueOut,
     SeasonOut,
+    TeamDetailOut,
     TeamOut,
     TeamRef,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "ORMModel",
     "SeasonOut",
     "StandingOut",
+    "TeamDetailOut",
     "TeamOut",
     "TeamRef",
 ]

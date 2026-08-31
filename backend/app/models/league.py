@@ -56,6 +56,10 @@ class League(Base, TimestampMixin):
     # 1 = Α΄ Κατηγορία, 2 = Β΄ Κατηγορία, ...
     tier: Mapped[int | None] = mapped_column(Integer)
     group_name: Mapped[str | None] = mapped_column(String(60))  # "1ος Όμιλος"
+    #: "Κ10", "Παίδων", … or NULL for the open-age divisions. Kept apart
+    #: from tier because a youth competition has no rung on the ladder,
+    #: and the reader wants the two groups listed separately.
+    age_group: Mapped[str | None] = mapped_column(String(24))
 
     total_matchdays: Mapped[int | None] = mapped_column(Integer)
     current_matchday: Mapped[int | None] = mapped_column(Integer)

@@ -39,6 +39,7 @@ from app.models.enums import (
 from app.scraper import naming
 from app.scraper.decisions import Action, plan_match
 from app.scraper.http import Fetcher
+from app.scraper.labels import LeagueLabel, describe_league
 from app.scraper.sources.base import CatalogSource, Source
 from app.scraper.types import ScrapedMatch
 from app.services.standings import recompute_standings
@@ -340,6 +341,28 @@ def _initials(name: str) -> str:
     return word[:2] or "??"
 
 
+#: Youngest last, so the tab strip reads down the ladder and then down the ages
+#: rather than in the order the federation's page happens to list them.
+_AGE_ORDER = ("Νέων", "Κ16", "Κ14", "Κ13", "Παίδων", "Κ12", "Προπαίδων",
+              "Κ10", "Τζούνιορς", "Κ8", "Προτζούνιορς", "Κ6", "Μπαμπίνι")
+
+
+def _sort_order(described: LeagueLabel) -> int:
+    """Where this competition sits in the tab strip.
+
+    Open-age divisions first in tier order, then youth youngest-last, then the
+    knock-outs, which are footnotes to a season rather than a season of their
+    own.
+    """
+    if described.kind is LeagueKind.PLAYOFF:
+        return 900
+    if described.tier:
+        return described.tier
+    if described.age_group in _AGE_ORDER:
+        return 100 + _AGE_ORDER.index(described.age_group)
+    return 800
+
+
 class Syncer:
     def __init__(
         self,
@@ -588,44 +611,71 @@ class Syncer:
         await self.resolver.load_fields(self.source.parse_fields(fields_html))
 
     async def _ensure_league(self, season: Season, scraped) -> League:
-        league = (
-            await self.db.execute(
-                select(League).where(
-                    League.association_id == self.association.id,
-                    League.season_id == season.id,
-                    League.external_id == scraped.external_id,
-                )
-            )
-        ).scalar_one_or_none()
-        if league is not None:
-            return league
-
-        taken = {
-            slug
-            for (slug,) in (
+        siblings = list(
+            (
                 await self.db.execute(
-                    select(League.slug).where(
+                    select(League).where(
                         League.association_id == self.association.id,
                         League.season_id == season.id,
                     )
                 )
-            ).all()
-        }
-        category = naming.strip_accents(scraped.category or "").upper()
-        league = League(
-            association_id=self.association.id,
-            season_id=season.id,
-            slug=naming.unique_slug(naming.slugify(scraped.name), taken),
-            name=scraped.name,
-            short_name=scraped.category,
-            kind=LeagueKind.CUP if "ΚΥΠΕΛΛΟ" in category else LeagueKind.CHAMPIONSHIP,
-            tier=TIER_BY_CATEGORY.get(category),
-            external_id=scraped.external_id,
-            sort_order=TIER_BY_CATEGORY.get(category, 99),
+            ).scalars()
         )
-        self.db.add(league)
+        league = next(
+            (l for l in siblings if l.external_id == scraped.external_id), None
+        )
+
+        described = describe_league(scraped.name)
+        category = naming.strip_accents(scraped.category or "").upper()
+        kind = (
+            LeagueKind.CUP if "ΚΥΠΕΛΛΟ" in category else described.kind
+        )
+        label = self._unique_label(described.label, siblings, league)
+
+        if league is None:
+            taken = {l.slug for l in siblings}
+            league = League(
+                association_id=self.association.id,
+                season_id=season.id,
+                slug=naming.unique_slug(naming.slugify(scraped.name), taken),
+                name=scraped.name,
+                external_id=scraped.external_id,
+            )
+            self.db.add(league)
+
+        # Re-derived on every run, so improving the reader ever wrote them.
+        league.short_name = label
+        league.kind = kind
+        league.tier = described.tier or TIER_BY_CATEGORY.get(category)
+        league.age_group = described.age_group
+        league.group_name = described.group_name
+        league.sort_order = _sort_order(described)
+
         await self.db.flush()
         return league
+
+    @staticmethod
+    def _unique_label(
+        label: str, siblings: list[League], self_row: League | None
+    ) -> str:
+        """Keep one label per competition per season.
+
+        The source sometimes publishes two competitions under one title —
+        "ΔΩΔΩΝΗ - ΠΡΟΤΖΟΥΝΙΟΡΣ 2015-16" names five of them — and no reading of
+        the name can tell those apart. A numeral is honest about that, where
+        two identical tabs are not.
+        """
+        used = {
+            l.short_name
+            for l in siblings
+            if l is not self_row and l.short_name
+        }
+        if label not in used:
+            return label
+        n = 2
+        while f"{label} ({n})" in used:
+            n += 1
+        return f"{label} ({n})"
 
     # --- one league -----------------------------------------------------
 

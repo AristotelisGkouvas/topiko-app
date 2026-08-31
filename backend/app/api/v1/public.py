@@ -17,7 +17,16 @@ from app.api.deps import (
     CurrentSeason,
     DbSession,
 )
-from app.models import Association, Field, League, Match, Season, Standing, Team
+from app.models import (
+    Association,
+    Field,
+    League,
+    LeagueTeam,
+    Match,
+    Season,
+    Standing,
+    Team,
+)
 from app.models.enums import MatchStatus
 from app.schemas import (
     AssociationOut,
@@ -27,6 +36,7 @@ from app.schemas import (
     Meta,
     SeasonOut,
     StandingOut,
+    TeamDetailOut,
     TeamOut,
 )
 
@@ -172,10 +182,10 @@ async def list_teams(
     return list(result.scalars())
 
 
-@router.get("/{association_slug}/teams/{team_slug}", response_model=TeamOut)
+@router.get("/{association_slug}/teams/{team_slug}", response_model=TeamDetailOut)
 async def get_team(
     association: CurrentAssociation, team_slug: str, db: DbSession
-) -> Team:
+) -> TeamDetailOut:
     result = await db.execute(
         select(Team)
         .options(selectinload(Team.home_field))
@@ -187,7 +197,23 @@ async def get_team(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Δεν βρέθηκε ομάδα '{team_slug}'.",
         )
-    return team
+
+    # Newest first: a club page opens on the last season it played, which for
+    # a club that has folded is the only way its history is reachable at all.
+    seasons = (
+        await db.execute(
+            select(Season.slug)
+            .join(League, League.season_id == Season.id)
+            .join(LeagueTeam, LeagueTeam.league_id == League.id)
+            .where(LeagueTeam.team_id == team.id)
+            .distinct()
+            .order_by(Season.slug.desc())
+        )
+    ).scalars().all()
+
+    return TeamDetailOut.model_validate(
+        {**TeamOut.model_validate(team).model_dump(), "seasons": list(seasons)}
+    )
 
 
 @router.get("/{association_slug}/teams/{team_slug}/matches", response_model=list[MatchOut])

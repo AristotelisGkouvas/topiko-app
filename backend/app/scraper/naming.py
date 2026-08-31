@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from collections import Counter
 from difflib import SequenceMatcher
 
 # The replacement character. epsip.gr emits it in its rotated column headers,
@@ -175,6 +176,96 @@ def same_club(a: str, b: str) -> bool:
     if any(len(t) > _INITIAL_LEN for t in larger - smaller):
         return False
     return any(len(t) > _INITIAL_LEN for t in smaller)
+
+
+def _significant_words(name: str) -> list[str]:
+    """The words in a club name that could stand for it on a crest.
+
+    Three letters or more skips the Α, Ο, Σ left by "Α.Ο.Σ."; requiring a
+    letter skips a founding year such as "2004".
+    """
+    return [
+        w
+        for w in _WORD_SPLIT.split(strip_accents(name).upper())
+        if len(w) >= 3 and any(c.isalpha() for c in w)
+    ]
+
+
+def monogram(name: str) -> str:
+    """Two letters for the crest, from the most identifying word.
+
+    Club names lead with abbreviations ("Α.Ο.", "Π.Α.Σ.") shared by half the
+    league and often trail a founding year, so what tells two clubs apart is
+    the last real word — usually the village. A squad letter is appended rather
+    than folded in: "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ Β" and "… Γ" play each other, and two
+    identical badges on one match card say nothing.
+    """
+    letter = squad(name)
+    stem = name
+    if letter:
+        stem = _SQUAD.sub("", strip_accents(name).upper())
+    words = _significant_words(stem)
+    word = words[-1] if words else stem.replace(".", "").strip()
+    base = word[:2] or "??"
+    # letter[0]: the crest is 22px at its smallest and holds three characters,
+    # not four, so the sixth squad is "Σ" here rather than "ΣΤ".
+    return f"{base}{letter[0]}" if letter else base
+
+
+def assign_monograms(names: list[str]) -> dict[str, str]:
+    """Monograms for a whole association at once, avoiding repeats.
+
+    "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ", "ΑΣΤΕΡΑΣ ΙΩΑΝΝΙΝΩΝ" and "ΕΛΠΙΔΕΣ ΙΩΑΝΝΙΝΩΝ" all end in
+    the city every club here is from, so the last-word rule alone gave 28 clubs
+    the badge "ΙΩ". Where that happens the earlier words are tried instead,
+    which is exactly where those three differ.
+    """
+    # Squads of one club must share a base — "ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ Β" and "… Γ" are
+    # the same club — so bases are assigned per club, not per team.
+    stems: dict[str, list[str]] = {}
+    for name in names:
+        letter = squad(name)
+        stem = _SQUAD.sub("", strip_accents(name).upper()) if letter else name
+        stems.setdefault(stem, []).append(name)
+
+    # How many clubs each word appears in. "ΙΩΑΝΝΙΝΩΝ" is in 28 of them and so
+    # identifies none; a village name in one identifies that one exactly. This
+    # is the whole heuristic: the rarest word is the club's own.
+    frequency = Counter(w for s in stems for w in set(_significant_words(s)))
+
+    bases: dict[str, str] = {}
+    used: set[str] = set()
+    # Fewest alternatives first: a one-word club can only ever claim its own two
+    # letters, so let it take them before a longer name does.
+    for stem in sorted(stems, key=lambda s: (len(_significant_words(s)), s)):
+        words = _significant_words(stem)
+        # Rarest word first, later words winning a tie — a club is named for its
+        # village more often than for the word that opens the title.
+        ranked = sorted(
+            range(len(words)), key=lambda i: (frequency[words[i]], -i)
+        )
+        distinctive = [words[i][:2] for i in ranked if frequency[words[i]] < 3]
+        generic = [words[i][:2] for i in ranked if frequency[words[i]] >= 3]
+        combo = (
+            [words[0][:1] + words[-1][:1]] if len(words) >= 2 else []
+        )
+        # A word shared by three clubs or more is worse than an initialism: it
+        # would put the same two letters on several crests. So the club's own
+        # words come first, then its initials, and only then the shared word.
+        candidates = distinctive + combo + generic
+        candidates.append(monogram(stem))
+        base = next(
+            (c for c in candidates if c and c not in used), candidates[0] or "??"
+        )
+        used.add(base)
+        bases[stem] = base
+
+    out: dict[str, str] = {}
+    for stem, group in stems.items():
+        for name in group:
+            letter = squad(name)
+            out[name] = f"{bases[stem]}{letter[0]}" if letter else bases[stem]
+    return out
 
 
 def index(values: dict[str, str]) -> dict[str, str]:
