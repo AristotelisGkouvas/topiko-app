@@ -117,6 +117,48 @@ async def main() -> int:
         """)
         check(not dup_field, "κανένα external_id γηπέδου διπλό", str(len(dup_field)))
 
+        # The source numbers its competitions once for all time, so the same id
+        # under two seasons would mean we filed one competition twice.
+        spanning = await rows("""
+            select l.external_id, count(*) from leagues l
+            where l.external_id is not null
+            group by l.external_id having count(distinct l.season_id) > 1
+        """)
+        check(
+            not spanning,
+            "καμία διοργάνωση σε πάνω από μία περίοδο",
+            str(len(spanning)),
+        )
+
+        no_ext = await one("select count(*) from leagues where external_id is null")
+        check(no_ext == 0, "κάθε διοργάνωση έχει ταυτότητα πηγής", str(no_ext))
+
+        empty = await one("""
+            select count(*) from leagues l
+            where not exists (select 1 from matches m where m.league_id = l.id)
+        """)
+        check(empty == 0, "καμία διοργάνωση χωρίς αγώνες", str(empty))
+
+        # Two competitions holding byte-for-byte the same fixtures. Ours would
+        # be a filing error; the federation's is theirs, and copying it back is
+        # the honest thing to do — so this reports rather than fails.
+        twins = await rows("""
+            with signature as (
+              select m.league_id,
+                     md5(string_agg(
+                       m.matchday || ':' || m.home_team_id || ':' || m.away_team_id,
+                       ',' order by m.matchday, m.home_team_id, m.away_team_id)) h
+              from matches m group by m.league_id
+            )
+            select string_agg(s.slug || ' ' || l.short_name, ' = ')
+            from signature
+            join leagues l on l.id = signature.league_id
+            join seasons s on s.id = l.season_id
+            group by signature.h having count(*) > 1
+        """)
+        for (pair,) in twins:
+            notes.append(f"ίδιοι αγώνες σε δύο διοργανώσεις της πηγής: {pair}")
+
         # ---------------------------------------------------------------
         print("\n── Συνοχή ──")
 
