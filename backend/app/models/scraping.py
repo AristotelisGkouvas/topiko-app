@@ -65,6 +65,11 @@ class ScrapeRun(Base):
     # edit outranked it.
     matches_deferred: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     teams_created: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    players_created: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    #: Leaderboard rows written. The source publishes only the head of
+    #: each list, so this counts what it showed, not what was played.
+    stats_rows: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    suspensions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     conflicts_opened: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # Non-fatal problems: an unresolvable club, a row that would not split, a

@@ -16,7 +16,14 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from app.scraper.types import ScrapedLeague, ScrapedMatch, ScrapedStanding
+from app.scraper.types import (
+    ScrapedLeague,
+    ScrapedMatch,
+    ScrapedPlayer,
+    ScrapedPlayerStat,
+    ScrapedStanding,
+    ScrapedSuspension,
+)
 
 
 @runtime_checkable
@@ -72,3 +79,29 @@ class CatalogSource(Protocol):
     def parse_fields(self, html: str) -> dict[str, str]:
         """external venue id -> venue name."""
         ...
+
+
+@runtime_checkable
+class PeopleSource(Protocol):
+    """A source that also publishes players, leaderboards and bans.
+
+    Optional for the same reason CatalogSource is: plenty of federations put up
+    results and nothing else. Where it exists, every row carries the source's
+    own player_id and team_id, so none of it depends on matching names.
+    """
+
+    def players_path(self, page: int = 1) -> str: ...
+
+    def parse_player_pages(self, html: str) -> int:
+        """How many pages the register runs to."""
+        ...
+
+    def parse_players(self, html: str) -> list[ScrapedPlayer]: ...
+
+    def stats_path(self, league_external_id: str) -> str: ...
+
+    def parse_stats(self, html: str) -> list[ScrapedPlayerStat]: ...
+
+    def forfeits_path(self, league_external_id: str) -> str: ...
+
+    def parse_forfeits(self, html: str) -> list[ScrapedSuspension]: ...

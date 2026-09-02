@@ -90,3 +90,47 @@ class ScrapeResult:
 
     def warn(self, message: str) -> None:
         self.warnings.append(message)
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedPlayer:
+    """One row of the federation's player register."""
+
+    external_id: str
+    name: str
+    birth_year: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedPlayerStat:
+    """A player's line in one competition's published leaderboards.
+
+    Every count is optional and None means *unknown*, not zero: the source
+    publishes only the top of each list — ten scorers, twenty for minutes — so
+    a player absent from the yellow-card table may have none or may simply have
+    fewer than the tenth-placed player.
+    """
+
+    player_external_id: str
+    player_name: str
+    team_external_id: str | None = None
+    team_name: str | None = None
+    goals: int | None = None
+    own_goals: int | None = None
+    red_cards: int | None = None
+    yellow_cards: int | None = None
+    minutes: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedSuspension:
+    """One disciplinary ban, as the federation lists it."""
+
+    player_external_id: str
+    player_name: str
+    matches: int
+    matchday: int | None = None
+    decided_on: date | None = None
+    fixture: str | None = None
+    #: The game_id the row links to, when the federation printed one.
+    match_external_id: str | None = None

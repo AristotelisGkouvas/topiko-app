@@ -101,6 +101,12 @@ def report(slug: str, run: ScrapeRun, dry_run: bool) -> None:
     print(f"  Ενημερώθηκαν:   {run.matches_updated}")
     print(f"  Αμετάβλητοι:    {run.matches_unchanged}")
     print(f"  Νέα σωματεία:   {run.teams_created}")
+    if run.players_created:
+        print(f"  Νέοι παίκτες:    {run.players_created}")
+    if run.stats_rows:
+        print(f"  Στατιστικά:    {run.stats_rows}")
+    if run.suspensions:
+        print(f"  Ποινές:        {run.suspensions}")
     if run.matches_deferred:
         print(
             f"  Δεν πειράχτηκαν: {run.matches_deferred} "

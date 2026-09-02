@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.scraper.sync import _initials
+from app.scraper.naming import monogram
 
 
 @pytest.mark.parametrize(
@@ -31,16 +31,19 @@ from app.scraper.sync import _initials
         ("ΑΤΛΑΣ", "ΑΤ"),
         # Accents are dropped, because the crest is set in capitals.
         ("Πίνδος Κόνιτσας", "ΚΟ"),
+        # Squads of one club play each other, so one badge cannot serve both.
+        ("ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ Β", "ΙΩΒ"),
+        ("ΑΤΛΑΣ ΙΩΑΝΝΙΝΩΝ ΣΤ", "ΙΩΣ"),
     ],
 )
 def test_monogram(name, expected):
-    assert _initials(name) == expected
+    assert monogram(name) == expected
 
 
 def test_a_name_of_nothing_but_abbreviations_still_yields_something():
     """No word survives the filter, so fall back rather than return ''."""
-    assert _initials("Α.Ο.") == "ΑΟ"
+    assert monogram("Α.Ο.") == "ΑΟ"
 
 
 def test_the_monogram_is_never_empty():
-    assert _initials("") == "??"
+    assert monogram("") == "??"

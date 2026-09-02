@@ -9,4 +9,10 @@ python-dotenv==1.0.1
 greenlet==3.1.1
 beautifulsoup4==4.12.3
 pytest==8.3.4
+# The scraper and the API are async top to bottom; without this their tests
+# are silently *skipped* rather than failed, which is worse than not having them.
+pytest-asyncio==0.25.0
 httpx==0.28.1
+# Kickoff times are Greek wall-clock, so the scraper needs Europe/Athens.
+# Linux carries the tz database; Windows does not, and zoneinfo raises there.
+tzdata==2024.2

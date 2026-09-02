@@ -134,21 +134,25 @@ class Fetcher:
             try:
                 response = await self._client.get(url)
                 self.request_count += 1
-                if response.status_code in RETRY_STATUSES:
-                    last_error = FetchError(f"HTTP {response.status_code} for {url}")
-                    # Linear, not exponential: three tries at a couple of
-                    # seconds is the right amount of patience for a site that is
-                    # either up or down.
-                    await asyncio.sleep(self.delay_seconds * attempt)
-                    continue
-                response.raise_for_status()
-                # The federation sites declare UTF-8 correctly; trusting the
-                # declared charset avoids httpx guessing on short pages.
-                return response.text
+                if response.status_code not in RETRY_STATUSES:
+                    # Whatever else the server said is an answer rather than a
+                    # hiccup: a 404 will not become a 200 on the second ask.
+                    response.raise_for_status()
+                    # The federation sites declare UTF-8 correctly; trusting the
+                    # declared charset avoids httpx guessing on short pages.
+                    return response.text
+                last_error = FetchError(f"HTTP {response.status_code} for {url}")
             except httpx.HTTPStatusError as exc:
                 raise FetchError(f"HTTP {exc.response.status_code} for {url}") from exc
             except httpx.HTTPError as exc:
                 last_error = exc
+
+            if attempt < MAX_ATTEMPTS:
+                # Linear, not exponential: three tries at a couple of seconds is
+                # the right amount of patience for a site that is either up or
+                # down. Nothing follows the last attempt, so nothing waits for
+                # it either — that pause only delayed the error report, and on a
+                # backfill it did so once per unreachable page.
                 await asyncio.sleep(self.delay_seconds * attempt)
 
         raise FetchError(f"Giving up on {url} after {MAX_ATTEMPTS} attempts: {last_error}")

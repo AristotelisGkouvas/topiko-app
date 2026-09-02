@@ -182,10 +182,11 @@ async def list_teams(
     return list(result.scalars())
 
 
-@router.get("/{association_slug}/teams/{team_slug}", response_model=TeamDetailOut)
-async def get_team(
-    association: CurrentAssociation, team_slug: str, db: DbSession
-) -> TeamDetailOut:
+async def _load_team(
+    association: Association, team_slug: str, db: DbSession
+) -> Team:
+    """The club row, or a 404. Shared by the club page and its fixture list,
+    which want the same lookup and different things around it."""
     result = await db.execute(
         select(Team)
         .options(selectinload(Team.home_field))
@@ -197,6 +198,14 @@ async def get_team(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Δεν βρέθηκε ομάδα '{team_slug}'.",
         )
+    return team
+
+
+@router.get("/{association_slug}/teams/{team_slug}", response_model=TeamDetailOut)
+async def get_team(
+    association: CurrentAssociation, team_slug: str, db: DbSession
+) -> TeamDetailOut:
+    team = await _load_team(association, team_slug, db)
 
     # Newest first: a club page opens on the last season it played, which for
     # a club that has folded is the only way its history is reachable at all.
@@ -223,7 +232,7 @@ async def list_team_matches(
     season: CurrentSeason,
     db: DbSession,
 ) -> list[Match]:
-    team = await get_team(association, team_slug, db)
+    team = await _load_team(association, team_slug, db)
     result = await db.execute(
         select(Match)
         .options(*_MATCH_LOADS)

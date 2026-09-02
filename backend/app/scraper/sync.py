@@ -9,10 +9,10 @@ compared against the published one.
 from __future__ import annotations
 
 import logging
-import re
 from dataclasses import dataclass, field
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, time, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +23,9 @@ from app.models import (
     League,
     LeagueTeam,
     Match,
+    Player,
+    PlayerStat,
+    PlayerSuspension,
     ScrapeConflict,
     ScrapeRun,
     Season,
@@ -39,8 +42,8 @@ from app.models.enums import (
 from app.scraper import naming
 from app.scraper.decisions import Action, plan_match
 from app.scraper.http import Fetcher
-from app.scraper.labels import LeagueLabel, describe_league
-from app.scraper.sources.base import CatalogSource, Source
+from app.scraper.labels import LeagueLabel, describe_league, unique_label
+from app.scraper.sources.base import CatalogSource, PeopleSource, Source
 from app.scraper.types import ScrapedMatch
 from app.services.standings import recompute_standings
 
@@ -48,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 # Kickoff times are published as Greek wall-clock. Stored as UTC, which is what
 # the API and the frontend both expect.
-ATHENS_UTC_OFFSET_HOURS = 2
+ATHENS = ZoneInfo("Europe/Athens")
 
 # The source groups competitions under headings; these are the ones that map to
 # a numbered tier. Anything else (Κ16, Κύπελλο) keeps tier = None.
@@ -67,6 +70,9 @@ class Stats:
     matches_unchanged: int = 0
     matches_deferred: int = 0
     teams_created: int = 0
+    players_created: int = 0
+    stats_rows: int = 0
+    suspensions: int = 0
     conflicts_opened: int = 0
     #: Something the run could not do. Any of these downgrades it to PARTIAL.
     warnings: list[str] = field(default_factory=list)
@@ -89,16 +95,20 @@ class Stats:
 
 
 def _to_utc(day: Any, clock: time | None) -> datetime | None:
-    """Combine a published date and wall-clock time into a UTC instant."""
+    """Combine a published date and wall-clock time into a UTC instant.
+
+    The offset has to come from the tz database, not a constant: Greece is on
+    +03:00 from late March to late October, which covers the opening and the
+    closing weeks of every season. A fixed +02:00 puts those kickoffs an hour
+    late on the card — a reader arrives to find the match already at half time.
+
+    The DST switch happens at 03:00 on a Sunday, when nothing is played, so the
+    ambiguous and non-existent hours never carry a fixture.
+    """
     if day is None:
         return None
     naive = datetime.combine(day, clock or time(0, 0))
-    # Fixed offset rather than a tz database lookup: these are future fixtures
-    # whose real offset depends on a DST boundary the federation itself does not
-    # account for when it publishes "17:00".
-    return naive.replace(tzinfo=timezone.utc) - timedelta(
-        hours=ATHENS_UTC_OFFSET_HOURS
-    )
+    return naive.replace(tzinfo=ATHENS).astimezone(timezone.utc)
 
 
 class Resolver:
@@ -121,7 +131,7 @@ class Resolver:
         self._fields: list[Field] = []
         self._taken_field_slugs: set[str] = set()
 
-    async def load_teams(self, catalog: dict[str, str], source_key: str) -> None:
+    async def load_teams(self, catalog: dict[str, str]) -> None:
         """Reconcile the association's clubs against the source's club list."""
         existing = list(
             (
@@ -154,7 +164,7 @@ class Resolver:
                         association_id=self.association.id,
                         slug=slug,
                         name=name,
-                        initials=_initials(name),
+                        initials=naming.monogram(name),
                         external_id=external_id,
                     )
                     self.db.add(team)
@@ -266,7 +276,7 @@ class Resolver:
             association_id=self.association.id,
             slug=slug,
             name=name,
-            initials=_initials(name),
+            initials=naming.monogram(name),
         )
         self.db.add(team)
         await self.db.flush()
@@ -275,6 +285,15 @@ class Resolver:
         self.stats.teams_created += 1
         self.stats.note(f"Άγνωστο στο μητρώο, καταγράφηκε: {name!r}")
         return team
+
+    def team_by_external(self, external_id: str | None) -> int | None:
+        """A club id straight from the source's own team_id, no names involved."""
+        if not external_id:
+            return None
+        team = next(
+            (t for t in self._teams if t.external_id == external_id), None
+        )
+        return team.id if team else None
 
     async def field(self, external_id: str | None, name: str | None) -> Field | None:
         """The venue, created if the map does not list it.
@@ -321,34 +340,23 @@ class Resolver:
         return venue
 
 
-#: Splits on dots as well as spaces. "Α.Ε.Δ.ΠΩΓΩΝΑΤΟΣ" carries no space at
-#: all, so splitting on whitespace alone hands back the whole string and every
-#: club in the league ends up monogrammed "ΑΕ".
-_WORDS = re.compile(r"[.\s]+")
-
-
-def _initials(name: str) -> str:
-    """Two-letter monogram for the crest, from the most identifying word.
-
-    Club names lead with abbreviations ("Α.Ο.", "Π.Α.Σ.", "Α.Ε.Δ.") shared by
-    half the league and often trail a founding year, so what actually tells two
-    clubs apart is the last real word — usually the village.
-    """
-    words = [
-        w
-        for w in _WORDS.split(naming.strip_accents(name).upper())
-        # Three letters or more skips the "Α", "Ο", "Σ" left by the abbreviations;
-        # requiring a letter skips a founding year such as "2004".
-        if len(w) >= 3 and any(c.isalpha() for c in w)
-    ]
-    word = words[-1] if words else name.replace(".", "").strip()
-    return word[:2] or "??"
-
-
 #: Youngest last, so the tab strip reads down the ladder and then down the ages
 #: rather than in the order the federation's page happens to list them.
 _AGE_ORDER = ("Νέων", "Κ16", "Κ14", "Κ13", "Παίδων", "Κ12", "Προπαίδων",
               "Κ10", "Τζούνιορς", "Κ8", "Προτζούνιορς", "Κ6", "Μπαμπίνι")
+
+
+def _apply(run: ScrapeRun, values: dict[str, Any]) -> None:
+    for name, value in values.items():
+        setattr(run, name, value)
+
+
+def _newest_period(periods: dict[str, str]) -> str | None:
+    """The running season's period id. The highest id wins, whatever order the
+    dropdown happens to be in."""
+    if not periods:
+        return None
+    return max(periods.values(), key=int)
 
 
 def _sort_order(described: LeagueLabel) -> int:
@@ -381,6 +389,8 @@ class Syncer:
         self.fetcher = fetcher
         self.stats = Stats()
         self.resolver = Resolver(db, association, self.stats)
+        #: external player id -> row, filled by _load_players.
+        self._players: dict[str, Player] = {}
 
     async def sync(
         self,
@@ -403,8 +413,14 @@ class Syncer:
             started_at=datetime.now(timezone.utc),
             status=ScrapeRunStatus.RUNNING,
         )
-        self.db.add(run)
-        await self.db.flush()
+        if not dry_run:
+            # Committed on its own, before any work starts. Two things follow
+            # from that: a run killed mid-flight leaves a RUNNING row behind to
+            # say so, and rolling back a failed season can no longer take the
+            # record of the failure with it. A dry run writes nothing at all,
+            # this row included.
+            self.db.add(run)
+            await self.db.commit()
 
         try:
             index_html = await self.fetcher.get(
@@ -412,16 +428,23 @@ class Syncer:
             )
             periods = self._read_periods(index_html)
             targets = self._choose_periods(periods, config, seasons, all_seasons)
+            # Which season the page already in hand is showing. With no
+            # period_id configured the site serves its default, which is the
+            # running season — so a routine run was re-downloading the very
+            # page it had just parsed.
+            loaded_period_id = str(
+                config.get("period_id") or ""
+            ) or _newest_period(periods)
 
             # The club and venue registers are not season-scoped, so they are
             # read once however many seasons follow.
             await self._load_catalog()
+            await self._load_players()
 
             for slug, period_id, is_current in targets:
                 html = (
                     index_html
-                    if period_id == str(config.get("period_id") or "")
-                    or period_id is None
+                    if period_id is None or period_id == loaded_period_id
                     else await self.fetcher.get(
                         self.source.league_index_path(period_id)
                     )
@@ -446,37 +469,90 @@ class Syncer:
                     # is atomic.
                     await self.db.commit()
 
-            run.status = (
-                ScrapeRunStatus.PARTIAL if self.stats.warnings else ScrapeRunStatus.SUCCESS
-            )
         except Exception as exc:  # noqa: BLE001 - recorded, then re-raised
-            run.status = ScrapeRunStatus.FAILED
-            run.error = f"{type(exc).__name__}: {exc}"
             logger.exception("Το scrape απέτυχε")
+            await self._record_failure(
+                run,
+                {
+                    **self._tally(),
+                    "status": ScrapeRunStatus.FAILED,
+                    "error": f"{type(exc).__name__}: {exc}",
+                },
+                dry_run,
+            )
             raise
-        finally:
-            run.finished_at = datetime.now(timezone.utc)
-            run.http_requests = self.fetcher.request_count
-            run.matches_created = self.stats.matches_created
-            run.matches_updated = self.stats.matches_updated
-            run.matches_unchanged = self.stats.matches_unchanged
-            run.matches_deferred = self.stats.matches_deferred
-            run.teams_created = self.stats.teams_created
-            run.conflicts_opened = self.stats.conflicts_opened
-            # Both land in one column: to a reader they are all lines of the
-            # same report; only the status distinguishes them.
-            run.warnings = [*self.stats.warnings, *self.stats.notes]
 
-            if dry_run:
-                # Nothing is kept, not even the run record: a dry run exists to
-                # report what *would* happen, and a half-written audit trail is
-                # worse than none.
-                self.db.expunge(run)
-                await self.db.rollback()
-            else:
-                await self.db.commit()
+        _apply(
+            run,
+            {
+                **self._tally(),
+                "status": (
+                    ScrapeRunStatus.PARTIAL
+                    if self.stats.warnings
+                    else ScrapeRunStatus.SUCCESS
+                ),
+            },
+        )
+        if dry_run:
+            # Nothing is kept: a dry run exists to report what *would* happen,
+            # and a half-written audit trail is worse than none. `run` was never
+            # added to the session, so it survives the rollback in memory and
+            # the caller can still print it.
+            await self.db.rollback()
+        else:
+            await self.db.commit()
 
         return run
+
+    def _tally(self) -> dict[str, Any]:
+        """The run's closing numbers.
+
+        Handed back as plain values rather than written straight onto the row,
+        because the failure path has to roll the session back before it can
+        write anything — and a rollback expires the row, so a later read of
+        `run.status` would quietly reload RUNNING from the database.
+        """
+        return {
+            "finished_at": datetime.now(timezone.utc),
+            "http_requests": self.fetcher.request_count,
+            "matches_created": self.stats.matches_created,
+            "matches_updated": self.stats.matches_updated,
+            "matches_unchanged": self.stats.matches_unchanged,
+            "matches_deferred": self.stats.matches_deferred,
+            "teams_created": self.stats.teams_created,
+            "players_created": self.stats.players_created,
+            "stats_rows": self.stats.stats_rows,
+            "suspensions": self.stats.suspensions,
+            "conflicts_opened": self.stats.conflicts_opened,
+            # Both land in one column: to a reader they are all lines of the
+            # same report; only the status distinguishes them.
+            "warnings": [*self.stats.warnings, *self.stats.notes],
+        }
+
+    async def _record_failure(
+        self, run: ScrapeRun, tally: dict[str, Any], dry_run: bool
+    ) -> None:
+        """Write down what went wrong, without becoming what went wrong.
+
+        The partial season is discarded first. That is not only tidiness: a
+        database error leaves the session refusing every statement until it is
+        rolled back, so without this the write below could not happen at all.
+        On a backfill the seasons that already committed are untouched — the
+        same bargain the per-season commit makes.
+
+        Nothing raised in here is allowed out. An exception from a `finally`
+        replaces the one already in flight, which is how the useful error — the
+        one that actually ended the run — used to disappear behind a
+        PendingRollbackError from the bookkeeping.
+        """
+        try:
+            await self.db.rollback()
+            if dry_run:
+                return
+            _apply(run, tally)
+            await self.db.commit()
+        except Exception:  # noqa: BLE001 - logged; the caller's error matters more
+            logger.exception("Δεν γράφτηκε ούτε η εγγραφή της αποτυχίας")
 
     # --- setup ----------------------------------------------------------
 
@@ -503,9 +579,8 @@ class Syncer:
             self.stats.warn(f"Δεν βρέθηκε περίοδος στην πηγή· υποθέτω {slug}.")
             return [(slug, None, True)]
 
-        # The highest period id is the running season, whatever order the
-        # dropdown happens to be in.
-        newest = max(periods, key=lambda label: int(periods[label]))
+        newest_id = max(periods.values(), key=int)
+        by_id = {pid: label for label, pid in periods.items()}
 
         if all_seasons:
             chosen = sorted(periods, key=lambda label: int(periods[label]))
@@ -520,11 +595,11 @@ class Syncer:
                 self.stats.warn(f"Άγνωστη περίοδος {w!r}· παραλείπεται.")
         else:
             configured = str(config.get("period_id") or "")
-            chosen = [
-                next((l for l, pid in periods.items() if pid == configured), newest)
-            ]
+            chosen = [by_id.get(configured) or by_id[newest_id]]
 
-        return [(label, periods[label], label == newest) for label in chosen]
+        return [
+            (label, periods[label], periods[label] == newest_id) for label in chosen
+        ]
 
     async def _ensure_season(self, slug: str, is_current: bool) -> Season:
         season = (
@@ -603,16 +678,77 @@ class Syncer:
                 "Η πηγή δεν δημοσιεύει κατάλογο σωματείων· η αντιστοίχιση "
                 "βασίζεται μόνο σε ονόματα."
             )
-            await self.resolver.load_teams({}, "")
+            await self.resolver.load_teams({})
             await self.resolver.load_fields({})
             return
 
         teams_html = await self.fetcher.get(self.source.teams_path())
-        await self.resolver.load_teams(
-            self.source.parse_teams(teams_html), getattr(self.source, "key", "")
-        )
+        await self.resolver.load_teams(self.source.parse_teams(teams_html))
         fields_html = await self.fetcher.get(self.source.fields_path())
         await self.resolver.load_fields(self.source.parse_fields(fields_html))
+
+    async def _load_players(self) -> None:
+        """Read the whole player register, once per run.
+
+        Fifty pages of three hundred. Cheap enough to reread every time, and
+        rereading is what catches a renamed or newly registered player.
+        """
+        if not isinstance(self.source, PeopleSource):
+            return
+
+        first = await self.fetcher.get(self.source.players_path(1))
+        pages = self.source.parse_player_pages(first)
+        scraped = list(self.source.parse_players(first))
+        for page in range(2, pages + 1):
+            scraped.extend(
+                self.source.parse_players(
+                    await self.fetcher.get(self.source.players_path(page))
+                )
+            )
+
+        existing = {
+            p.external_id: p
+            for p in (
+                await self.db.execute(
+                    select(Player).where(
+                        Player.association_id == self.association.id
+                    )
+                )
+            ).scalars()
+            if p.external_id
+        }
+        taken = {
+            slug
+            for (slug,) in (
+                await self.db.execute(
+                    select(Player.slug).where(
+                        Player.association_id == self.association.id
+                    )
+                )
+            ).all()
+        }
+
+        for item in scraped:
+            if naming.is_corrupt(item.name):
+                continue
+            player = existing.get(item.external_id)
+            if player is None:
+                slug = naming.unique_slug(naming.slugify(item.name), taken)
+                taken.add(slug)
+                player = Player(
+                    association_id=self.association.id,
+                    slug=slug,
+                    external_id=item.external_id,
+                )
+                self.db.add(player)
+                existing[item.external_id] = player
+                self.stats.players_created += 1
+            player.name = item.name
+            if item.birth_year:
+                player.birth_year = item.birth_year
+
+        await self.db.flush()
+        self._players = existing
 
     async def _ensure_league(self, season: Season, scraped) -> League:
         siblings = list(
@@ -634,7 +770,10 @@ class Syncer:
         kind = (
             LeagueKind.CUP if "ΚΥΠΕΛΛΟ" in category else described.kind
         )
-        label = self._unique_label(described.label, siblings, league)
+        label = unique_label(
+            described.label,
+            {l.short_name for l in siblings if l is not league and l.short_name},
+        )
 
         if league is None:
             taken = {l.slug for l in siblings}
@@ -647,7 +786,8 @@ class Syncer:
             )
             self.db.add(league)
 
-        # Re-derived on every run, so improving the reader ever wrote them.
+        # Re-derived on every run, so improving the reader improves every
+        # competition it ever labelled, not just the ones scraped since.
         league.short_name = label
         league.kind = kind
         league.tier = described.tier or TIER_BY_CATEGORY.get(category)
@@ -657,29 +797,6 @@ class Syncer:
 
         await self.db.flush()
         return league
-
-    @staticmethod
-    def _unique_label(
-        label: str, siblings: list[League], self_row: League | None
-    ) -> str:
-        """Keep one label per competition per season.
-
-        The source sometimes publishes two competitions under one title —
-        "ΔΩΔΩΝΗ - ΠΡΟΤΖΟΥΝΙΟΡΣ 2015-16" names five of them — and no reading of
-        the name can tell those apart. A numeral is honest about that, where
-        two identical tabs are not.
-        """
-        used = {
-            l.short_name
-            for l in siblings
-            if l is not self_row and l.short_name
-        }
-        if label not in used:
-            return label
-        n = 2
-        while f"{label} ({n})" in used:
-            n += 1
-        return f"{label} ({n})"
 
     # --- one league -----------------------------------------------------
 
@@ -719,6 +836,109 @@ class Syncer:
         league.current_matchday = max(played, default=None)
 
         await self._sync_standings(league, external_id)
+        await self._sync_people(league, external_id)
+
+    async def _sync_people(self, league: League, external_id: str) -> None:
+        """The published leaderboards and the disciplinary list.
+
+        Both are keyed on the federation's own player_id, so nothing here
+        depends on reading a name — which matters more for players than for
+        clubs, since a register of fifteen thousand repeats names freely.
+        """
+        if not isinstance(self.source, PeopleSource) or not self._players:
+            return
+
+        try:
+            stats_html = await self.fetcher.get(self.source.stats_path(external_id))
+            scraped_stats = self.source.parse_stats(stats_html)
+        except Exception as exc:  # noqa: BLE001
+            self.stats.warn(f"Δεν διαβάστηκαν στατιστικά του {league.name}: {exc}")
+            scraped_stats = []
+
+        existing_stats = {
+            row.player_id: row
+            for row in (
+                await self.db.execute(
+                    select(PlayerStat).where(PlayerStat.league_id == league.id)
+                )
+            ).scalars()
+        }
+
+        for item in scraped_stats:
+            player = self._players.get(item.player_external_id)
+            if player is None:
+                # In a leaderboard but not in the register: the register is read
+                # first and in full, so this is the federation's inconsistency.
+                self.stats.warn(
+                    f"Παίκτης εκτός μητρώου στα στατιστικά: "
+                    f"{item.player_name!r} (id {item.player_external_id})"
+                )
+                continue
+            row = existing_stats.get(player.id)
+            if row is None:
+                row = PlayerStat(league_id=league.id, player_id=player.id)
+                self.db.add(row)
+                existing_stats[player.id] = row
+                self.stats.stats_rows += 1
+            row.team_id = self.resolver.team_by_external(item.team_external_id)
+            # Only overwrite with a number. A player who has dropped out of one
+            # board still holds the count that put them there.
+            for name in ("goals", "own_goals", "red_cards", "yellow_cards", "minutes"):
+                value = getattr(item, name)
+                if value is not None:
+                    setattr(row, name, value)
+
+        try:
+            bans_html = await self.fetcher.get(self.source.forfeits_path(external_id))
+            scraped_bans = self.source.parse_forfeits(bans_html)
+        except Exception as exc:  # noqa: BLE001
+            self.stats.warn(f"Δεν διαβάστηκαν ποινές του {league.name}: {exc}")
+            return
+
+        existing_bans = {
+            (b.player_id, b.matchday, b.decided_on): b
+            for b in (
+                await self.db.execute(
+                    select(PlayerSuspension).where(
+                        PlayerSuspension.league_id == league.id
+                    )
+                )
+            ).scalars()
+        }
+        by_game = {
+            m.external_id: m.id
+            for m in (
+                await self.db.execute(
+                    select(Match).where(
+                        Match.league_id == league.id,
+                        Match.external_id.is_not(None),
+                    )
+                )
+            ).scalars()
+        }
+
+        for item in scraped_bans:
+            player = self._players.get(item.player_external_id)
+            if player is None:
+                continue
+            key = (player.id, item.matchday, item.decided_on)
+            ban = existing_bans.get(key)
+            if ban is None:
+                ban = PlayerSuspension(
+                    league_id=league.id,
+                    player_id=player.id,
+                    matchday=item.matchday,
+                    decided_on=item.decided_on,
+                    matches=item.matches,
+                )
+                self.db.add(ban)
+                existing_bans[key] = ban
+                self.stats.suspensions += 1
+            ban.matches = item.matches
+            ban.fixture = item.fixture
+            ban.match_id = by_game.get(item.match_external_id or "")
+
+        await self.db.flush()
 
     async def _apply(
         self,

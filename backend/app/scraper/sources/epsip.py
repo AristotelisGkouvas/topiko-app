@@ -16,7 +16,14 @@ from datetime import date, time
 from bs4 import BeautifulSoup, Tag
 
 from app.models.enums import MatchStatus
-from app.scraper.types import ScrapedLeague, ScrapedMatch, ScrapedStanding
+from app.scraper.types import (
+    ScrapedLeague,
+    ScrapedMatch,
+    ScrapedPlayer,
+    ScrapedPlayerStat,
+    ScrapedStanding,
+    ScrapedSuspension,
+)
 
 # "1η Αγωνιστική"
 _MATCHDAY = re.compile(r"(\d+)\s*η\s+Αγωνιστ", re.IGNORECASE)
@@ -75,6 +82,33 @@ def _parse_time(value: str) -> time | None:
         return None
     hour, minute = int(m.group(1)), int(m.group(2))
     return time(hour, minute) if hour < 24 and minute < 60 else None
+
+
+# "players.php?page=17" — every page links every other, so the highest wins.
+_PLAYER_PAGE = re.compile(r"players\.php\?page=(\d+)")
+
+# Leading digits: "23", "10", "1980 '" for minutes, "25η" for a matchday.
+_COUNT = re.compile(r"(-?\d+)")
+
+#: The heading above each leaderboard, and the column it fills.
+_STAT_FIELDS = {
+    "Σκόρερς": "goals",
+    "Αυτογκόλ": "own_goals",
+    "Κόκκινες Κάρτες": "red_cards",
+    "Κίτρινες Κάρτες": "yellow_cards",
+    "Λεπτά Συμμετοχής": "minutes",
+}
+
+
+def _count(value: str) -> int | None:
+    m = _COUNT.search(value)
+    return int(m.group(1)) if m else None
+
+
+def _year(value: str) -> int | None:
+    """A four-digit birth year, or nothing. The register leaves it blank."""
+    m = re.fullmatch(r"\s*(\d{4})\s*", value)
+    return int(m.group(1)) if m else None
 
 
 class EpsipSource:
@@ -274,3 +308,112 @@ class EpsipSource:
             if field_id and name:
                 fields.setdefault(field_id, name)
         return fields
+
+    # --- players, statistics and suspensions -----------------------------
+
+    def players_path(self, page: int = 1) -> str:
+        return f"/players/players.php?page={page}"
+
+    def parse_player_pages(self, html: str) -> int:
+        """How many pages the register is spread over.
+
+        The site paginates 300 at a time and links every page from every page,
+        so the highest number in those links is the total.
+        """
+        return max(
+            (int(m.group(1)) for m in _PLAYER_PAGE.finditer(html)),
+            default=1,
+        )
+
+    def parse_players(self, html: str) -> list[ScrapedPlayer]:
+        soup = BeautifulSoup(html, "html.parser")
+        players: list[ScrapedPlayer] = []
+        for row in soup.find_all("tr"):
+            cells = row.find_all("td")
+            if len(cells) < 3:
+                continue
+            external_id = _param(cells[1], "player_id")
+            name = _text(cells[1])
+            if not external_id or not name:
+                continue
+            players.append(
+                ScrapedPlayer(
+                    external_id=external_id,
+                    name=name,
+                    birth_year=_year(_text(cells[2])),
+                )
+            )
+        return players
+
+    def stats_path(self, league_external_id: str) -> str:
+        return f"/results/stats/display_stats.php?league_id={league_external_id}"
+
+    def parse_stats(self, html: str) -> list[ScrapedPlayerStat]:
+        """Merge the five published leaderboards into one row per player.
+
+        Each table is a separate top-N list under its own heading, so a player
+        appears in as many as they place in. Counts they do not place in stay
+        None — see ScrapedPlayerStat.
+        """
+        soup = BeautifulSoup(html, "html.parser")
+        merged: dict[str, dict] = {}
+
+        for heading in soup.find_all(["h2", "h3"]):
+            field = _STAT_FIELDS.get(_text(heading))
+            if field is None:
+                continue
+            table = heading.find_next("table")
+            if table is None:
+                continue
+            for row in table.find_all("tr"):
+                cells = row.find_all("td")
+                if len(cells) < 4:
+                    continue
+                player_id = _param(cells[1], "player_id")
+                if not player_id:
+                    continue
+                value = _count(_text(cells[3]))
+                if value is None:
+                    continue
+                entry = merged.setdefault(
+                    player_id,
+                    {
+                        "player_external_id": player_id,
+                        "player_name": _text(cells[1]),
+                        "team_external_id": _param(cells[2], "team_id"),
+                        "team_name": _text(cells[2]) or None,
+                    },
+                )
+                entry[field] = value
+
+        return [ScrapedPlayerStat(**entry) for entry in merged.values()]
+
+    def forfeits_path(self, league_external_id: str) -> str:
+        return (
+            "/results/display_player_forfeits.php"
+            f"?league_id={league_external_id}"
+        )
+
+    def parse_forfeits(self, html: str) -> list[ScrapedSuspension]:
+        soup = BeautifulSoup(html, "html.parser")
+        out: list[ScrapedSuspension] = []
+        for row in soup.find_all("tr"):
+            cells = row.find_all("td")
+            if len(cells) < 5:
+                continue
+            player_id = _param(cells[3], "player_id")
+            matches = _count(_text(cells[4]))
+            if not player_id or matches is None:
+                continue
+            out.append(
+                ScrapedSuspension(
+                    player_external_id=player_id,
+                    player_name=_text(cells[3]),
+                    matches=matches,
+                    matchday=_count(_text(cells[1])),
+                    decided_on=_parse_date(_text(cells[0])),
+                    fixture=_text(cells[2]) or None,
+                    match_external_id=_param(cells[2], "game_id"),
+                )
+            )
+        return out

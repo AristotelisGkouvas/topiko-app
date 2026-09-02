@@ -171,3 +171,19 @@ def describe_league(name: str) -> LeagueLabel:
         group_name=group_name,
         tier=tier,
     )
+
+
+def unique_label(label: str, used: set[str]) -> str:
+    """Keep one label per competition per season.
+
+    The source sometimes publishes two competitions under one title —
+    "ΔΩΔΩΝΗ - ΠΡΟΤΖΟΥΝΙΟΡΣ 2015-16" names five of them — and no reading of the
+    name can tell those apart. A numeral is honest about that, where two
+    identical tabs are not.
+    """
+    if label not in used:
+        return label
+    n = 2
+    while f"{label} ({n})" in used:
+        n += 1
+    return f"{label} ({n})"

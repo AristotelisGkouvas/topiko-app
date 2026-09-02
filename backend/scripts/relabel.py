@@ -20,7 +20,7 @@ from sqlalchemy import select
 from app.core.console import use_utf8_stdout
 from app.core.db import SessionLocal
 from app.models import Association, League, Season, Team
-from app.scraper.labels import describe_league
+from app.scraper.labels import describe_league, unique_label
 from app.scraper.naming import assign_monograms
 from app.scraper.sync import _sort_order
 
@@ -45,14 +45,7 @@ async def relabel_leagues(db, association: Association, dry_run: bool) -> int:
         used: set[str] = set()
         for league in leagues:
             described = describe_league(league.name)
-            label = described.label
-            if label in used:
-                # The source publishes some titles twice over; a numeral is
-                # honest about that where two identical tabs are not.
-                n = 2
-                while f"{label} ({n})" in used:
-                    n += 1
-                label = f"{label} ({n})"
+            label = unique_label(described.label, used)
             used.add(label)
 
             before = (
@@ -61,7 +54,11 @@ async def relabel_leagues(db, association: Association, dry_run: bool) -> int:
             )
             league.short_name = label
             league.kind = described.kind
-            league.tier = described.tier
+            # Only the syncer sees the heading a competition is listed
+            # under, and for the open-age divisions that heading is the only
+            # place the tier is written. Overwriting with None here would
+            # silently unrank divisions that were read correctly.
+            league.tier = described.tier or league.tier
             league.age_group = described.age_group
             league.group_name = described.group_name
             league.sort_order = _sort_order(described)

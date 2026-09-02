@@ -25,6 +25,7 @@ from app.models.match import (
     ScrapeConflict,
     Standing,
 )
+from app.models.player import Player, PlayerStat, PlayerSuspension
 from app.models.scraping import ScrapeRun, TeamAlias
 from app.models.user import AuditLog, User, UserAssociation
 
@@ -42,6 +43,9 @@ __all__ = [
     "LeagueTeam",
     "Match",
     "MatchStatus",
+    "Player",
+    "PlayerStat",
+    "PlayerSuspension",
     "ScrapeConflict",
     "ScrapeRun",
     "ScrapeRunStatus",
