@@ -32,6 +32,28 @@ class Settings(BaseSettings):
         "aggregator for Greek amateur football results)"
     )
 
+    # --- Scheduled scraping -------------------------------------------------
+    #
+    # Amateur football is not a continuous feed: almost everything is played
+    # across a weekend afternoon, and for most of the week the source publishes
+    # nothing at all. Polling one fixed interval therefore has to choose between
+    # being slow when it matters and hammering a federation's site when it does
+    # not — so the scheduler reads the fixture list and picks.
+    #
+    # How often to look while at least one fixture is in its kickoff window.
+    scraper_live_interval_seconds: int = 300
+    # How often to look when none is. Late results, corrections and next week's
+    # programme still arrive, just not by the minute.
+    scraper_idle_interval_seconds: int = 21600
+    # How long after kickoff a fixture still counts as possibly in play. Ninety
+    # minutes plus halftime, stoppages and a referee writing the sheet up.
+    scraper_match_window_hours: float = 3.0
+    # How long before kickoff to start looking, so a postponement announced at
+    # the last minute is not missed.
+    scraper_lead_minutes: int = 30
+    # Ceiling for the exponential backoff applied after a failed run.
+    scraper_max_backoff_seconds: int = 3600
+
     # NoDecode: without it pydantic-settings tries to JSON-parse the env var
     # before the validator below gets to split the comma-separated form.
     cors_origins: Annotated[list[str], NoDecode] = Field(
