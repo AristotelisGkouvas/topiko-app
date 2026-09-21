@@ -79,3 +79,19 @@
     gap: 22px;
   }
 }
+
+/* A sideways link out of a page to its companion table. */
+.crossLink {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+
+.crossLink a {
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.crossLink a:hover {
+  color: var(--color-link-hover);
+}

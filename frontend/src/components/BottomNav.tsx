@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { NAV_ITEMS, isActive } from "@/lib/nav";
+import { PRIMARY_NAV_ITEMS, isActive } from "@/lib/nav";
 import styles from "./BottomNav.module.css";
 
 /** Sticky tab bar for narrow viewports. Five destinations, 48px hit targets,
@@ -13,7 +13,7 @@ export function BottomNav({ liveCount = 0 }: { liveCount?: number }) {
 
   return (
     <nav className={styles.bar} aria-label="Πλοήγηση">
-      {NAV_ITEMS.map((item) => {
+      {PRIMARY_NAV_ITEMS.map((item) => {
         const active = isActive(item, pathname);
         const showBadge = liveCount > 0 && item.href === "/apotelesmata";
         return (

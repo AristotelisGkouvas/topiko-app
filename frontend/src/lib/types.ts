@@ -143,3 +143,37 @@ export interface Meta {
   last_scraped_at: string | null;
   live_matches: number;
 }
+
+export interface PlayerRef {
+  id: number;
+  slug: string;
+  name: string;
+  birth_year: number | null;
+}
+
+/** One row of the σκόρερ table.
+ *
+ *  Every count is nullable because the federation does not publish the same
+ *  columns for every competition. A zero would claim the player has no cards;
+ *  null says the column was not published, and only the second may be rendered
+ *  as a dash.
+ */
+export interface Scorer {
+  player: PlayerRef;
+  team: TeamRef | null;
+  goals: number | null;
+  own_goals: number | null;
+  yellow_cards: number | null;
+  red_cards: number | null;
+  minutes: number | null;
+}
+
+export interface MatchDetail {
+  match: Match;
+  league: League;
+  /** Earlier meetings of the same two clubs, newest first. Home and away are
+   *  as they were played, not as in the fixture being viewed. */
+  head_to_head: Match[];
+  home_standing: Standing | null;
+  away_standing: Standing | null;
+}

@@ -136,7 +136,14 @@ export function MatchCard({ match }: { match: Match }) {
         </div>
       )}
 
-      {footer && <footer className={styles.footer}>{footer}</footer>}
+      {/* A link in the footer rather than the whole card: the team names are
+          already links, and an anchor cannot contain another one. */}
+      <footer className={styles.footer}>
+        {footer && <span className={styles.footerText}>{footer}</span>}
+        <Link href={`/agones/${match.id}`} className={styles.detail}>
+          Λεπτομέρειες
+        </Link>
+      </footer>
     </article>
   );
 }

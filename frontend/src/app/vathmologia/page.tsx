@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { LastUpdated } from "@/components/LastUpdated";
 import { LeagueTabs } from "@/components/LeagueTabs";
@@ -54,6 +55,14 @@ export default async function StandingsPage({
         <SeasonPicker seasons={seasons} active={season} />
         <LeagueTabs leagues={leagues} active={league.slug} />
       </div>
+
+      {/* The only route to the scorers on a phone: the tab bar is five slots
+          and this is the table people arrive at first. */}
+      <p className={styles.crossLink}>
+        <Link href={`/skorer?liga=${league.slug}${season ? `&periodos=${season}` : ""}`}>
+          Σκόρερ {leagueLabel(league)} →
+        </Link>
+      </p>
 
       {standings.length > 0 ? (
         <StandingsTable standings={standings} league={league} />

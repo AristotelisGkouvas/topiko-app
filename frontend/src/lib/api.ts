@@ -3,8 +3,10 @@ import type {
   Field,
   League,
   Match,
+  MatchDetail,
   MatchStatus,
   Meta,
+  Scorer,
   Season,
   Standing,
   Team,
@@ -145,6 +147,14 @@ export const api = {
     request<Field[]>(scoped("/fields"), { searchParams: { q } }),
 
   getField: (fieldSlug: string) => request<Field>(scoped(`/fields/${fieldSlug}`)),
+
+  listScorers: (leagueSlug: string, params: { season?: string; limit?: number } = {}) =>
+    request<Scorer[]>(scoped(`/leagues/${leagueSlug}/scorers`), {
+      searchParams: { season: params.season, limit: params.limit },
+    }),
+
+  getMatch: (matchId: number) =>
+    request<MatchDetail>(scoped(`/matches/${matchId}`)),
 
   getMeta: () => request<Meta>(scoped("/meta"), { revalidate: 0 }),
 };

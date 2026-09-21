@@ -1,0 +1,250 @@
+.breadcrumb {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.breadcrumb a {
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-link-hover);
+}
+
+.scoreboard {
+  display: grid;
+  /* The middle column sizes to the score; the two sides split what is left,
+     so a long club name never pushes the score off centre. */
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 22px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  min-width: 0;
+}
+
+.sideName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--color-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.sideName:hover {
+  color: var(--color-link-hover);
+}
+
+.position {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 6px;
+}
+
+.score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.scoreLive {
+  color: var(--color-live-surface);
+}
+
+.dash {
+  padding: 0 6px;
+  color: var(--color-grey-400);
+}
+
+.kickoff {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--color-heading);
+  margin: 0;
+}
+
+.state {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.halftime {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.fact {
+  background: var(--color-surface);
+  padding: 12px 14px;
+}
+
+.fact dt {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-grey-600);
+  margin-bottom: 3px;
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.fact dd a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.fact dd a:hover {
+  color: var(--color-link-hover);
+}
+
+.note,
+.provenance {
+  margin: 12px 2px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.provenance {
+  padding: 10px 12px;
+  background: var(--color-amber-200);
+  color: var(--color-grey-800);
+  border-radius: var(--radius-md, 8px);
+}
+
+.history {
+  margin-top: 26px;
+}
+
+.historyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-grey-100);
+  font-size: 13px;
+}
+
+.historyRow:last-child {
+  border-bottom: none;
+}
+
+.historyDate {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.historyVenue {
+  font-size: 10.5px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--color-grey-600);
+}
+
+.historyScore {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* Dark ink on light grounds throughout: white on green-600 is 4.3:1 and on
+   the loss brick it is worse, both short of the bar for text this small. */
+.win {
+  background: var(--color-green-100);
+  color: var(--color-grey-800);
+}
+
+.draw {
+  background: var(--color-amber-200);
+  color: var(--color-grey-800);
+}
+
+.loss {
+  background: #f6dcd8;
+  color: var(--color-grey-800);
+}
+
+.historyLink {
+  font-size: 11.5px;
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.historyLink:hover {
+  color: var(--color-link-hover);
+}
+
+@media (max-width: 400px) {
+  .historyLink {
+    display: none;
+  }
+
+  .historyRow {
+    grid-template-columns: 1fr auto auto;
+  }
+}
