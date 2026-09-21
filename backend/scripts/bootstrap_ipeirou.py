@@ -22,12 +22,18 @@ from app.models import Association, League, Match
 
 SLUG = "epsip-ipeirou"
 
+# No period_id and no league_ids on purpose. Both are the source's own
+# identifiers for one season, so pinning them here freezes the scraper on the
+# season that happened to be running when this file was written — it kept
+# re-reading 2025-2026 after the federation had moved on, and a run aimed at
+# the new season came back with "no competitions" because the league ids no
+# longer existed either. Without them the newest season is followed
+# automatically and every division the federation publishes is read, which is
+# what exclude_categories below is for.
 CONFIG = {
     "source": "epsip",
     "base_url": "https://epsip.gr",
-    "period_id": "12",
     "request_delay_seconds": 2,
-    "league_ids": ["300", "301"],
     # Hosted on epsip.gr but not competitions of this federation: the entrants
     # are Superleague clubs, and importing them would file Ολυμπιακός and ΠΑΟΚ
     # among the clubs of ΕΠΣ Ηπείρου. Matched case-insensitively against

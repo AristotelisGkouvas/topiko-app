@@ -149,7 +149,8 @@ async def seed(reset: bool) -> int:
                 # It never carries selectors: parsing is code, not config.
                 "source": "epsip",
                 "base_url": "https://epsip.gr",
-                "period_id": "12",
+                # No period_id: it is the source's id for one season, and
+                # pinning it freezes the scraper on that season for good.
                 "request_delay_seconds": 2,
             },
             primary_color="#1D4A33",

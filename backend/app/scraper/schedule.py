@@ -52,17 +52,24 @@ async def active_association_slugs() -> list[str]:
         return [slug for (slug,) in rows.all()]
 
 
-async def fixtures_in_window(slugs: list[str], now: datetime) -> int:
-    """How many fixtures are inside their kickoff window right now."""
+async def leagues_in_window(slugs: list[str], now: datetime) -> list[str]:
+    """Slugs of the competitions with a fixture inside its kickoff window.
+
+    The list, not just a count, because it is also the answer to *what to
+    fetch*. A full sweep of this federation is around sixty requests; repeating
+    that every five minutes on a Sunday would keep a small site busy half the
+    afternoon to re-read divisions that are not playing.
+    """
     if not slugs:
-        return 0
+        return []
 
     earliest = now - timedelta(hours=settings.scraper_match_window_hours)
     latest = now + timedelta(minutes=settings.scraper_lead_minutes)
 
     async with SessionLocal() as db:
-        result = await db.execute(
-            select(func.count())
+        rows = await db.execute(
+            select(League.slug)
+            .distinct()
             .select_from(Match)
             .join(League, Match.league_id == League.id)
             .join(Association, League.association_id == Association.id)
@@ -77,7 +84,7 @@ async def fixtures_in_window(slugs: list[str], now: datetime) -> int:
                 or_(Match.home_score.is_(None), Match.away_score.is_(None)),
             )
         )
-        return int(result.scalar_one())
+        return [slug for (slug,) in rows.all()]
 
 
 def summarise(slug: str, run: ScrapeRun) -> str:
@@ -122,12 +129,17 @@ def choose_delay(pending: int, failures: int) -> tuple[float, str]:
     return float(settings.scraper_idle_interval_seconds), "καμία σέντρα τώρα"
 
 
-async def scrape_once(slugs: list[str]) -> bool:
-    """Sync every association in turn. True if all of them succeeded."""
+async def scrape_once(slugs: list[str], league_slugs: list[str] | None = None) -> bool:
+    """Sync every association in turn. True if all of them succeeded.
+
+    `league_slugs` narrows a live-window pass to the divisions being played.
+    None means the full sweep, which is what the idle cadence wants: that is
+    when a new season, a rescheduled fixture or a late correction shows up.
+    """
     ok = True
     for slug in slugs:
         try:
-            run = await run_one(slug, league_slugs=None, dry_run=False)
+            run = await run_one(slug, league_slugs=league_slugs, dry_run=False)
         except Exception:
             # One federation being down must not stop the others, and must not
             # stop the loop either — the next tick tries again.
@@ -151,6 +163,9 @@ class Scheduler:
         self.once = once
         self.stopping = asyncio.Event()
         self.failures = 0
+        #: Competitions being played right now. Empty means the next pass is a
+        #: full sweep.
+        self.live_leagues: list[str] = []
 
     def request_stop(self) -> None:
         if not self.stopping.is_set():
@@ -161,8 +176,10 @@ class Scheduler:
         """Seconds to wait before the next run, and why."""
         if self.failures:
             return choose_delay(0, self.failures)
-        pending = await fixtures_in_window(slugs, datetime.now(UTC))
-        return choose_delay(pending, 0)
+        return choose_delay(len(self.live_leagues), 0)
+
+    async def refresh_live_leagues(self, slugs: list[str]) -> None:
+        self.live_leagues = await leagues_in_window(slugs, datetime.now(UTC))
 
     async def sleep(self, seconds: float) -> None:
         """Wait, but wake immediately on shutdown."""
@@ -186,7 +203,14 @@ class Scheduler:
 
         while not self.stopping.is_set():
             started = datetime.now(UTC)
-            ok = await scrape_once(slugs)
+            # Decided before the pass, not after: what is in its kickoff window
+            # now is what this pass should go and read.
+            await self.refresh_live_leagues(slugs)
+            narrowed = self.live_leagues or None
+            if narrowed:
+                logger.info("Ζωντανές κατηγορίες: %s", ", ".join(narrowed))
+
+            ok = await scrape_once(slugs, narrowed)
             self.failures = 0 if ok else self.failures + 1
 
             if self.once or self.stopping.is_set():
