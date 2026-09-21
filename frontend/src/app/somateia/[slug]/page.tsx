@@ -8,8 +8,8 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
 import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
-import { readParam, type SearchParams } from "@/lib/leagues";
-import type { League, Standing, TeamDetail } from "@/lib/types";
+import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
+import type { League, Match, Standing, TeamDetail } from "@/lib/types";
 import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
 
@@ -35,10 +35,15 @@ async function findStanding(
   season: string | undefined,
 ): Promise<{ league: League; standing: Standing } | null> {
   const leagues = await api.listLeagues(season);
-  for (const league of leagues) {
-    const standings = await api.getStandings(league.slug, season);
+  // In parallel: a season here publishes seventeen competitions, and asking
+  // for them one after another made a club page wait seventeen round trips to
+  // answer a question that is the same for all of them.
+  const tables = await Promise.all(
+    leagues.map((league) => api.getStandings(league.slug, season)),
+  );
+  for (const [i, standings] of tables.entries()) {
     const standing = standings.find((row) => row.team.id === team.id);
-    if (standing) return { league, standing };
+    if (standing) return { league: leagues[i], standing };
   }
   return null;
 }
@@ -105,9 +110,10 @@ export default async function TeamPage({
   const played = matches.filter(
     (m) => m.home_score !== null && m.away_score !== null,
   );
-  const upcoming = matches.filter(
-    (m) => m.home_score === null && m.status !== "cancelled",
-  );
+  // "No score" is not the same as "still to come": whole youth divisions are
+  // never scored, so on an archived season every fixture the club ever played
+  // qualified and "Επόμενοι αγώνες" filled up with matches from 2016.
+  const upcoming = stillToCome(matches);
 
   return (
     <div className={pageStyles.page}>
@@ -132,7 +138,7 @@ export default async function TeamPage({
                 href={`/vathmologia?liga=${placement.league.slug}`}
                 className={styles.chipLink}
               >
-                {placement.league.name}
+                {leagueLabel(placement.league)}
               </Link>
             </p>
           )}
@@ -217,6 +223,22 @@ export default async function TeamPage({
         />
       </section>
     </div>
+  );
+}
+
+/** Fixtures a reader would call upcoming.
+ *
+ *  Reading the clock is why this is a plain function rather than inline in the
+ *  component: a component body has to be pure, and this page is force-dynamic
+ *  precisely so the answer is recomputed per request.
+ */
+function stillToCome(matches: Match[]): Match[] {
+  const now = Date.now();
+  return matches.filter(
+    (m) =>
+      m.home_score === null &&
+      m.status !== "cancelled" &&
+      (m.kickoff_at === null || new Date(m.kickoff_at).getTime() >= now),
   );
 }
 
