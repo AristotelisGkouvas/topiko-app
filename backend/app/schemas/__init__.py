@@ -9,7 +9,8 @@ from app.schemas.catalog import (
     TeamRef,
 )
 from app.schemas.common import Meta, ORMModel
-from app.schemas.match import MatchOut, StandingOut
+from app.schemas.match import MatchDetailOut, MatchOut, StandingOut
+from app.schemas.player import PlayerRef, ScorerOut
 
 __all__ = [
     "AssociationOut",
@@ -17,8 +18,11 @@ __all__ = [
     "FieldRef",
     "LeagueOut",
     "Meta",
+    "MatchDetailOut",
     "MatchOut",
     "ORMModel",
+    "PlayerRef",
+    "ScorerOut",
     "SeasonOut",
     "StandingOut",
     "TeamDetailOut",

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from app.models.enums import DataSource, MatchStatus, StandingZone
-from app.schemas.catalog import FieldRef, TeamRef
+from app.schemas.catalog import FieldRef, LeagueOut, TeamRef
 from app.schemas.common import ORMModel
 
 
@@ -45,3 +45,21 @@ class StandingOut(ORMModel):
     points: int
     form: str | None = None
     zone: StandingZone | None = None
+
+
+class MatchDetailOut(ORMModel):
+    """One match, with the context a reader wants once they stop scanning a list.
+
+    A card in a fixture list answers "what is the score". Opening it asks
+    different questions — which division is this, how have these two done
+    against each other, where do they stand — so the extra queries happen here
+    rather than being loaded for every row of every list.
+    """
+
+    match: MatchOut
+    league: LeagueOut
+    #: Earlier meetings of the same two clubs, newest first, across seasons.
+    #: Home and away are as played, not as in this fixture.
+    head_to_head: list[MatchOut] = []
+    home_standing: StandingOut | None = None
+    away_standing: StandingOut | None = None

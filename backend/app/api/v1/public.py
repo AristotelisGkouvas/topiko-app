@@ -23,6 +23,8 @@ from app.models import (
     League,
     LeagueTeam,
     Match,
+    Player,
+    PlayerStat,
     Season,
     Standing,
     Team,
@@ -32,8 +34,10 @@ from app.schemas import (
     AssociationOut,
     FieldOut,
     LeagueOut,
+    MatchDetailOut,
     MatchOut,
     Meta,
+    ScorerOut,
     SeasonOut,
     StandingOut,
     TeamDetailOut,
@@ -278,6 +282,122 @@ async def get_field(
             detail=f"Δεν βρέθηκε γήπεδο '{field_slug}'.",
         )
     return field
+
+
+@router.get(
+    "/{association_slug}/leagues/{league_slug}/scorers",
+    response_model=list[ScorerOut],
+)
+async def list_scorers(
+    league: CurrentLeague,
+    db: DbSession,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> list[PlayerStat]:
+    """The σκόρερ table for one competition.
+
+    Ordered by goals with the name as the tie-break, so a table that is mostly
+    ties does not reshuffle between two requests — a list that reorders itself
+    on refresh reads as though something changed.
+
+    Rows with no goals recorded are left out rather than shown as zero: the
+    source publishes the head of the list, so their absence from it is not
+    evidence that the player did not score.
+    """
+    result = await db.execute(
+        select(PlayerStat)
+        .options(
+            selectinload(PlayerStat.player),
+            selectinload(PlayerStat.team),
+        )
+        .join(Player, PlayerStat.player_id == Player.id)
+        .where(
+            PlayerStat.league_id == league.id,
+            PlayerStat.goals.is_not(None),
+            PlayerStat.goals > 0,
+        )
+        .order_by(PlayerStat.goals.desc(), Player.name)
+        .limit(limit)
+    )
+    return list(result.scalars())
+
+
+@router.get("/{association_slug}/matches/{match_id}", response_model=MatchDetailOut)
+async def get_match(
+    association: CurrentAssociation,
+    match_id: int,
+    db: DbSession,
+) -> MatchDetailOut:
+    """One match with its context.
+
+    The association is joined rather than trusted from the id: match ids are
+    sequential across every tenant, so without it /epsa/matches/17 would answer
+    with a fixture from another federation.
+    """
+    match = (
+        await db.execute(
+            select(Match)
+            .options(*_MATCH_LOADS, selectinload(Match.league).selectinload(League.season))
+            .join(League, Match.league_id == League.id)
+            .where(Match.id == match_id, League.association_id == association.id)
+        )
+    ).scalar_one_or_none()
+
+    if match is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Δεν βρέθηκε αγώνας με id {match_id}.",
+        )
+
+    # Earlier meetings, either way round, this fixture excluded.
+    pair = (match.home_team_id, match.away_team_id)
+    history = list(
+        (
+            await db.execute(
+                select(Match)
+                .options(*_MATCH_LOADS)
+                .join(League, Match.league_id == League.id)
+                .where(
+                    League.association_id == association.id,
+                    Match.id != match.id,
+                    Match.home_team_id.in_(pair),
+                    Match.away_team_id.in_(pair),
+                    Match.home_score.is_not(None),
+                )
+                .order_by(Match.kickoff_at.desc().nulls_last(), Match.id.desc())
+                .limit(5)
+            )
+        ).scalars()
+    )
+
+    standings = {
+        row.team_id: row
+        for row in (
+            await db.execute(
+                select(Standing)
+                .options(selectinload(Standing.team))
+                .where(
+                    Standing.league_id == match.league_id,
+                    Standing.team_id.in_(pair),
+                )
+            )
+        ).scalars()
+    }
+
+    return MatchDetailOut(
+        match=MatchOut.model_validate(match),
+        league=LeagueOut.model_validate(match.league),
+        head_to_head=[MatchOut.model_validate(m) for m in history],
+        home_standing=(
+            StandingOut.model_validate(standings[match.home_team_id])
+            if match.home_team_id in standings
+            else None
+        ),
+        away_standing=(
+            StandingOut.model_validate(standings[match.away_team_id])
+            if match.away_team_id in standings
+            else None
+        ),
+    )
 
 
 @router.get("/{association_slug}/meta", response_model=Meta)
