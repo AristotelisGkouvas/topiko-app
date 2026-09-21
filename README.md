@@ -10,11 +10,11 @@
 |---|---|---|
 | 1 | Multi-tenant schema | ✅ |
 | 2 | Read-only public API | ✅ |
-| 2 | Scraper (engine + config ανά ένωση) | ⬜ |
+| 2 | Scraper (engine + adapter ανά πλατφόρμα) | ✅ epsip.gr |
 | 2 | Next.js public frontend | ✅ |
 | 3 | Auth, ρόλοι, audit log | 🟡 πίνακες υπάρχουν, endpoints όχι |
 | 4 | Editor dashboard | ⬜ |
-| 5 | Reconciliation scraper ↔ manual | 🟡 ο κανόνας υπάρχει, ο scraper όχι |
+| 5 | Reconciliation scraper ↔ manual | ✅ |
 | 6 | Live polling στο frontend | ✅ |
 
 ## Setup
@@ -44,6 +44,18 @@ cp .env.example .env.local
 npm run dev
 ```
 
+Και για να γεμίσει η βάση από το epsip.gr αντί για dev data:
+
+```bash
+cd backend
+./.venv/Scripts/python.exe -m scripts.bootstrap_ipeirou
+./.venv/Scripts/python.exe -m app.scraper.run --association epsip-ipeirou --dry-run
+```
+
+Το `--dry-run` κατεβάζει και αναλύει χωρίς να γράψει τίποτα· βγάλ' το όταν η
+αναφορά δείχνει αυτό που περιμένεις. Βάλε πρώτα πραγματικό email στο
+`SCRAPER_USER_AGENT` — ο scraper το λέει, αλλά δεν σε σταματά.
+
 API: <http://127.0.0.1:8000/docs> · Site: <http://127.0.0.1:3000>
 
 Το `scripts/seed.py` βάζει την ΕΠΣ Ηπείρου με 10 ομάδες, 10 γήπεδα και 90
@@ -65,8 +77,15 @@ backend/
       v1/public.py  read-only endpoints
     services/
       standings.py  υπολογισμός βαθμολογίας από τους αγώνες
+    scraper/
+      http.py       ευγενικό fetching: robots.txt, delay, retries
+      naming.py     αντιστοίχιση ονομάτων σωματείων, slugs, μονογράμματα
+      labels.py     ανάγνωση τίτλου διοργάνωσης σε label/ηλικία/όμιλο/tier
+      decisions.py  τι επιτρέπεται να αλλάξει ένα scrape
+      sync.py       το γράψιμο στη βάση
+      sources/      ένας adapter ανά πλατφόρμα (epsip.py)
   alembic/        migrations
-  scripts/seed.py
+  scripts/        seed, bootstrap, relabel, set_zones, audit, completeness
 frontend/
   src/
     app/          App Router: /, /vathmologia, /apotelesmata,
@@ -125,9 +144,19 @@ kit v2). Κανένα component δεν γράφει hex — μόνο token names
 ισχύει για το `text-transform: uppercase` στο CSS — δουλεύει σωστά μόνο επειδή
 το `<html>` δηλώνει `lang="el"`.
 
+**Ώρες αγώνων.** Η πηγή γράφει ώρα Ελλάδας. Αποθηκεύεται UTC μέσω
+`ZoneInfo("Europe/Athens")`, όχι με σταθερό +2: η Ελλάδα είναι +3 από τα τέλη
+Μαρτίου ως τα τέλη Οκτωβρίου, που πιάνει τις πρώτες και τις τελευταίες
+αγωνιστικές κάθε σεζόν. Γι' αυτό το `tzdata` είναι dependency — τα Windows δεν
+κουβαλούν tz database και το `zoneinfo` σκάει εκεί.
+
 ## Επόμενο βήμα
 
-Scraper engine με config ανά ένωση. Πριν σχεδιαστεί σαν «ίδιο parsing, αλλάζει
-μόνο το URL», πρέπει να ελεγχθούν 2-3 sites άλλων ΕΠΣ — αν δεν τρέχουν το ίδιο
-template, το ρεαλιστικό είναι ένας engine ανά οικογένεια template, όχι ένας για
-όλους.
+Auth και editor dashboard (φάση 3-4). Οι πίνακες `users`, `user_associations`
+και `audit_log` υπάρχουν· endpoints δεν υπάρχουν, οπότε σήμερα κάθε διόρθωση
+περνά από script.
+
+Ο scraper είναι ένας adapter ανά οικογένεια template, όχι ένας για όλους: μια
+ματιά σε πέντε sites ΕΠΣ έδειξε τέσσερα άσχετα σχήματα (βλ.
+`app/scraper/sources/base.py`). Η δεύτερη ένωση θα δείξει πόσο από τον
+`EpsipSource` είναι όντως κοινό.
