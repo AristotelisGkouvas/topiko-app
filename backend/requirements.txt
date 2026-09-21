@@ -3,6 +3,11 @@ uvicorn[standard]==0.34.0
 sqlalchemy[asyncio]==2.0.36
 asyncpg==0.30.0
 alembic==1.14.0
+# The app talks to Postgres over asyncpg, but Alembic runs its migrations
+# synchronously (see sync_database_url), and that needs a sync driver of its
+# own. Missing it, `alembic upgrade head` fails on a clean install with a
+# ModuleNotFoundError naming a package nothing in the source imports.
+psycopg2-binary==2.9.12
 pydantic==2.10.4
 pydantic-settings==2.7.0
 python-dotenv==1.0.1
