@@ -1,3 +1,4 @@
+import { upper } from "@/lib/format";
 import type { TeamRef } from "@/lib/types";
 import styles from "./Crest.module.css";
 
@@ -10,7 +11,9 @@ export function Crest({
   team: TeamRef;
   size?: "sm" | "md" | "lg";
 }) {
-  const label = team.initials ?? team.name.slice(0, 2).toUpperCase();
+  // Greek-aware, or a club whose name opens with an accent is badged
+  // "ΉΠ" — the tonos survives a plain toUpperCase.
+  const label = team.initials ?? upper(team.name.slice(0, 2));
   return (
     <span className={`${styles.crest} ${styles[size]}`} aria-hidden="true">
       {label}

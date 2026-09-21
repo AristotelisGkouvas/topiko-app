@@ -26,19 +26,25 @@ export function SearchBox({
   const searchParams = useSearchParams();
   const fromUrl = searchParams.get("anazitisi") ?? "";
   const [value, setValue] = useState(fromUrl);
-  const typed = useRef(false);
+  //: The filter this box last put in the URL. Comparing against it is what
+  //: separates a change made elsewhere from the echo of our own replace() —
+  //: a flag saying "somebody has typed" cannot, and once it was set the box
+  //: stopped following the back button for the rest of the visit.
+  const pushed = useRef(fromUrl);
 
-  // Follow the URL when it changes from elsewhere — a cleared filter, the back
-  // button — but never fight the field while somebody is typing in it.
   useEffect(() => {
-    if (!typed.current) setValue(fromUrl);
+    if (fromUrl === pushed.current) return;
+    pushed.current = fromUrl;
+    setValue(fromUrl);
   }, [fromUrl]);
 
   useEffect(() => {
-    if (!typed.current) return;
+    const wanted = value.trim();
+    if (wanted === pushed.current) return;
     const id = setTimeout(() => {
+      pushed.current = wanted;
       const params = new URLSearchParams(searchParams.toString());
-      if (value.trim()) params.set("anazitisi", value.trim());
+      if (wanted) params.set("anazitisi", wanted);
       else params.delete("anazitisi");
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, {
@@ -59,10 +65,7 @@ export function SearchBox({
         placeholder={placeholder}
         aria-label={label}
         value={value}
-        onChange={(event) => {
-          typed.current = true;
-          setValue(event.target.value);
-        }}
+        onChange={(event) => setValue(event.target.value)}
       />
     </div>
   );

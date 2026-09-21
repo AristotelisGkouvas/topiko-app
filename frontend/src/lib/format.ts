@@ -29,7 +29,7 @@ export function formatTime(iso: string | null): string {
 
 /** Greek capitals drop the tonos: Πέμ -> ΠΕΜ, not ΠΈΜ. Plain toUpperCase keeps
  *  the accent, so the locale-aware form is the only correct one here. */
-const upper = (value: string) => value.toLocaleUpperCase(LOCALE);
+export const upper = (value: string) => value.toLocaleUpperCase(LOCALE);
 
 /** "ΚΥΡ 23/11" — the form used on match card headers. */
 export function formatDayDate(iso: string | null): string {
