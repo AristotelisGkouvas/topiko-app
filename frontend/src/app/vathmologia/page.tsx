@@ -7,7 +7,7 @@ import { StandingsTable } from "@/components/StandingsTable";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
-import { resolveLeague, type SearchParams } from "@/lib/leagues";
+import { leagueLabel, resolveLeague, type SearchParams } from "@/lib/leagues";
 import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +42,7 @@ export default async function StandingsPage({
   return (
     <div className={styles.page}>
       <div className={styles.titleBlock}>
-        <h1>Βαθμολογία {league.name}</h1>
+        <h1>Βαθμολογία {leagueLabel(league)}</h1>
         <LastUpdated
           timestamp={meta.last_scraped_at}
           suffix={played}

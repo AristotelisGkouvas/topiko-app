@@ -47,17 +47,32 @@ export async function resolveLeague(
   return { seasons, season, leagues, league };
 }
 
-/** Which αγωνιστική to show: ?agonistiki=, else the league's current one. */
+/**
+ * Which αγωνιστική to show: ?agonistiki=, else a default per page.
+ *
+ * The results page opens on what was just played, the fixtures page on what
+ * comes next. Only that default differs — the clamping does not, and when the
+ * fixtures page carried its own copy of this it let ?agonistiki=99 through to
+ * an API call that could only come back empty.
+ */
 export function resolveMatchday(
   params: Record<string, string | string[] | undefined>,
   league: League,
+  which: "played" | "next" = "played",
 ): number {
+  const total = league.total_matchdays;
+  const clamp = (n: number) => Math.max(1, total ? Math.min(n, total) : n);
+
   const raw = readParam(params, "agonistiki");
   const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
-  if (Number.isInteger(parsed) && parsed >= 1) {
-    return league.total_matchdays
-      ? Math.min(parsed, league.total_matchdays)
-      : parsed;
-  }
-  return league.current_matchday ?? 1;
+  if (Number.isInteger(parsed) && parsed >= 1) return clamp(parsed);
+
+  const played = league.current_matchday ?? 0;
+  return clamp(which === "next" ? played + 1 : played || 1);
 }
+
+/** The competition as a reader knows it. `name` is the federation's published
+ *  title, which leads with a sponsor — "ΣΤΕΦΑΝΟΣ ΓΕΡΑΣΗΣ Κ10 Α" — and puts it
+ *  in the page heading. `short_name` is what the tabs already show. */
+export const leagueLabel = (league: Pick<League, "name" | "short_name">) =>
+  league.short_name ?? league.name;

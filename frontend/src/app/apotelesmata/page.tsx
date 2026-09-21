@@ -8,7 +8,12 @@ import { SeasonPicker } from "@/components/SeasonPicker";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
-import { resolveLeague, resolveMatchday, type SearchParams } from "@/lib/leagues";
+import {
+  leagueLabel,
+  resolveLeague,
+  resolveMatchday,
+  type SearchParams,
+} from "@/lib/leagues";
 import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +46,7 @@ export default async function ResultsPage({
   return (
     <div className={styles.page}>
       <div className={styles.titleBlock}>
-        <h1>Αποτελέσματα {league.name}</h1>
+        <h1>Αποτελέσματα {leagueLabel(league)}</h1>
         <LastUpdated
           timestamp={meta.last_scraped_at}
           sourceUrl={meta.source_url}

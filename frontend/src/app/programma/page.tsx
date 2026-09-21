@@ -8,7 +8,12 @@ import { SeasonPicker } from "@/components/SeasonPicker";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayGenitive } from "@/lib/format";
-import { readParam, resolveLeague, type SearchParams } from "@/lib/leagues";
+import {
+  leagueLabel,
+  resolveLeague,
+  resolveMatchday,
+  type SearchParams,
+} from "@/lib/leagues";
 import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -37,21 +42,14 @@ export default async function FixturesPage({
 
   // Unlike the results page, this one opens on what is *next*, not on what was
   // just played.
-  const requested = readParam(params, "agonistiki");
-  const parsed = requested ? Number.parseInt(requested, 10) : Number.NaN;
-  const matchday = Number.isInteger(parsed)
-    ? Math.max(1, parsed)
-    : Math.min(
-        (league.current_matchday ?? 0) + 1,
-        league.total_matchdays ?? Number.MAX_SAFE_INTEGER,
-      );
+  const matchday = resolveMatchday(params, league, "next");
 
   const matches = await api.listMatches(league.slug, { matchday, season });
 
   return (
     <div className={styles.page}>
       <div className={styles.titleBlock}>
-        <h1>Πρόγραμμα {league.name}</h1>
+        <h1>Πρόγραμμα {leagueLabel(league)}</h1>
         <LastUpdated
           timestamp={meta.last_scraped_at}
           sourceUrl={meta.source_url}
