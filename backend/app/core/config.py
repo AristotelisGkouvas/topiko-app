@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Annotated
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -31,6 +31,32 @@ class Settings(BaseSettings):
         "PameSentraBot/0.1 (+mailto:CHANGE-ME@example.com; "
         "aggregator for Greek amateur football results)"
     )
+
+    # --- Auth ---------------------------------------------------------------
+    #
+    # Signs session tokens. The default is a visible placeholder rather than a
+    # generated value: a per-process random key would log every user out on
+    # each restart and work fine in development, so nobody would discover the
+    # problem until a deployment ran more than one worker.
+    secret_key: str = "dev-only-not-a-secret-change-me"
+    access_token_ttl_minutes: int = 12 * 60
+    #: Name of the session cookie.
+    session_cookie: str = "pamesentra_session"
+    #: Sent only over HTTPS. Off in development, where there is none.
+    cookie_secure: bool = False
+
+    @model_validator(mode="after")
+    def _refuse_placeholder_secret_in_production(self) -> "Settings":
+        # A placeholder signing key means anyone who has read this repository
+        # can mint an admin token. Failing at boot is the only way that gets
+        # noticed, because nothing about it is visible in normal use.
+        if self.environment != "development" and self.secret_key.startswith("dev-only"):
+            raise ValueError(
+                "SECRET_KEY έχει ακόμα την τιμή ανάπτυξης. Όρισε πραγματικό "
+                "κλειδί (π.χ. `python -c \"import secrets; "
+                'print(secrets.token_urlsafe(48))"`) πριν τρέξει εκτός development.'
+            )
+        return self
 
     # --- Scheduled scraping -------------------------------------------------
     #
