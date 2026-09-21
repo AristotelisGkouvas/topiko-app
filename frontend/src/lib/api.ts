@@ -11,8 +11,26 @@ import type {
   TeamDetail,
 } from "./types";
 
+/** Where the browser reaches the API. Inlined at build time, like every
+ *  NEXT_PUBLIC_ variable, so it has to be the public address — a container
+ *  hostname here would ship to the reader and fail to resolve. */
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+
+/** Where *this process* reaches the API.
+ *
+ *  Identical to API_URL when the site runs on a laptop, and deliberately not
+ *  when it runs in a container next to the API: server components would
+ *  otherwise leave the network to fetch from a public hostname that resolves
+ *  back to the machine they are already on. Read at request time rather than
+ *  inlined, because it must never reach the browser.
+ */
+const SERVER_API_URL =
+  process.env.API_INTERNAL_URL?.replace(/\/$/, "") || API_URL;
+
+/** The base for a fetch made from here, whichever side "here" is. */
+const baseUrl = () =>
+  typeof window === "undefined" ? SERVER_API_URL : API_URL;
 
 /**
  * Which ΕΠΣ this deployment serves.
@@ -46,7 +64,7 @@ interface FetchOptions {
 }
 
 async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const url = new URL(`${API_URL}${path}`);
+  const url = new URL(`${baseUrl()}${path}`);
   for (const [key, value] of Object.entries(options.searchParams ?? {})) {
     if (value !== undefined) url.searchParams.set(key, String(value));
   }
@@ -132,4 +150,6 @@ export const api = {
 };
 
 /** Absolute URL for a path, for client-side fetchers that cannot use `api`. */
+/** A URL handed to the browser to fetch for itself — the live-score poll.
+ *  API_URL, never the internal one: this string ends up in the page. */
 export const apiUrl = (path: string) => `${API_URL}${scoped(path)}`;

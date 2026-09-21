@@ -70,6 +70,32 @@ cd backend
 
 API: <http://127.0.0.1:8000/docs> · Site: <http://127.0.0.1:3000>
 
+### Όλα μαζί σε containers
+
+Για deployment — ή για να δεις το σύνολο να τρέχει χωρίς δύο terminals:
+
+```bash
+cp .env.example .env     # βάλε πραγματικό email στο SCRAPER_USER_AGENT
+docker compose up -d --build
+```
+
+Σηκώνει `db` → `migrate` (τρέχει και βγαίνει) → `api` → `web`, και ξεχωριστά
+τον `scraper` ως daemon. Το `migrate` είναι δική του υπηρεσία ώστε να μην
+τρέχουν API και scraper migrations ταυτόχρονα.
+
+Δύο πράγματα που δαγκώνουν:
+
+- **`NEXT_PUBLIC_*` είναι build-time.** Το Next τα ενσωματώνει στο client
+  bundle, άρα αλλαγή θέλει `docker compose build web`, όχι restart. Και το
+  `NEXT_PUBLIC_API_URL` πρέπει να είναι η διεύθυνση που λύνει ο browser του
+  αναγνώστη — ένα hostname του compose εκεί φεύγει για τον κόσμο και σκάει.
+- Γι' αυτό υπάρχει και το **`API_INTERNAL_URL`**: το server μισό του site το
+  διαβάζει σε κάθε request και μιλά στο `api:8000` μέσα στο δίκτυο, αντί να
+  βγει στο internet για να ξαναμπεί στο ίδιο μηχάνημα.
+
+Ο `scraper` δεν σηκώνεται χωρίς `SCRAPER_USER_AGENT` — το compose το απαιτεί
+ρητά αντί να αφήσει ένα CHANGE-ME να φτάσει σε ζωντανό site.
+
 Το `scripts/seed.py` βάζει την ΕΠΣ Ηπείρου με 10 ομάδες, 10 γήπεδα και 90
 αγώνες. **Τα ονόματα σωματείων και γηπέδων είναι πραγματικά, τα σκορ και οι
 ημερομηνίες όχι** — είναι dev data. Το script αρνείται να πειράξει ένωση που

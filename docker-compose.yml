@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: pamesentra
-      POSTGRES_PASSWORD: pamesentra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pamesentra}
       POSTGRES_DB: pamesentra
       # Greek-aware collation, so ORDER BY on team names follows the Greek
       # alphabet. Must go through ICU: the alpine image is musl-based and
@@ -22,6 +22,88 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # Migrations as a service of their own, so the API does not race the
+  # scheduler to apply them. Runs to completion, then everything else starts.
+  migrate:
+    build: ./backend
+    image: pamesentra-backend
+    container_name: pamesentra-migrate
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://pamesentra:pamesentra@db:5432/pamesentra}
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: ./backend
+    image: pamesentra-backend
+    container_name: pamesentra-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://pamesentra:pamesentra@db:5432/pamesentra}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8000/health').read()"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  scraper:
+    build: ./backend
+    image: pamesentra-backend
+    container_name: pamesentra-scraper
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://pamesentra:pamesentra@db:5432/pamesentra}
+      # Names the project and carries a real way to reach a human. A federation
+      # webmaster who wants this stopped should not have to guess who is asking.
+      SCRAPER_USER_AGENT: ${SCRAPER_USER_AGENT:?βάλε πραγματικό email στο SCRAPER_USER_AGENT πριν τρέξει σε ζωντανό site}
+      SCRAPER_LIVE_INTERVAL_SECONDS: ${SCRAPER_LIVE_INTERVAL_SECONDS:-300}
+      SCRAPER_IDLE_INTERVAL_SECONDS: ${SCRAPER_IDLE_INTERVAL_SECONDS:-21600}
+    command: ["python", "-m", "app.scraper.schedule"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # It sleeps between cycles and wakes on the signal, so the default grace
+    # period is more than enough for the run in flight.
+    stop_grace_period: 30s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Build args, not environment: Next inlines every NEXT_PUBLIC_ value
+        # into the client bundle at build time. This must be the address the
+        # *reader's browser* resolves, never the compose hostname.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}
+        NEXT_PUBLIC_ASSOCIATION: ${NEXT_PUBLIC_ASSOCIATION:-epsip-ipeirou}
+    image: pamesentra-frontend
+    container_name: pamesentra-web
+    restart: unless-stopped
+    environment:
+      # Read at request time, and only by the server half: page rendering stays
+      # on the compose network instead of leaving the host and coming back.
+      API_INTERNAL_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:
