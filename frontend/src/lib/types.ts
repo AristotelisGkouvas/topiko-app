@@ -177,3 +177,74 @@ export interface MatchDetail {
   home_standing: Standing | null;
   away_standing: Standing | null;
 }
+
+/** A search hit. Carries a club and a goal count because the name alone does
+ *  not identify anybody — the register holds three ΘΑΝΑΣΗΣ ΚΩΝΣΤΑΝΤΙΝΟΣ. */
+export interface PlayerSearchResult extends PlayerRef {
+  last_team: TeamRef | null;
+  total_goals: number;
+}
+
+export interface PlayerSeason {
+  season: Season;
+  league_slug: string;
+  league_name: string;
+  team: TeamRef | null;
+  goals: number | null;
+  own_goals: number | null;
+  yellow_cards: number | null;
+  red_cards: number | null;
+}
+
+export interface PlayerDetail extends PlayerRef {
+  /** Newest first. */
+  seasons: PlayerSeason[];
+  /** Summed over published leaderboard lines, so a floor rather than a count:
+   *  a season the federation published no list for contributes nothing. */
+  total_goals: number;
+  seasons_scored: number;
+  clubs: TeamRef[];
+}
+
+export interface HeadToHead {
+  home: TeamRef;
+  away: TeamRef;
+  /** Wins for `home`, wherever the match was played. */
+  home_wins: number;
+  away_wins: number;
+  draws: number;
+  home_goals: number;
+  away_goals: number;
+  played: number;
+  first_meeting: string | null;
+  last_meeting: string | null;
+  matches: Match[];
+}
+
+export interface OnThisDay {
+  day: number;
+  month: number;
+  matches: Match[];
+}
+
+export interface RecordMatch {
+  match: Match;
+  value: number;
+}
+
+export interface TopScorerAllTime {
+  player_id: number;
+  player_slug: string;
+  player_name: string;
+  goals: number;
+  seasons: number;
+}
+
+export interface Records {
+  biggest_wins: RecordMatch[];
+  highest_scoring: RecordMatch[];
+  top_scorers: TopScorerAllTime[];
+  total_matches: number;
+  total_goals: number;
+  seasons_covered: number;
+}

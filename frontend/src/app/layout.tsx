@@ -26,12 +26,26 @@ const body = Noto_Sans({
 });
 
 export const metadata: Metadata = {
+  // Without this, every OpenGraph image is emitted as a relative path and no
+  // scraper resolves it — the card silently falls back to a bare link.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: "Πάμε Σέντρα",
     template: "%s · Πάμε Σέντρα",
   },
   description: APP_TAGLINE,
   applicationName: APP_NAME,
+  openGraph: {
+    type: "website",
+    locale: "el_GR",
+    siteName: "Πάμε Σέντρα",
+  },
+  // Where the sharing actually happens is Viber and Facebook, both of which
+  // read OpenGraph. summary_large_image is here so an X link is not the one
+  // place the card shrinks to a thumbnail.
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

@@ -248,3 +248,18 @@
     grid-template-columns: 1fr auto auto;
   }
 }
+
+.allMeetings {
+  margin: 0 2px 10px;
+  font-size: 12.5px;
+}
+
+.allMeetings a {
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.allMeetings a:hover {
+  color: var(--color-link-hover);
+}

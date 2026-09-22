@@ -32,6 +32,9 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/gipeda", label: "Γήπεδα", glyph: "⌖" },
   { href: "/somateia", label: "Σωματεία", glyph: "⬢" },
   { href: "/skorer", label: "Σκόρερ", glyph: "◎", secondary: true },
+  { href: "/paiktes", label: "Παίκτες", glyph: "☗", secondary: true },
+  { href: "/san-simera", label: "Σαν σήμερα", glyph: "⟳", secondary: true },
+  { href: "/rekor", label: "Ρεκόρ", glyph: "★", secondary: true },
 ];
 
 /** The five that fit the phone tab bar. */

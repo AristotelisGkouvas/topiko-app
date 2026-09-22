@@ -88,9 +88,12 @@ export default async function ScorersPage({
                         <div className={styles.player}>
                           {row.team && <Crest team={row.team} size="sm" />}
                           <div className={styles.names}>
-                            <span className={styles.playerName}>
+                            <Link
+                              href={`/paiktes/${row.player.slug}`}
+                              className={styles.playerName}
+                            >
                               {row.player.name}
-                            </span>
+                            </Link>
                             {row.team && (
                               <Link
                                 href={`/somateia/${row.team.slug}`}

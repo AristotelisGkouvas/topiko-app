@@ -1,0 +1,146 @@
+.totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 18px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.total {
+  text-align: center;
+}
+
+.totalValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.totalLabel {
+  margin: 5px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.list {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.row,
+.scorerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-grey-100);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.list li:last-child .row,
+.list li:last-child .scorerRow {
+  border-bottom: none;
+}
+
+.row:hover,
+.scorerRow:hover {
+  background: var(--color-grey-100);
+}
+
+.badge {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 46px;
+  padding: 5px 8px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-amber-200);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--color-grey-800);
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-top: 3px;
+  opacity: 0.75;
+}
+
+.teams {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.line {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.date {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.rank {
+  flex: none;
+  width: 22px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.scorerName {
+  flex: 1;
+  font-weight: 600;
+  font-size: 13.5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scorerGoals {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.note {
+  margin: -12px 2px 20px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}

@@ -2,10 +2,15 @@ import type {
   Association,
   Field,
   League,
+  HeadToHead,
   Match,
   MatchDetail,
   MatchStatus,
   Meta,
+  OnThisDay,
+  PlayerDetail,
+  PlayerSearchResult,
+  Records,
   Scorer,
   Season,
   Standing,
@@ -155,6 +160,23 @@ export const api = {
 
   getMatch: (matchId: number) =>
     request<MatchDetail>(scoped(`/matches/${matchId}`)),
+
+  searchPlayers: (q: string, limit = 30) =>
+    request<PlayerSearchResult[]>(scoped("/players"), {
+      searchParams: { q, limit },
+    }),
+
+  getPlayer: (playerSlug: string) =>
+    request<PlayerDetail>(scoped(`/players/${playerSlug}`)),
+
+  getHeadToHead: (homeSlug: string, awaySlug: string) =>
+    request<HeadToHead>(scoped(`/kontra/${homeSlug}/${awaySlug}`)),
+
+  // Revalidated hourly rather than per request: the answer only changes when
+  // the calendar day does, and it is the same for every reader.
+  getOnThisDay: () => request<OnThisDay>(scoped("/san-simera"), { revalidate: 3600 }),
+
+  getRecords: () => request<Records>(scoped("/rekor"), { revalidate: 3600 }),
 
   getMeta: () => request<Meta>(scoped("/meta"), { revalidate: 0 }),
 };

@@ -130,6 +130,13 @@ export default async function MatchPage({
       {head_to_head.length > 0 && (
         <section className={styles.history}>
           <SectionHeader title="Προηγούμενες συναντήσεις" />
+          <p className={styles.allMeetings}>
+            <Link
+              href={`/kontra/${match.home_team.slug}/${match.away_team.slug}`}
+            >
+              Όλο το ιστορικό των δύο σωματείων →
+            </Link>
+          </p>
           <ul className={styles.historyList}>
             {head_to_head.map((previous) => (
               <HistoryRow
