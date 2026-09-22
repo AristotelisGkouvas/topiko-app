@@ -1,0 +1,148 @@
+"use client";
+
+import { useState } from "react";
+import useSWR from "swr";
+
+import { Empty } from "@/components/States";
+import { EditorError, editorApi } from "@/lib/editorApi";
+import type { Field } from "@/lib/types";
+import styles from "./page.module.css";
+
+/** Filling in the grounds.
+ *
+ *  This is the only route by which a venue gets coordinates — the federation
+ *  publishes a surface and a floodlight flag and nothing that locates the
+ *  place — so the list leads with the ones still missing a pin.
+ */
+export function VenueEditor() {
+  const { data, error, isLoading, mutate } = useSWR<Field[]>(
+    "editor:fields",
+    () => editorApi.fields(),
+  );
+  const [query, setQuery] = useState("");
+
+  if (isLoading) return <p className={styles.loading}>Φόρτωση γηπέδων…</p>;
+  if (error) return <Empty title="Δεν φορτώθηκαν τα γήπεδα" />;
+
+  const needle = query.trim().toLowerCase();
+  const shown = (data ?? [])
+    .filter((f) => !needle || f.name.toLowerCase().includes(needle))
+    .sort((a, b) => {
+      const pinned = Number(a.latitude !== null) - Number(b.latitude !== null);
+      return pinned !== 0 ? pinned : a.name.localeCompare(b.name, "el");
+    });
+
+  const missing = (data ?? []).filter((f) => f.latitude === null).length;
+
+  return (
+    <>
+      <div className={styles.filters}>
+        <input
+          className={styles.input}
+          placeholder="Αναζήτηση γηπέδου…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Αναζήτηση γηπέδου"
+        />
+        <span className={styles.counter}>
+          {missing} χωρίς συντεταγμένες
+        </span>
+      </div>
+
+      <ul className={styles.rows}>
+        {shown.slice(0, 40).map((field) => (
+          <VenueRow key={field.id} field={field} onSaved={() => mutate()} />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function VenueRow({ field, onSaved }: { field: Field; onSaved: () => void }) {
+  const [lat, setLat] = useState(field.latitude ?? "");
+  const [lng, setLng] = useState(field.longitude ?? "");
+  const [city, setCity] = useState(field.city ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      await editorApi.saveField(field.slug, {
+        latitude: lat === "" ? null : Number(lat),
+        longitude: lng === "" ? null : Number(lng),
+        city: city.trim() || null,
+      });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof EditorError ? err.message : "Απέτυχε.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className={styles.venueRow}>
+      <div className={styles.venueHead}>
+        <span className={styles.venueName}>{field.name}</span>
+        {field.latitude === null && (
+          <span className={styles.missing}>χωρίς πινέζα</span>
+        )}
+      </div>
+
+      <div className={styles.venueFields}>
+        <input
+          className={styles.small}
+          placeholder="Γεωγρ. πλάτος"
+          inputMode="decimal"
+          value={lat}
+          onChange={(e) => setLat(e.target.value)}
+          aria-label={`Γεωγραφικό πλάτος, ${field.name}`}
+        />
+        <input
+          className={styles.small}
+          placeholder="Γεωγρ. μήκος"
+          inputMode="decimal"
+          value={lng}
+          onChange={(e) => setLng(e.target.value)}
+          aria-label={`Γεωγραφικό μήκος, ${field.name}`}
+        />
+        <input
+          className={styles.small}
+          placeholder="Πόλη / χωριό"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          aria-label={`Τοποθεσία, ${field.name}`}
+        />
+        <button
+          type="button"
+          className={styles.save}
+          disabled={busy}
+          onClick={save}
+        >
+          {busy ? "…" : "Αποθήκευση"}
+        </button>
+      </div>
+
+      {/* The map is the check: a transposed pair lands in the sea, and seeing
+          that takes a second where reading two decimals does not. */}
+      {lat !== "" && lng !== "" && (
+        <a
+          className={styles.preview}
+          href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Έλεγχος στον χάρτη →
+        </a>
+      )}
+
+      {error && (
+        <span className={styles.rowError} role="alert">
+          {error}
+        </span>
+      )}
+    </li>
+  );
+}

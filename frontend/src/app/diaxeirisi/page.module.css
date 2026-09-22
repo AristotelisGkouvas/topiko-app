@@ -1,0 +1,377 @@
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  margin: 0;
+  color: var(--color-heading);
+}
+
+.who {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.warn {
+  color: var(--color-terra-700);
+  font-weight: 600;
+}
+
+.logout,
+.save,
+.confirm,
+.submit {
+  font-family: var(--font-display);
+  font-weight: 600;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  min-height: 38px;
+}
+
+.submit {
+  background: var(--color-navy-900);
+  border-color: var(--color-navy-900);
+  color: var(--color-grey-50);
+  width: 100%;
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.save {
+  background: var(--color-green-100);
+  border-color: var(--color-green-300);
+}
+
+.save:disabled,
+.submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.confirm {
+  min-width: 38px;
+  padding: 8px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  border: none;
+  background: none;
+  padding: 9px 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  min-height: 42px;
+}
+
+.tabOn {
+  color: var(--color-heading);
+  border-bottom-color: var(--color-green-600);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.inlineLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.select,
+.input,
+.small,
+.score {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-height: 38px;
+}
+
+.input {
+  flex: 1;
+  min-width: 160px;
+}
+
+.counter {
+  font-size: 11.5px;
+  color: var(--color-terra-700);
+  font-weight: 600;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.when {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  min-width: 62px;
+}
+
+.time {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.teams {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.teams span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scores {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Wide enough for two digits and a thumb, which is what this is used with. */
+.score {
+  width: 48px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.badge,
+.ok,
+.missing {
+  grid-column: 1 / -1;
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.ok {
+  color: var(--color-green-600);
+}
+
+.rowError {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--color-loss);
+}
+
+.venueRow {
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.venueHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.venueName {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.missing {
+  color: var(--color-terra-700);
+  font-weight: 600;
+}
+
+.venueFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.small {
+  width: 118px;
+}
+
+.preview {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.preview:hover {
+  color: var(--color-link-hover);
+}
+
+.login {
+  max-width: 360px;
+  margin: 24px auto;
+  padding: 22px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  background: #f6dcd8;
+  color: var(--color-grey-800);
+  font-size: 12.5px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.loading {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.auditRow {
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.auditHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auditAction {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--color-heading);
+}
+
+.auditWho {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.diff {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+}
+
+.diff li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.diffKey {
+  color: var(--color-text-muted);
+  min-width: 96px;
+}
+
+.diffFrom {
+  color: var(--color-loss);
+  text-decoration: line-through;
+}
+
+.diffTo {
+  color: var(--color-green-600);
+  font-weight: 600;
+}
+
+@media (max-width: 460px) {
+  .row {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+}

@@ -136,6 +136,27 @@ cd backend
 | `POST /api/v1/auth/logout` | Σβήνει το cookie |
 | `GET /api/v1/auth/me` | Ποιος είμαι και τι μπορώ να αγγίξω |
 
+### Διαχείριση
+
+Το dashboard είναι στο `/diaxeirisi` — login, διόρθωση σκορ, συμπλήρωση
+γηπέδων και ιστορικό αλλαγών. Δεν ευρετηριάζεται (`noindex`).
+
+| Endpoint | Τι κάνει |
+|---|---|
+| `GET /api/v1/{ένωση}/editor/matches` | Οι αγώνες του παραθύρου (±μέρες) |
+| `PATCH /api/v1/{ένωση}/editor/matches/{id}` | Σκορ, κατάσταση, λεπτό, σημείωση |
+| `PATCH /api/v1/{ένωση}/editor/fields/{slug}` | Στοιχεία γηπέδου **και συντεταγμένες** |
+| `GET /api/v1/{ένωση}/editor/audit` | Ποιος άλλαξε τι |
+
+> **Cookie και domains.** Η συνεδρία είναι httpOnly cookie με `SameSite=Lax`,
+> και ο browser το στέλνει στο API μόνο αν τα δύο είναι **same-site** —
+> `pamesentra.gr` και `api.pamesentra.gr` είναι, δύο άσχετα domains δεν είναι.
+> Αν το API καταλήξει σε ξεχωριστό domain, το cookie θέλει `SameSite=None`
+> **και** HTTPS, αλλιώς κάθε κλήση του dashboard γυρίζει 401 που μοιάζει με
+> λάθος κωδικό. Το `CORS_ORIGINS` πρέπει επίσης να περιλαμβάνει τη διεύθυνση
+> του site.
+
+
 Δύο επίπεδα: **admin** (καθολικός, χωρίς γραμμές στο `user_associations`) και
 **editor** (φτάνει μόνο όπου του δόθηκε). Ξεχωριστά από την πρόσβαση είναι το
 `can_edit_live` — το να βλέπεις μια ένωση και το να σου εμπιστεύονται σκορ όσο
