@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 92" width="104" height="92">
+  <rect width="104" height="92" fill="#003c71"/>
+  <g fill="#ffffff">
+    <rect x="6" y="6" width="92" height="11"/>
+    <rect x="6" y="6" width="11" height="86"/>
+    <rect x="87" y="6" width="11" height="86"/>
+  </g>
+  <path d="M31 17V92 M46 17V92 M61 17V92 M76 17V92 M17 32H87 M17 52H87 M17 72H87"
+        stroke="#ffffff" stroke-width="1.4" opacity=".4" fill="none"/>
+</svg>

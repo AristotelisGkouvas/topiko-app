@@ -1,6 +1,7 @@
 import { LastUpdated } from "@/components/LastUpdated";
 import { LeagueTabs } from "@/components/LeagueTabs";
 import { LiveMatches } from "@/components/LiveMatches";
+import { MyClub } from "@/components/MyClub";
 import { FixtureRow } from "@/components/MatchCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StandingsTable } from "@/components/StandingsTable";
@@ -65,6 +66,8 @@ export default async function HomePage({
           sourceUrl={meta.source_url}
         />
       </div>
+
+      <MyClub />
 
       <LeagueTabs leagues={leagues} active={league.slug} />
 

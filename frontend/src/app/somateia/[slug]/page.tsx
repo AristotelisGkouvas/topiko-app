@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
+import { FollowButton } from "@/components/FollowButton";
 import { MatchGrid } from "@/components/MatchGrid";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
@@ -119,6 +120,8 @@ export default async function TeamPage({
     <div className={pageStyles.page}>
       <header className={styles.header}>
         <Crest team={team} size="lg" />
+        {/* The ☆ from the kit's team profile header. */}
+        <FollowButton slug={team.slug} name={team.name} />
         <div className={styles.identity}>
           <h1 className={styles.name}>{team.name}</h1>
           <p className={styles.meta}>

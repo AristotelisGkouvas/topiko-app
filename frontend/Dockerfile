@@ -42,8 +42,10 @@ RUN addgroup -g 10001 -S pamesentra && adduser -u 10001 -S pamesentra -G pamesen
 
 COPY --from=build --chown=pamesentra:pamesentra /app/.next/standalone ./
 COPY --from=build --chown=pamesentra:pamesentra /app/.next/static ./.next/static
-# No public/ directory today — the app router keeps its icons under src/app.
-# Add a COPY for it here the day static files appear, or they are served 404.
+# The PWA icons. server.js serves this directory itself; without the copy they
+# are 404s, and an installable manifest that points at two missing PNGs makes
+# the browser decline to offer installation at all.
+COPY --from=build --chown=pamesentra:pamesentra /app/public ./public
 
 USER pamesentra
 EXPOSE 3000

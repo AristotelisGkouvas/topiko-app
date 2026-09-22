@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { APP_MARK, APP_NAME, APP_TAGLINE, NAV_ITEMS, isActive } from "@/lib/nav";
+import { APP_NAME, APP_TAGLINE, NAV_ITEMS, isActive } from "@/lib/nav";
+import { Logo } from "./Logo";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader() {
@@ -14,7 +15,7 @@ export function SiteHeader() {
       <div className={styles.inner}>
         <Link href="/" className={styles.brand}>
           <span className={styles.mark} aria-hidden="true">
-            {APP_MARK}
+            <Logo size={22} />
           </span>
           <span className={styles.brandText}>
             <span className={styles.name}>{APP_NAME}</span>
