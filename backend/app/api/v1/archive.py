@@ -26,6 +26,7 @@ from app.models import (
     Match,
     Player,
     PlayerStat,
+    PlayerSuspension,
     Season,
     Team,
 )
@@ -34,10 +35,12 @@ from app.schemas import (
     MatchOut,
     OnThisDayOut,
     PlayerDetailOut,
+    PlayerRef,
     PlayerSearchOut,
     PlayerSeasonOut,
     RecordMatchOut,
     RecordsOut,
+    SuspensionOut,
     TeamRef,
     TopScorerAllTimeOut,
 )
@@ -363,6 +366,74 @@ async def on_this_day(
         month=month,
         matches=[MatchOut.model_validate(m) for m in result.scalars()],
     )
+
+
+# ---------------------------------------------------------------------------
+#  Suspensions
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{association_slug}/poines", response_model=list[SuspensionOut])
+async def list_suspensions(
+    association: CurrentAssociation,
+    db: DbSession,
+    season: Annotated[str | None, Query(description="Slug περιόδου. Default: τρέχουσα.")] = None,
+    league: Annotated[str | None, Query(description="Slug πρωταθλήματος.")] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 100,
+) -> list[SuspensionOut]:
+    """Who is banned, and for how many matches.
+
+    The club is reached through the player's line in the same competition:
+    a suspension row names a player and a fixture, never a club, so without
+    that join the page would list fifteen names and no way to tell whose they
+    are. It is a left join because a banned player need not appear in any
+    published leaderboard.
+    """
+    season_filter = (
+        Season.slug == season if season else Season.is_current.is_(True)
+    )
+
+    stmt = (
+        select(PlayerSuspension, Player, League, Team)
+        .join(Player, PlayerSuspension.player_id == Player.id)
+        .join(League, PlayerSuspension.league_id == League.id)
+        .join(Season, League.season_id == Season.id)
+        .outerjoin(
+            PlayerStat,
+            (PlayerStat.player_id == PlayerSuspension.player_id)
+            & (PlayerStat.league_id == PlayerSuspension.league_id),
+        )
+        .outerjoin(Team, PlayerStat.team_id == Team.id)
+        .where(League.association_id == association.id, season_filter)
+        # Newest decision first: this page is read to find out who misses the
+        # coming weekend, not to audit the season.
+        .order_by(
+            PlayerSuspension.decided_on.desc().nulls_last(),
+            PlayerSuspension.matchday.desc().nulls_last(),
+            Player.name,
+        )
+        .limit(limit)
+    )
+    if league:
+        stmt = stmt.where(League.slug == league)
+
+    rows = (await db.execute(stmt)).all()
+
+    return [
+        SuspensionOut(
+            id=ban.id,
+            player=PlayerRef.model_validate(player),
+            team=TeamRef.model_validate(team) if team else None,
+            league_slug=comp.slug,
+            league_name=comp.short_name or comp.name,
+            matchday=ban.matchday,
+            decided_on=ban.decided_on,
+            matches=ban.matches,
+            fixture=ban.fixture,
+            match_id=ban.match_id,
+        )
+        for ban, player, comp, team in rows
+    ]
 
 
 # ---------------------------------------------------------------------------

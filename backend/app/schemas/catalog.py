@@ -26,13 +26,17 @@ class SeasonOut(ORMModel):
 
 
 class FieldRef(ORMModel):
-    """Just enough to render the venue line on a match card."""
+    """Just enough to render the venue line on a match card, and the ground
+    card on a club page: the kit prints "Έδρα · χλοοτάπητας · 800 θέσεις", and
+    surface is the one field the federation fills in for every ground."""
 
     id: int
     slug: str
     name: str
     short_name: str | None = None
     city: str | None = None
+    surface: FieldSurface | None = None
+    capacity: int | None = None
 
 
 class FieldOut(FieldRef):

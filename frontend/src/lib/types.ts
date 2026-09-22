@@ -49,6 +49,8 @@ export interface FieldRef {
   name: string;
   short_name: string | null;
   city: string | null;
+  surface: FieldSurface | null;
+  capacity: number | null;
 }
 
 export interface Field extends FieldRef {
@@ -247,4 +249,20 @@ export interface Records {
   total_matches: number;
   total_goals: number;
   seasons_covered: number;
+}
+
+export interface Suspension {
+  id: number;
+  player: PlayerRef;
+  /** Absent when the player never appeared in a published leaderboard: the
+   *  source names a fixture, never a club, so the club has to be inferred. */
+  team: TeamRef | null;
+  league_slug: string;
+  league_name: string;
+  matchday: number | null;
+  decided_on: string | null;
+  /** How many matches the ban runs for. */
+  matches: number;
+  fixture: string | null;
+  match_id: number | null;
 }

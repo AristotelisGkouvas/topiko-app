@@ -46,6 +46,7 @@ from app.scraper.http import Fetcher
 from app.scraper.labels import LeagueLabel, describe_league, unique_label
 from app.scraper.sources.base import CatalogSource, PeopleSource, Source
 from app.scraper.types import ScrapedField, ScrapedMatch
+from app.services.home_fields import infer_home_fields
 from app.services.standings import recompute_standings
 
 logger = logging.getLogger(__name__)
@@ -471,6 +472,13 @@ class Syncer:
                     # keeps its one commit at the end, where the whole update
                     # is atomic.
                     await self.db.commit()
+
+            # Derived from the fixtures that were just written, so it stays
+            # right as clubs change ground. The register never states it.
+            if not dry_run:
+                moved = await infer_home_fields(self.db, self.association)
+                if moved:
+                    logger.info("Έδρες σωματείων: %d ενημερώθηκαν", moved)
 
         except Exception as exc:  # noqa: BLE001 - recorded, then re-raised
             logger.exception("Το scrape απέτυχε")

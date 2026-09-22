@@ -10,7 +10,7 @@ import { ApiError, api } from "@/lib/api";
 import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
-import type { League, Match, Standing, TeamDetail } from "@/lib/types";
+import type { FieldRef, League, Match, Standing, TeamDetail } from "@/lib/types";
 import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
 
@@ -185,7 +185,7 @@ export default async function TeamPage({
           <span>
             <span className={styles.venueName}>{team.home_field.name}</span>
             <span className={styles.venueMeta}>
-              Έδρα{team.home_field.city ? ` · ${team.home_field.city}` : ""}
+              {venueLine(team.home_field)}
             </span>
           </span>
         </Link>
@@ -252,4 +252,22 @@ function Stat({ value, label }: { value: string | number; label: string }) {
       <span className={styles.statLabel}>{label}</span>
     </div>
   );
+}
+
+/** "Έδρα · χλοοτάπητας · 800 θέσεις", dropping whatever the register left
+ *  blank. Surface is filled in for every ground; capacity for three of them. */
+function venueLine(field: FieldRef): string {
+  const SURFACES: Record<string, string> = {
+    grass: "χλοοτάπητας",
+    artificial: "συνθετικός",
+    dirt: "χωμάτινο",
+  };
+  return [
+    "Έδρα",
+    field.surface ? SURFACES[field.surface] : null,
+    field.capacity ? `${field.capacity} θέσεις` : null,
+    field.city,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }

@@ -16,6 +16,7 @@ from app.schemas.player import (
     PlayerSearchOut,
     PlayerSeasonOut,
     ScorerOut,
+    SuspensionOut,
 )
 from app.schemas.stories import (
     HeadToHeadOut,
@@ -26,6 +27,7 @@ from app.schemas.stories import (
 )
 
 __all__ = [
+    "SuspensionOut",
     "PlayerSearchOut",
     "TopScorerAllTimeOut",
     "RecordsOut",

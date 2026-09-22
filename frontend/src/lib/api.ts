@@ -14,6 +14,7 @@ import type {
   Scorer,
   Season,
   Standing,
+  Suspension,
   Team,
   TeamDetail,
 } from "./types";
@@ -177,6 +178,9 @@ export const api = {
   getOnThisDay: () => request<OnThisDay>(scoped("/san-simera"), { revalidate: 3600 }),
 
   getRecords: () => request<Records>(scoped("/rekor"), { revalidate: 3600 }),
+
+  listSuspensions: (params: { season?: string; league?: string } = {}) =>
+    request<Suspension[]>(scoped("/poines"), { searchParams: params }),
 
   getMeta: () => request<Meta>(scoped("/meta"), { revalidate: 0 }),
 };

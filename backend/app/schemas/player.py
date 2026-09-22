@@ -1,3 +1,5 @@
+from datetime import date
+
 from app.schemas.catalog import SeasonOut, TeamRef
 from app.schemas.common import ORMModel
 
@@ -81,3 +83,25 @@ class PlayerDetailOut(ORMModel):
     seasons_scored: int = 0
     #: The clubs they appear for, newest first.
     clubs: list[TeamRef] = []
+
+
+class SuspensionOut(ORMModel):
+    """One disciplinary ban, as the federation published it.
+
+    `team` can be absent and `fixture` is free text, because the source prints
+    a pairing rather than a club, and only links a game id when the match has a
+    report. A ban whose fixture could not be placed is still a ban, and hiding
+    it would understate who is unavailable.
+    """
+
+    id: int
+    player: PlayerRef
+    team: TeamRef | None = None
+    league_slug: str
+    league_name: str
+    matchday: int | None = None
+    decided_on: date | None = None
+    #: How many matches the ban runs for.
+    matches: int
+    fixture: str | None = None
+    match_id: int | None = None

@@ -34,6 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/skorer", label: "Σκόρερ", glyph: "◎", secondary: true },
   { href: "/paiktes", label: "Παίκτες", glyph: "☗", secondary: true },
   { href: "/san-simera", label: "Σαν σήμερα", glyph: "⟳", secondary: true },
+  { href: "/poines", label: "Ποινές", glyph: "⊘", secondary: true },
   { href: "/rekor", label: "Ρεκόρ", glyph: "★", secondary: true },
 ];
 
