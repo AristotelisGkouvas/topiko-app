@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 from app.scraper.types import (
+    ScrapedField,
     ScrapedLeague,
     ScrapedMatch,
     ScrapedPlayer,
@@ -76,8 +77,8 @@ class CatalogSource(Protocol):
 
     def fields_path(self) -> str: ...
 
-    def parse_fields(self, html: str) -> dict[str, str]:
-        """external venue id -> venue name."""
+    def parse_fields(self, html: str) -> dict[str, ScrapedField]:
+        """external venue id -> what the register says about the ground."""
         ...
 
 

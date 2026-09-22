@@ -134,3 +134,23 @@ class ScrapedSuspension:
     fixture: str | None = None
     #: The game_id the row links to, when the federation printed one.
     match_external_id: str | None = None
+
+
+@dataclass(slots=True)
+class ScrapedField:
+    """A venue as the federation's own register describes it.
+
+    Everything past the name is optional because the register is mostly empty:
+    of 114 grounds here, all carry a surface and a floodlight flag, thirteen
+    carry a location and three carry dimensions.
+    """
+
+    external_id: str
+    name: str
+    #: Free text — a village ("ΝΕΟΚΑΙΣΑΡΕΙΑ") or a landmark ("ΕΝΑΝΤΙ ΠΥΛΗΣ
+    #: ΠΑΝΕΠΙΣΤΗΜΙΟΥ"). Not a postal address and not a town on its own, so it
+    #: goes to `address` rather than `city`.
+    location: str | None = None
+    surface: str | None = None
+    has_floodlights: bool | None = None
+    capacity: int | None = None

@@ -36,6 +36,7 @@ from app.models import (
 from app.models.enums import (
     ConflictStatus,
     DataSource,
+    FieldSurface,
     LeagueKind,
     ScrapeRunStatus,
 )
@@ -44,7 +45,7 @@ from app.scraper.decisions import Action, plan_match
 from app.scraper.http import Fetcher
 from app.scraper.labels import LeagueLabel, describe_league, unique_label
 from app.scraper.sources.base import CatalogSource, PeopleSource, Source
-from app.scraper.types import ScrapedMatch
+from app.scraper.types import ScrapedField, ScrapedMatch
 from app.services.standings import recompute_standings
 
 logger = logging.getLogger(__name__)
@@ -191,7 +192,7 @@ class Resolver:
             if team is not None:
                 self._teams_by_key[alias.normalized] = team
 
-    async def load_fields(self, catalog: dict[str, str]) -> None:
+    async def load_fields(self, catalog: dict[str, ScrapedField]) -> None:
         existing = list(
             (
                 await self.db.execute(
@@ -204,7 +205,8 @@ class Resolver:
         self._fields = existing
         self._taken_field_slugs = taken
 
-        for external_id, name in catalog.items():
+        for external_id, scraped in catalog.items():
+            name = scraped.name
             if naming.is_corrupt(name):
                 continue
             venue = by_external.get(external_id)
@@ -224,7 +226,8 @@ class Resolver:
                     )
                     self.db.add(venue)
                     existing.append(venue)
-                by_external[external_id] = venue
+            _apply_field_details(venue, scraped)
+            by_external[external_id] = venue
 
         await self.db.flush()
         self._fields_by_external = by_external
@@ -1134,3 +1137,25 @@ async def sync_association(
         seasons=seasons,
         all_seasons=all_seasons,
     )
+
+def _apply_field_details(venue: Field, scraped: ScrapedField) -> None:
+    """Copy across whatever the register actually filled in.
+
+    Only non-empty values are written. The register is mostly blank — thirteen
+    of 114 grounds carry a location — and treating a blank cell as "no address"
+    would erase anything a human had typed in on the next run.
+
+    The surface string is already mapped onto the enum by the adapter, so an
+    unfamiliar wording arrives as None and is skipped rather than guessed at.
+    """
+    if scraped.location:
+        venue.address = scraped.location
+    if scraped.surface:
+        try:
+            venue.surface = FieldSurface(scraped.surface)
+        except ValueError:
+            pass
+    if scraped.has_floodlights is not None:
+        venue.has_floodlights = scraped.has_floodlights
+    if scraped.capacity:
+        venue.capacity = scraped.capacity

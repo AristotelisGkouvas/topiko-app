@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup, Tag
 
 from app.models.enums import MatchStatus
 from app.scraper.types import (
+    ScrapedField,
     ScrapedLeague,
     ScrapedMatch,
     ScrapedPlayer,
@@ -298,15 +299,50 @@ class EpsipSource:
     def fields_path(self) -> str:
         return "/field/fields_map.php"
 
-    def parse_fields(self, html: str) -> dict[str, str]:
-        """field_id -> venue name, from fields_map.php."""
+    #: The register's surface wording, mapped onto our own enum.
+    _SURFACES = {
+        "φυσικος χλοοταπητας": "grass",
+        "συνθετικος χλοοταπητας": "artificial",
+        "ξερο": "dirt",
+    }
+
+    def parse_fields(self, html: str) -> dict[str, ScrapedField]:
+        """field_id -> the ground, from fields_map.php.
+
+        Despite the file name that page is a table, not a map, and it carries
+        more than the name: every row has a surface and a floodlight flag, and
+        some have a location and a capacity. All of it was being thrown away.
+
+        The columns headed Μήκος and Πλάτος are the pitch's length and width in
+        metres — 65 to 106 by 45 to 65 across the rows that fill them in. They
+        are *not* longitude and latitude, which is what those two words
+        otherwise mean and what a reader of this parser will assume; reading
+        them that way would put every ground in the Arctic.
+        """
         soup = BeautifulSoup(html, "html.parser")
-        fields: dict[str, str] = {}
-        for anchor in soup.find_all("a"):
-            field_id = _param(anchor, "field_id")
-            name = _text(anchor)
-            if field_id and name:
-                fields.setdefault(field_id, name)
+        fields: dict[str, ScrapedField] = {}
+
+        for row in soup.find_all("tr"):
+            cells = row.find_all("td")
+            if len(cells) < 8:
+                continue
+            anchor = row.find("a", href=True)
+            field_id = _param(anchor, "field_id") if anchor else None
+            name = _text(anchor) if anchor else None
+            if not field_id or not name:
+                continue
+
+            fields.setdefault(
+                field_id,
+                ScrapedField(
+                    external_id=field_id,
+                    name=name,
+                    location=_text(cells[2]) or None,
+                    surface=self._SURFACES.get(_fold(_text(cells[3]))),
+                    has_floodlights=_yes_no(_text(cells[7])),
+                    capacity=_positive_int(_text(cells[9])) if len(cells) > 9 else None,
+                ),
+            )
         return fields
 
     # --- players, statistics and suspensions -----------------------------
@@ -417,3 +453,28 @@ class EpsipSource:
                 )
             )
         return out
+
+def _fold(value: str) -> str:
+    """Lower-case and strip accents, so "Φυσικός" matches "φυσικος"."""
+    import unicodedata
+
+    stripped = unicodedata.normalize("NFD", value.strip().lower())
+    return "".join(c for c in stripped if unicodedata.category(c) != "Mn")
+
+
+def _yes_no(value: str) -> bool | None:
+    folded = _fold(value)
+    if folded.startswith("ναι"):
+        return True
+    if folded.startswith("οχι"):
+        return False
+    return None
+
+
+def _positive_int(value: str) -> int | None:
+    """Zero means "not recorded" in this register, not "no seats"."""
+    try:
+        number = int(value.strip())
+    except (TypeError, ValueError):
+        return None
+    return number or None
