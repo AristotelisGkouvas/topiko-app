@@ -33,6 +33,8 @@ export async function ogFonts() {
 export const COLORS = {
   navy: "#003c71",
   green: "#128c40",
+  //: The darker stripe of the mown-grass mark, used only beside `green`.
+  grassDark: "#0f7e39",
   ink: "#3a3a3a",
   muted: "#6c6f72",
   surface: "#ffffff",
@@ -62,18 +64,33 @@ export function Card({
         position: "relative",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          fontSize: 24,
-          letterSpacing: 3,
-          fontWeight: 700,
-          opacity: 0.85,
-        }}
-      >
-        ΠΑΜΕ ΣΕΝΤΡΑ
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        {/* The grass mark. Satori has no gradients, so the stripes are drawn
+            as what they are: alternating bars. */}
+        <div style={{ display: "flex", width: 56, height: 56, borderRadius: 12, overflow: "hidden" }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                width: 11.2,
+                height: 56,
+                background: i % 2 === 0 ? COLORS.green : COLORS.grassDark,
+              }}
+            />
+          ))}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 24,
+            letterSpacing: 3,
+            fontWeight: 700,
+            opacity: 0.85,
+          }}
+        >
+          ΠΑΜΕ ΣΕΝΤΡΑ
+        </div>
       </div>
 
       <div

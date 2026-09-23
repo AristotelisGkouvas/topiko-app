@@ -18,6 +18,9 @@
      2.6:1 and effectively invisible; green-400 on white is 2.0:1 and just as
      bad. green-100 tints table zones. */
   --color-green-600: #128c40;
+  /* The darker stripe of the mown-grass mark. Only ever used beside
+     green-600 — alone it reads as a slightly wrong green-600. */
+  --color-green-700: #0f7e39;
   --color-green-400: #4fd07c;
   --color-green-300: #7fd79c;
   --color-green-100: #dcf3e4;
@@ -69,6 +72,9 @@
   --color-link-hover: var(--color-green-600);
   /* Accent for anything drawn on the navy header or nav bar. */
   --color-on-navy-accent: var(--color-green-400);
+  /* Secondary text on the navy bar. grey-600 disappears there and white is
+     too loud for a caption. */
+  --color-on-navy-muted: #9cb6ce;
 
   /* --- Type ---------------------------------------------------------
      Tahoma / DejaVu Sans last: both ship on Windows and Linux with full

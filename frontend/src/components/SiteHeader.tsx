@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { APP_NAME, APP_TAGLINE, NAV_ITEMS, isActive } from "@/lib/nav";
-import { Logo } from "./Logo";
+import { APP_TAGLINE, NAV_ITEMS, isActive } from "@/lib/nav";
+import { Logo, Wordmark } from "./Logo";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader() {
@@ -14,11 +14,10 @@ export function SiteHeader() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand}>
-          <span className={styles.mark} aria-hidden="true">
-            <Logo size={22} />
-          </span>
+          {/* The mark carries ΠΣ itself now, so the old badge wrapper goes. */}
+          <Logo size={34} />
           <span className={styles.brandText}>
-            <span className={styles.name}>{APP_NAME}</span>
+            <Wordmark />
             <span className={styles.tagline}>{APP_TAGLINE}</span>
           </span>
         </Link>

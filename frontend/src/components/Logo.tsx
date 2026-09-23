@@ -1,12 +1,15 @@
-/** The brand mark: a goal, seen head on, with the net behind it.
+/** The brand mark: mown grass.
  *
- *  Taken from the Brand Assets canvas (σήμα 11a). Drawn in `currentColor` so
- *  the same file works on the navy header bar, on a white card and inside a
- *  generated share image — the kit ships navy, solid-navy and grass variants
- *  of one shape rather than three files.
+ *  From Logo Set 3b, which UI Kit v4 adopts — "το γρασίδι είναι το σήμα· το
+ *  navy μένει το χρώμα της εφαρμογής". It replaces the goal frame of the
+ *  earlier Brand Assets sheet.
+ *
+ *  Drawn with a repeating gradient rather than an SVG: the stripes are the
+ *  whole idea, and a gradient keeps them crisp at any size without a viewBox
+ *  to scale. The generated icons draw the same stripes as pixels.
  */
 export function Logo({
-  size = 28,
+  size = 38,
   className,
   title,
 }: {
@@ -14,34 +17,60 @@ export function Logo({
   className?: string;
   title?: string;
 }) {
-  // The artwork is 104x92; keeping the ratio stops the crossbar thinning out.
-  const height = Math.round((size * 92) / 104);
-
   return (
-    <svg
-      viewBox="0 0 104 92"
-      width={size}
-      height={height}
+    <span
       className={className}
-      style={{ display: "block" }}
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
       aria-label={title}
+      style={{
+        width: size,
+        height: size,
+        // A quarter of the mark, so the stripe count holds as it scales.
+        borderRadius: Math.round(size * 0.21),
+        background:
+          "repeating-linear-gradient(90deg, var(--color-green-600) 0 " +
+          `${Math.max(3, Math.round(size * 0.21))}px, var(--color-green-700) ` +
+          `${Math.max(3, Math.round(size * 0.21))}px ${Math.max(6, Math.round(size * 0.42))}px)`,
+        display: "grid",
+        placeItems: "center",
+        fontFamily: "var(--font-display)",
+        fontWeight: 800,
+        fontSize: Math.round(size * 0.42),
+        lineHeight: 1,
+        color: "var(--color-grey-50)",
+        flex: "none",
+        userSelect: "none",
+      }}
     >
-      {title && <title>{title}</title>}
-      <g fill="currentColor">
-        <rect x="6" y="6" width="92" height="11" />
-        <rect x="6" y="6" width="11" height="86" />
-        <rect x="87" y="6" width="11" height="86" />
-      </g>
-      {/* The net. Held back to 40% so the frame still reads at 20px. */}
-      <path
-        d="M31 17V92 M46 17V92 M61 17V92 M76 17V92 M17 32H87 M17 52H87 M17 72H87"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        opacity=".4"
-        fill="none"
-      />
-    </svg>
+      ΠΣ
+    </span>
+  );
+}
+
+/** The wordmark as it sits on the navy bar: ΠΑΜΕ in the on-navy green above
+ *  ΣΕΝΤΡΑ in off-white. green-600 all but vanishes against navy, which is why
+ *  the palette keeps a lighter one for exactly this. */
+export function Wordmark() {
+  return (
+    <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <span
+        style={{
+          font: "700 10px/1 var(--font-display)",
+          letterSpacing: "4px",
+          color: "var(--color-on-navy-accent)",
+        }}
+      >
+        ΠΑΜΕ
+      </span>
+      <span
+        style={{
+          font: "800 22px/.85 var(--font-display)",
+          color: "var(--color-grey-100)",
+        }}
+      >
+        ΣΕΝΤΡΑ
+      </span>
+    </span>
   );
 }

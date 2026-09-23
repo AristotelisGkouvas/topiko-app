@@ -1,10 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 92" width="104" height="92">
-  <rect width="104" height="92" fill="#003c71"/>
-  <g fill="#ffffff">
-    <rect x="6" y="6" width="92" height="11"/>
-    <rect x="6" y="6" width="11" height="86"/>
-    <rect x="87" y="6" width="11" height="86"/>
-  </g>
-  <path d="M31 17V92 M46 17V92 M61 17V92 M76 17V92 M17 32H87 M17 52H87 M17 72H87"
-        stroke="#ffffff" stroke-width="1.4" opacity=".4" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Mown grass: the mark from Logo Set 3b. Two greens, never one. -->
+    <pattern id="g" width="26" height="64" patternUnits="userSpaceOnUse">
+      <rect width="13" height="64" fill="#128c40"/>
+      <rect x="13" width="13" height="64" fill="#0f7e39"/>
+    </pattern>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="url(#g)"/>
+  <!-- The halfway line and centre spot, as in the logo's divider. -->
+  <rect x="11" y="31" width="42" height="2" fill="#ffffff"/>
+  <circle cx="32" cy="32" r="6.5" fill="#ffffff"/>
 </svg>

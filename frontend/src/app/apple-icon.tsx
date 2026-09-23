@@ -10,6 +10,9 @@ export default function AppleIcon() {
 }
 
 export function Mark() {
+  // The same grass, halfway line and centre spot as the other icons — drawn
+  // as flat boxes because Satori renders no gradients and no border-radius on
+  // a circle of this kind.
   return (
     <div
       style={{
@@ -18,23 +21,45 @@ export function Mark() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#003c71",
+        position: "relative",
       }}
     >
-      <svg viewBox="0 0 104 92" width="120" height="106">
-        <g fill="#ffffff">
-          <rect x="6" y="6" width="92" height="11" />
-          <rect x="6" y="6" width="11" height="86" />
-          <rect x="87" y="6" width="11" height="86" />
-        </g>
-        <path
-          d="M31 17V92 M46 17V92 M61 17V92 M76 17V92 M17 32H87 M17 52H87 M17 72H87"
-          stroke="#ffffff"
-          strokeWidth="1.4"
-          opacity=".4"
-          fill="none"
-        />
-      </svg>
+      <div style={{ display: "flex", position: "absolute", inset: 0 }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              width: 36,
+              height: 180,
+              background: i % 2 === 0 ? "#128c40" : "#0f7e39",
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          position: "absolute",
+          left: 32,
+          top: 88,
+          width: 116,
+          height: 4,
+          background: "#ffffff",
+        }}
+      />
+      <div
+        style={{
+          display: "flex",
+          position: "absolute",
+          left: 71,
+          top: 71,
+          width: 38,
+          height: 38,
+          borderRadius: 19,
+          background: "#ffffff",
+        }}
+      />
     </div>
   );
 }

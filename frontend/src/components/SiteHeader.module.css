@@ -28,35 +28,11 @@
   color: inherit;
 }
 
-.mark {
-  width: 32px;
-  height: 32px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
-  /* A light badge on the navy bar: terracotta is reserved for live, and
-     white on it would be 3.9:1 at this size anyway. */
-  background: var(--color-grey-50);
-  color: var(--color-navy-900);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 12.5px;
-  letter-spacing: 0.5px;
-}
-
 .brandText {
   display: grid;
   min-width: 0;
 }
 
-.name {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.6px;
-  line-height: 1.15;
-}
 
 .tagline {
   font-size: 10.5px;
