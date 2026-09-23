@@ -1,13 +1,39 @@
-/* The app shell, kept on the phone.
+/* Pages kept on the phone, for when the signal goes.
  *
- *  Narrow on purpose. This exists so that /diaxeirisi opens at a ground with
- *  no signal — the recording itself is made safe by the outbox, not by this.
- *  Caching more would mean serving a stale table to a reader who has a perfectly
- *  good connection, which is worse than a slow one.
+ *  Network first, always. The cache is never preferred to a live answer, so a
+ *  reader with a connection never sees a stale table — which was the original
+ *  reason for keeping this to one page. What the cache is for is the other
+ *  case: a ground behind a hill, where the alternative is the browser's own
+ *  "no internet" screen and nothing at all.
+ *
+ *  A page served from here is genuinely old, and the app says so: the offline
+ *  bar prints the time it was saved. That is the difference between showing
+ *  somebody Saturday's score and lying to them about it.
+ *
+ *  API responses are still never cached. A stale score rendered as live is a
+ *  wrong score, and the outbox — not this — is what makes recording safe.
  */
 
-const CACHE = "pamesentra-shell-v1";
-const SHELL = ["/diaxeirisi", "/icon.svg", "/manifest.webmanifest"];
+const CACHE = "pamesentra-pages-v2";
+const SHELL = ["/", "/diaxeirisi", "/icon.svg", "/manifest.webmanifest"];
+
+/** How many visited pages to keep. Enough for a Sunday's browsing; a cache
+ *  that grows without limit gets evicted wholesale by the browser, which is
+ *  the one moment it was needed. */
+const MAX_PAGES = 30;
+
+async function remember(request, response) {
+  const cache = await caches.open(CACHE);
+  await cache.put(request, response);
+
+  // Oldest out. `keys()` returns insertion order, and a re-visited page is
+  // re-inserted, so this evicts what has not been looked at in longest.
+  const keys = await cache.keys();
+  const pages = keys.filter((k) => !SHELL.includes(new URL(k.url).pathname));
+  for (const stale of pages.slice(0, Math.max(0, pages.length - MAX_PAGES))) {
+    await cache.delete(stale);
+  }
+}
 
 self.addEventListener("install", (event) => {
   // addAll fails the whole install if any one URL 404s, so each is added on
@@ -42,17 +68,27 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (response.ok && new URL(request.url).pathname === "/diaxeirisi") {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
+        if (response.ok) {
+          // Cloned before the body is read: a Response can only be consumed
+          // once, and the reader gets the original.
+          event.waitUntil(remember(request, response.clone()));
         }
         return response;
       })
       .catch(async () => {
-        const cached = await caches.match(request);
+        // This page as it last was — not some other page's shell. Handing
+        // somebody the dashboard because they asked for the fixtures is worse
+        // than an error: it looks like the app lost their place.
+        const cached = await caches.match(request, { ignoreSearch: false });
+        if (cached) return cached;
+
+        // Same page, different query string. A table filtered by matchday is
+        // still that table, and it beats nothing.
+        const loose = await caches.match(request, { ignoreSearch: true });
+        if (loose) return loose;
+
         return (
-          cached ??
-          (await caches.match("/diaxeirisi")) ??
+          (await caches.match("/")) ??
           new Response("Χωρίς σύνδεση.", {
             status: 503,
             headers: { "Content-Type": "text/plain; charset=utf-8" },

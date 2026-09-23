@@ -1,0 +1,78 @@
+.bar {
+  /* Pinned above the phone tab bar, not over it: the bar is information, and
+     covering the way out of the page to deliver it is a poor trade. */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 12px 8px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  /* Amber, not red: nothing has failed. The phone is out of range and the
+     page still works — red would say something is broken. */
+  background: var(--color-draw-surface);
+  color: var(--color-draw-ink);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  font-size: 0.8125rem;
+}
+
+/* The same breakpoint at which BottomNav hides itself. */
+@media (min-width: 860px) {
+  .bar {
+    /* No tab bar on a wide screen, so it sits at the bottom corner instead of
+       spanning a metre of desktop. */
+    left: auto;
+    right: 16px;
+    bottom: 16px;
+    max-width: 420px;
+  }
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.saved,
+.queued {
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.retry {
+  flex: none;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.retry:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

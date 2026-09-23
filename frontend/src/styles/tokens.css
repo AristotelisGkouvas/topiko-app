@@ -71,6 +71,11 @@
      the border and shadow instead. */
   --color-surface-raised: var(--color-grey-50);
 
+  /* The phone tab bar's height: a 48px hit target plus its top border.
+     Anything that has to float above the bar needs this, and a second
+     copy of the number is a second thing to forget when the kit moves. */
+  --bottom-nav-height: 49px;
+
   --color-link: var(--color-navy-900);
   --color-link-hover: var(--color-green-600);
   /* Accent for anything drawn on the navy header or nav bar. */

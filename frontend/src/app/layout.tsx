@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fira_Sans_Condensed, Noto_Sans } from "next/font/google";
 
 import { BottomNav } from "@/components/BottomNav";
+import { OfflineBar } from "@/components/OfflineBar";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { SiteHeader } from "@/components/SiteHeader";
 import { api } from "@/lib/api";
@@ -92,6 +93,7 @@ export default async function RootLayout({
         <main id="content" className={styles.main}>
           {children}
         </main>
+        <OfflineBar />
         <BottomNav liveCount={liveCount} />
         <ServiceWorker />
       </body>
