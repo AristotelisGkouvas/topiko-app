@@ -7,6 +7,7 @@ import { apiUrl } from "@/lib/api";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { formatDayDate, formatTime } from "@/lib/format";
 import type { Match } from "@/lib/types";
+import { Crest } from "./Crest";
 import styles from "./MyClub.module.css";
 
 interface ClubForm {
@@ -79,67 +80,59 @@ export function MyClub() {
   const last = data?.last;
   const next = data?.next;
 
+  // The design's card is the *next* fixture, crest against crest. Results have
+  // their own section below it on the home page, so repeating the last one here
+  // would be the same information twice. In June, when there is no next
+  // fixture, the last result takes the slot rather than leaving a hole.
+  const shown = next ?? last;
+
   return (
-    <section className={styles.panel}>
+    <section className={styles.wrap}>
       <div className={styles.head}>
-        <span className={styles.label}>Η ομάδα σου</span>
-        <Link href={`/somateia/${favourite.slug}`} className={styles.name}>
-          {favourite.name}
+        <span className={styles.label}>Η ΟΜΑΔΑ ΜΟΥ</span>
+        <Link href={`/somateia/${favourite.slug}`} className={styles.more}>
+          {favourite.name} ›
         </Link>
       </div>
 
-      <div className={styles.slots}>
-        <Slot title="Τελευταίο">
-          {last ? (
-            <Link href={`/agones/${last.id}`} className={styles.match}>
-              <span className={styles.opponent}>
-                {opponentOf(last, favourite.name)}
-              </span>
-              <span className={styles.score}>
-                {last.home_score}–{last.away_score}
-              </span>
-            </Link>
-          ) : (
-            <span className={styles.none}>—</span>
-          )}
-        </Slot>
+      {shown ? (
+        <Link href={`/agones/${shown.id}`} className={styles.card}>
+          <div className={styles.meta}>
+            <span>
+              {shown.kickoff_at
+                ? `${formatDayDate(shown.kickoff_at)} · ${formatTime(shown.kickoff_at)}`
+                : "Χωρίς ώρα"}
+            </span>
+            {shown.matchday !== null && <span>{shown.matchday}η ΑΓΩΝ.</span>}
+          </div>
 
-        <Slot title="Επόμενο">
-          {next ? (
-            <Link href={`/agones/${next.id}`} className={styles.match}>
-              <span className={styles.opponent}>
-                {opponentOf(next, favourite.name)}
-              </span>
-              <span className={styles.when}>
-                {formatDayDate(next.kickoff_at)} · {formatTime(next.kickoff_at)}
-              </span>
-            </Link>
-          ) : (
-            <span className={styles.none}>χωρίς ορισμένο αγώνα</span>
-          )}
-        </Slot>
-      </div>
+          <div className={styles.fixture}>
+            <Side team={shown.home_team} />
+            <span className={styles.vs}>
+              {shown.home_score !== null && shown.away_score !== null
+                ? `${shown.home_score}–${shown.away_score}`
+                : "vs"}
+            </span>
+            <Side team={shown.away_team} />
+          </div>
+        </Link>
+      ) : (
+        <div className={styles.card}>
+          <p className={styles.none}>Χωρίς ορισμένο αγώνα.</p>
+        </div>
+      )}
     </section>
   );
 }
 
-function Slot({ title, children }: { title: string; children: React.ReactNode }) {
+/** One half of the fixture: a 42px crest above the club's short name. */
+function Side({ team }: { team: Match["home_team"] }) {
   return (
-    <div className={styles.slot}>
-      <span className={styles.slotTitle}>{title}</span>
-      {children}
-    </div>
+    <span className={styles.side}>
+      <span className={styles.sideCrest}>
+        <Crest team={team} size="lg" />
+      </span>
+      <span className={styles.sideName}>{team.short_name ?? team.name}</span>
+    </span>
   );
-}
-
-/** Which side of the fixture is not us.
- *
- *  Compared on the stored name rather than an id: the panel knows the club
- *  only by what was saved when the star was pressed, and refetching the club
- *  to learn its id would cost a request to answer a question the name settles.
- */
-function opponentOf(match: Match, ours: string): string {
-  return match.home_team.name === ours
-    ? match.away_team.name
-    : match.home_team.name;
 }
