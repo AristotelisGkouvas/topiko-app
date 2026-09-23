@@ -249,3 +249,26 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* Amber with dark ink: white on amber is unreadable, and this strip appears
+   exactly when the person reading it is outdoors in daylight. */
+.queue {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-amber-200);
+  color: var(--color-grey-800);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.queueHint {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11.5px;
+  opacity: 0.85;
+}

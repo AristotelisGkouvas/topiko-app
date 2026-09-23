@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fira_Sans_Condensed, Noto_Sans } from "next/font/google";
 
 import { BottomNav } from "@/components/BottomNav";
+import { ServiceWorker } from "@/components/ServiceWorker";
 import { SiteHeader } from "@/components/SiteHeader";
 import { api } from "@/lib/api";
 import { APP_NAME, APP_TAGLINE } from "@/lib/nav";
@@ -78,6 +79,7 @@ export default async function RootLayout({
           {children}
         </main>
         <BottomNav liveCount={liveCount} />
+        <ServiceWorker />
       </body>
     </html>
   );

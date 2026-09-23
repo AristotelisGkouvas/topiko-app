@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 
 import { EVENT_LABELS, type EventKind, type MatchFeed } from "@/components/MatchTicker";
 import { Empty } from "@/components/States";
 import { EditorError, editorApi } from "@/lib/editorApi";
+import {
+  enqueue,
+  flush,
+  newClientId,
+  useOnline,
+  useOutboxSize,
+} from "@/lib/outbox";
 import { formatTime } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./sheet.module.css";
@@ -68,6 +75,27 @@ function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
   const [minute, setMinute] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queued = useOutboxSize();
+  const online = useOnline();
+
+  useEffect(() => {
+    // Subscribes to two external systems and does nothing else: the queue
+    // reports its own size, so nothing here sets state.
+    const retry = async () => {
+      const result = await flush();
+      if (result.sent > 0) {
+        const fresh = await editorApi.feed(match.id).catch(() => null);
+        if (fresh) setFeed(fresh);
+      }
+    };
+    const onOnline = () => void retry();
+    window.addEventListener("online", onOnline);
+    const timer = window.setInterval(retry, 20_000);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.clearInterval(timer);
+    };
+  }, [match.id]);
 
   useSWR<MatchFeed>(
     ["sheet:feed", match.id],
@@ -84,17 +112,24 @@ function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
     if (busy) return;
     setBusy(true);
     setError(null);
+    const parsed = Number.parseInt(minute, 10);
+
+    // Written down before it is sent. If the phone is behind the goal with no
+    // reception, the afternoon is still recorded — which is the whole point.
+    enqueue({
+      client_id: newClientId(),
+      match_id: match.id,
+      kind,
+      team_id: teamId,
+      minute: Number.isInteger(parsed) ? parsed : undefined,
+    });
+
     try {
-      const parsed = Number.parseInt(minute, 10);
-      setFeed(
-        await editorApi.addEvent(match.id, {
-          kind,
-          team_id: teamId,
-          minute: Number.isInteger(parsed) ? parsed : undefined,
-        }),
-      );
+      const result = await flush();
+      if (result.blocked) setError(result.blocked);
+      if (result.sent > 0) setFeed(await editorApi.feed(match.id));
     } catch (err) {
-      setError(err instanceof EditorError ? err.message : "Απέτυχε.");
+      setError(err instanceof EditorError ? err.message : "Παραμένει σε αναμονή.");
     } finally {
       setBusy(false);
     }
@@ -130,6 +165,16 @@ function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
         </span>
         <span className={styles.boardTeam}>{away.short_name ?? away.name}</span>
       </div>
+
+      {(!online || queued > 0) && (
+        <p className={styles.queue} role="status">
+          {online ? "Αποστολή" : "Χωρίς σήμα"}
+          {queued > 0 ? ` · ${queued} σε αναμονή` : ""}
+          <span className={styles.queueHint}>
+            Τα γεγονότα αποθηκεύονται και στέλνονται μόλις υπάρξει σύνδεση.
+          </span>
+        </p>
+      )}
 
       <label className={styles.minuteField}>
         Λεπτό

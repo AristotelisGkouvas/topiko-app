@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Index, Integer, String, Text
+from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, str_enum
@@ -29,9 +29,16 @@ class MatchEvent(Base, TimestampMixin):
     __tablename__ = "match_events"
     __table_args__ = (
         Index("ix_match_events_match_minute", "match_id", "minute"),
+        # What makes recording safe without signal. The phone names each event
+        # before sending it, so a request that succeeded but whose reply never
+        # came back can be retried without putting the goal on the board twice.
+        UniqueConstraint("client_id", name="uq_match_events_client_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    #: Chosen by the device that recorded it, before it was sent. Null for
+    #: anything entered straight from a desk, where there was never a queue.
+    client_id: Mapped[str | None] = mapped_column(String(64))
     match_id: Mapped[int] = mapped_column(
         ForeignKey("matches.id", ondelete="CASCADE"), nullable=False, index=True
     )

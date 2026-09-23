@@ -55,6 +55,11 @@ class MatchFeedOut(BaseModel):
 
 class EventIn(BaseModel):
     kind: MatchEventKind
+    #: Named by the device before sending. A phone at a ground with no signal
+    #: queues events and flushes them later; without this, a request that
+    #: arrived but whose reply was lost would be retried and put the goal on
+    #: the board twice.
+    client_id: str | None = Field(default=None, min_length=8, max_length=64)
     #: Which side. Required for anything that belongs to a team and refused
     #: for the markers that belong to the match, so a kickoff cannot be filed
     #: against ΑΤΛΑΣ.
@@ -156,8 +161,19 @@ async def add_event(
                 detail="Η ομάδα δεν συμμετέχει σε αυτόν τον αγώνα.",
             )
 
+    if payload.client_id:
+        already = next(
+            (e for e in match.events if e.client_id == payload.client_id), None
+        )
+        if already is not None:
+            # A replay of something already recorded. Answering with the feed
+            # rather than an error is what lets the phone retry blindly until
+            # it gets through.
+            return _feed(match)
+
     event = MatchEvent(
         match_id=match.id,
+        client_id=payload.client_id,
         kind=payload.kind,
         team_id=payload.team_id,
         minute=payload.minute,
