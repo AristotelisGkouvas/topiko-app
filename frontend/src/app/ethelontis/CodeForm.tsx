@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 
+import { Logo } from "@/components/Logo";
 import { VolunteerError, volunteerApi, type Volunteer } from "@/lib/volunteerApi";
+import { CodeInput } from "./CodeInput";
 import styles from "./page.module.css";
 
-/** The whole login: one box, one code.
+/** Screen V1. The whole login: one code, no account.
  *
- *  No email, no password, no account to forget. The card the federation hands
- *  out says ΠΙΝ-482719 and that is everything the representative has to know.
+ *  The brand is drawn on the light canvas here rather than on navy, so ΠΑΜΕ
+ *  takes green-600 and ΣΕΝΤΡΑ takes navy — the inverse of the header. green-400
+ *  on white is 2.0:1 and would be unreadable.
  */
 export function CodeForm({ onIn }: { onIn: (who: Volunteer) => void }) {
   const [code, setCode] = useState("");
@@ -34,31 +37,23 @@ export function CodeForm({ onIn }: { onIn: (who: Volunteer) => void }) {
   }
 
   return (
-    <form className={styles.panel} onSubmit={submit}>
-      <h1 className={styles.heading}>Κωδικός σωματείου</h1>
-      <p className={styles.lead}>
-        Γράψε τον κωδικό που σου έδωσε η ένωση για να δηλώνεις τους αγώνες του
-        σωματείου σου.
+    <form className={styles.login} onSubmit={submit}>
+      <div className={styles.loginBrand}>
+        <Logo size={40} />
+        <span className={styles.loginWordmark}>
+          <span className={styles.loginPame}>ΠΑΜΕ</span>
+          <span className={styles.loginSentra}>ΣΕΝΤΡΑ</span>
+        </span>
+      </div>
+
+      <h1 className={styles.loginTitle}>
+        Ενημέρωσε live τον αγώνα της ομάδας σου
+      </h1>
+      <p className={styles.loginLead}>
+        Βάλε τον κωδικό σωματείου που σου έδωσε η ένωση.
       </p>
 
-      <label className={styles.label} htmlFor="code">
-        Κωδικός
-      </label>
-      <input
-        id="code"
-        className={styles.input}
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder="ΠΙΝ-482719"
-        // Uppercase and no autocorrect: the code is letters and digits, and a
-        // keyboard that helpfully capitalises the first letter only, or turns
-        // ΠΙΝ into Πιν, produces a code that is rejected for no visible reason.
-        autoCapitalize="characters"
-        autoCorrect="off"
-        spellCheck={false}
-        autoComplete="off"
-        required
-      />
+      <CodeInput value={code} onChange={setCode} invalid={error !== null} />
 
       {error && (
         <p className={styles.error} role="alert">
@@ -70,8 +65,9 @@ export function CodeForm({ onIn }: { onIn: (who: Volunteer) => void }) {
         {busy ? "Σύνδεση…" : "Σύνδεση"}
       </button>
 
-      <p className={styles.small}>
-        Δεν έχεις κωδικό; Ζήτησέ τον από την ένωση — δίνεται ανά σωματείο.
+      <p className={styles.loginNote}>
+        Δεν έχεις κωδικό; Ζήτησέ τον από την ένωση — δίνεται ανά σωματείο και
+        ισχύει μόνο για τους αγώνες του.
       </p>
     </form>
   );

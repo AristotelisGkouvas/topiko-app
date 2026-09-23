@@ -77,7 +77,9 @@ export function Desk() {
         </button>
       </header>
 
-      <MatchSheet backend={BACKEND} />
+      <div className={styles.sheetWrap}>
+        <MatchSheet backend={BACKEND} />
+      </div>
 
       <p className={styles.small}>
         Μπορείς να δηλώσεις από τρεις ώρες πριν τη σέντρα μέχρι έξι ώρες μετά.

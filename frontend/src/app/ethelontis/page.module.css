@@ -1,85 +1,200 @@
+/* Screens V1–V3 of the Claude Design file. */
+
 .page {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 20px 16px 40px;
+  /* V1 fills the screen: no card, no header, because this is a door and not a
+     page of the site. */
+  margin: -18px -16px 0;
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
 }
 
 .loading {
+  padding: 48px 22px;
   color: var(--color-text-muted);
-  padding: 24px 2px;
 }
 
-/* ---- the code form ---- */
+/* --- V1: the code screen -------------------------------------------- */
 
-.panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 22px 18px;
-}
-
-.heading {
-  margin: 0 0 6px;
-  font-size: 1.25rem;
-}
-
-.lead {
-  margin: 0 0 16px;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-}
-
-.label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin-bottom: 6px;
-}
-
-.input {
+.login {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 22px 26px;
+  gap: 18px;
+  max-width: 460px;
   width: 100%;
-  min-height: 48px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-canvas);
-  color: var(--color-text);
-  /* The code is read off a card and typed with one thumb: big, monospaced and
-     spaced out, so a 0 next to an O is not a guess. */
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  font-size: 1.125rem;
-  letter-spacing: 0.08em;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.loginBrand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  /* The mark is 40px here, bigger than the header's 32. */
+  --logo-size: 40px;
+}
+
+.loginWordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* On the light canvas the greens swap roles: green-600 is the readable one and
+   green-400 would be 2.0:1 against white. */
+.loginPame {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10.8px;
+  line-height: 1;
+  letter-spacing: 4px;
+  text-indent: 4px;
+  color: var(--color-green-600);
+}
+
+.loginSentra {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 0.9;
+  color: var(--color-heading);
+}
+
+.loginTitle {
+  margin: 20px 0 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.05;
+  color: var(--color-heading);
+}
+
+.loginLead {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.loginNote {
+  margin: auto 0 0;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+/* --- the segmented code field --------------------------------------- */
+
+.codeWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.codeLabel {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
-.input:focus-visible {
-  outline: 2px solid var(--color-green-600);
-  outline-offset: 1px;
+.code {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  cursor: text;
 }
 
-.error {
-  margin: 10px 0 0;
-  padding: 9px 12px;
-  border-radius: var(--radius-md);
-  background: var(--color-loss-surface);
-  color: var(--color-loss-ink);
-  font-size: 0.875rem;
+.codeBox {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  border-radius: 10px;
+  background: var(--color-surface);
+  /* 1.5px, as the design draws it — 1px reads as a disabled field at this size
+     and 2px as an error. */
+  border: 1.5px solid var(--color-chip-border);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--color-heading);
 }
+
+/* Filled boxes take the green border the design shows. A box that is still
+   empty has nothing to be confident about. */
+.codeBoxFull {
+  border-color: var(--color-green-600);
+}
+
+.codeBoxBad {
+  border-color: var(--color-loss);
+}
+
+.codeDash {
+  flex: none;
+  width: 10px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--color-grey-400);
+}
+
+/* The real field, invisible but present: it takes the keyboard, the paste and
+   the caret, and the boxes above are its rendering. */
+.codeField {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: none;
+  background: none;
+  /* Transparent rather than hidden: a hidden input cannot be focused on iOS,
+     and the keyboard never opens. */
+  color: transparent;
+  caret-color: var(--color-green-600);
+  font: inherit;
+  letter-spacing: 1em;
+  text-indent: 0.5em;
+  outline: none;
+}
+
+.code:focus-within .codeBox {
+  border-color: var(--color-green-600);
+}
+
+@media (max-width: 400px) {
+  .codeBox {
+    height: 46px;
+    font-size: 18px;
+  }
+}
+
+/* --- shared controls ------------------------------------------------ */
 
 .primary {
+  display: grid;
+  place-items: center;
   width: 100%;
-  min-height: 48px;
-  margin-top: 14px;
+  height: 50px;
+  padding: 0 16px;
+  box-sizing: border-box;
   border: 1px solid var(--color-green-600);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: var(--color-green-600);
   color: #fff;
-  font: inherit;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -92,25 +207,28 @@
   cursor: default;
 }
 
-.small {
-  margin: 14px 0 0;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
+.error {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--color-loss-surface);
+  color: var(--color-loss-ink);
+  font-family: var(--font-body);
+  font-size: 13px;
 }
 
-/* ---- who you are signed in as ---- */
+/* --- V2: signed in -------------------------------------------------- */
+
+.desk {
+  padding: 0 0 14px;
+}
 
 .who {
+  background: var(--color-navy-900);
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-green-600);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
 }
 
 .who > div {
@@ -120,41 +238,63 @@
 
 .whoLabel {
   margin: 0;
-  font-size: 0.6875rem;
+  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--color-on-navy-muted);
 }
 
 .whoName {
   margin: 2px 0 0;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-on-navy);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .whoWho {
-  margin: 1px 0 0;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  margin: 3px 0 0;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--color-on-navy-muted);
 }
 
 .logout {
   flex: none;
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: 8px;
   background: none;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.875rem;
+  color: var(--color-on-navy-idle);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12.5px;
   cursor: pointer;
 }
 
 .logout:hover {
-  background: var(--color-grey-100);
-  color: var(--color-text);
+  color: var(--color-on-navy);
+  border-color: rgb(255 255 255 / 0.5);
+}
+
+.sheetWrap {
+  padding: 14px 14px 0;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.small {
+  margin: 14px 2px 0;
+  max-width: 720px;
+  padding: 0 14px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
 }
