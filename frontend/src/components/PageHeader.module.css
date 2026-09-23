@@ -1,0 +1,148 @@
+/* Two headers, not one — and the design is explicit about it.
+
+   On a phone (screen E2) the title sits *inside* a navy band, because the
+   coloured band is the only thing separating a title from the list under it on
+   a 360px screen.
+
+   On a wide screen (screens SD, LD, PD) there is no second band: the navy is
+   already spent on the 60px app bar above, and the title is navy ink at 30px on
+   the light canvas. Stacking two navy bars reads as a bug. */
+
+.header {
+  background: var(--color-navy-900);
+  /* Full bleed: cancels the padding <main> applies, so the band reaches both
+     edges the way the design draws it. */
+  margin: -18px -16px 0;
+}
+
+.inner {
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--color-on-navy);
+}
+
+.aside {
+  flex: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--color-on-navy-muted);
+  white-space: nowrap;
+}
+
+.controls {
+  font-family: var(--font-display);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--color-on-navy-fill);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-on-navy);
+}
+
+.stepperLabel {
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow,
+.arrowOff {
+  flex: none;
+  min-width: 28px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--color-on-navy-muted);
+  font-size: 20px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.arrow:hover {
+  color: var(--color-on-navy);
+}
+
+.arrowOff {
+  opacity: 0.35;
+}
+
+/* --- wide: ink on canvas, no band ----------------------------------- */
+
+@media (min-width: 860px) {
+  .header {
+    background: none;
+    margin: 0;
+  }
+
+  .inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding: 4px 0 18px;
+  }
+
+  .top {
+    flex: none;
+    gap: 14px;
+  }
+
+  .title {
+    font-size: 30px;
+    color: var(--color-heading);
+  }
+
+  .aside {
+    color: var(--color-text-muted);
+    font-size: 13px;
+  }
+
+  .controls {
+    flex: 1;
+    max-width: 420px;
+  }
+
+  /* The slot loses its navy fill along with the band: on the light canvas it
+     becomes a bordered control like every other one on the page. */
+  .stepper {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-heading);
+  }
+
+  .arrow,
+  .arrowOff {
+    color: var(--color-grey-400);
+  }
+
+  .arrow:hover {
+    color: var(--color-heading);
+  }
+}

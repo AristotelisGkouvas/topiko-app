@@ -1,113 +1,257 @@
+/* Every number here is from the Claude Design file: the phone bar is
+   padding 14px 16px with a 32px mark; the desktop bar is 60px tall,
+   padding 0 26px, gap 28px, with a 34px mark and 8px/14px nav pills. */
+
 .header {
+  background: var(--color-navy-900);
   position: sticky;
   top: 0;
-  z-index: 20;
-  background: var(--color-navy-900);
-  color: var(--color-grey-50);
+  z-index: 35;
 }
 
 .inner {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 11px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: inherit;
-  min-width: 0;
+  padding: 14px 16px;
 }
 
-.brand:hover {
-  color: inherit;
+/* Drives every size in the mark and the wordmark; see Logo.tsx. */
+.brand {
+  --logo-size: 32px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  flex: none;
 }
 
 .brandText {
-  display: grid;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-
-.tagline {
-  font-size: 10.5px;
-  color: var(--color-on-navy-accent);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* --- the desktop nav ------------------------------------------------ */
 
 .nav {
   display: none;
+}
+
+.pill {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-}
-
-.navLink {
-  padding: 7px 12px;
-  border-radius: 999px;
+  padding: 8px 14px;
+  border-radius: 8px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13.5px;
-  color: var(--color-green-100);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-on-navy-idle);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* The marker would sit in front of every dropdown label. */
+  list-style: none;
 }
 
-.navLink:hover {
-  color: var(--color-grey-50);
-  background: rgba(250, 247, 241, 0.1);
+.pill::-webkit-details-marker {
+  display: none;
 }
 
-.navActive,
-.navActive:hover {
-  background: var(--color-grey-50);
-  color: var(--color-navy-900);
+.pill:hover {
+  color: var(--color-on-navy);
 }
 
-@media (min-width: 860px) {
-  .nav {
-    display: flex;
-  }
+.pillActive {
+  color: var(--color-on-navy);
+  background: var(--color-on-navy-fill);
 }
 
-.search,
+.pill:focus-visible {
+  outline: 2px solid var(--color-on-navy-accent);
+  outline-offset: 2px;
+}
+
+.caret {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.menu {
+  position: relative;
+}
+
+.menuPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 210px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 24px 60px rgb(0 30 60 / 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  z-index: 2;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.menuItem:hover {
+  background: var(--color-grey-100);
+}
+
+.menuItem[aria-current="page"] {
+  color: var(--color-green-600);
+}
+
+.menuIcon {
+  display: grid;
+  place-items: center;
+  color: var(--color-grey-400);
+  flex: none;
+}
+
+.menuTheme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+  padding: 7px 10px 3px;
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
 .theme {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   flex: none;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   background: none;
-  /* On the navy bar the muted blue is legible without competing with the
-     wordmark beside it. */
-  color: var(--color-on-navy-muted);
+  color: var(--color-text-muted);
   font-size: 15px;
   cursor: pointer;
 }
 
+.theme:hover {
+  color: var(--color-text);
+  border-color: var(--color-grey-400);
+}
+
+.theme:focus-visible {
+  outline: 2px solid var(--color-green-600);
+  outline-offset: 2px;
+}
+
+/* --- search --------------------------------------------------------- */
+
 .search {
   margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--color-on-navy-fill);
+  color: var(--color-on-navy-muted);
   text-decoration: none;
+  box-sizing: border-box;
 }
 
-.theme {
-  margin-left: 6px;
+/* On a phone the 240px field will not fit beside the wordmark, so it is the
+   icon alone — a 36px target, not a shrunken text field nobody can read. */
+.search {
+  width: 36px;
+  justify-content: center;
 }
 
-.search:hover,
-.theme:hover {
-  color: var(--color-grey-50);
-  border-color: rgba(255, 255, 255, 0.45);
+.searchIcon {
+  font-size: 17px;
+  line-height: 1;
 }
 
-.search:focus-visible,
-.theme:focus-visible {
+.searchText {
+  display: none;
+}
+
+.searchLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.search:hover {
+  color: var(--color-on-navy);
+}
+
+.search:focus-visible {
   outline: 2px solid var(--color-on-navy-accent);
   outline-offset: 2px;
+}
+
+/* --- wide ----------------------------------------------------------- */
+
+@media (min-width: 860px) {
+  .inner {
+    height: 60px;
+    padding: 0 26px;
+    gap: 28px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .brand {
+    --logo-size: 34px;
+  }
+
+  .nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  .search {
+    width: 240px;
+    justify-content: flex-start;
+    padding: 0 12px;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .searchIcon {
+    font-size: 15px;
+  }
+
+  .searchText {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }

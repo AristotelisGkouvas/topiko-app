@@ -3,52 +3,141 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { APP_TAGLINE, NAV_ITEMS, isActive } from "@/lib/nav";
 import { Logo, Wordmark } from "./Logo";
+import { NavIcon } from "./NavIcon";
 import { ThemeToggle } from "./ThemeToggle";
+import {
+  PRIMARY_NAV_ITEMS,
+  SECONDARY_NAV_ITEMS,
+  isActive,
+  type NavItem,
+} from "@/lib/nav";
 import styles from "./SiteHeader.module.css";
+
+/** The design file's two headers, which are not the same header.
+ *
+ *  On a phone it is a brand bar: mark, wordmark, and the search box — 14px/16px
+ *  padding, nothing else, because the five destinations are already under the
+ *  thumb at the bottom.
+ *
+ *  On a wide screen it is a 60px navy bar carrying the whole of the navigation
+ *  as pills, with the search field pushed to the right. The two dropdowns are
+ *  the design's "Στατιστικά ▾" and "Ένωση ▾": everything the tab bar could not
+ *  hold, grouped rather than listed, because eleven pills across is a wall.
+ */
+
+/** "Στατιστικά ▾" — the pages that answer a question about numbers. */
+const STATS_MENU = ["/skorer", "/paiktes", "/rekor", "/sygkrisi", "/poines"];
+/** "Ένωση ▾" — the pages about the federation rather than the football. */
+const UNION_MENU = ["/gipeda", "/anakoinoseis", "/san-simera"];
+
+const bySlug = (hrefs: string[]): NavItem[] =>
+  hrefs
+    .map((href) => SECONDARY_NAV_ITEMS.find((item) => item.href === href))
+    .filter((item): item is NavItem => item !== undefined);
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const stats = bySlug(STATS_MENU);
+  const union = bySlug(UNION_MENU);
 
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.brand}>
-          {/* The mark carries ΠΣ itself now, so the old badge wrapper goes. */}
-          <Logo size={34} />
+        <Link href="/" className={styles.brand} aria-label="Πάμε Σέντρα">
+          <Logo size={32} />
           <span className={styles.brandText}>
             <Wordmark />
-            <span className={styles.tagline}>{APP_TAGLINE}</span>
           </span>
         </Link>
 
-        {/* Always visible, unlike the nav: on a phone the bottom bar has
-            no room for a sixth tab, and search is the way in for anybody who
-            knows the name of what they want and not where it lives. */}
-        <Link href="/anazitisi" className={styles.search} aria-label="Αναζήτηση">
-          <span aria-hidden="true">⌕</span>
-        </Link>
-
-        <ThemeToggle className={styles.theme} />
-
-        {/* Hidden on phones, where the bottom bar carries the same five
-            destinations within thumb reach. */}
+        {/* Wide screens only: the phone has these at the bottom. */}
         <nav className={styles.nav} aria-label="Κύρια πλοήγηση">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`${styles.navLink} ${
-                isActive(item, pathname) ? styles.navActive : ""
-              }`}
-              aria-current={isActive(item, pathname) ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {PRIMARY_NAV_ITEMS.filter((item) => item.href !== "/perissotera").map(
+            (item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.pill} ${
+                  isActive(item, pathname) ? styles.pillActive : ""
+                }`}
+                aria-current={isActive(item, pathname) ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
+
+          <Menu label="Στατιστικά" items={stats} pathname={pathname} />
+          <Menu label="Ένωση" items={union} pathname={pathname}>
+            {/* The design never draws a theme control, but it does draw four
+                dark screens. It belongs with the settings-shaped things
+                rather than as a sixth icon in the bar. */}
+            <span className={styles.menuTheme}>
+              <span>Θέμα</span>
+              <ThemeToggle className={styles.theme} />
+            </span>
+          </Menu>
         </nav>
+
+        {/* The design's search field: a filled slot on the navy, not an icon.
+            On a phone it collapses to the icon, where 240px will not fit. */}
+        <Link href="/anazitisi" className={styles.search}>
+          <span className={styles.searchIcon} aria-hidden="true">
+            ⌕
+          </span>
+          <span className={styles.searchText}>Αναζήτηση ομάδας, παίκτη…</span>
+          <span className={styles.searchLabel}>Αναζήτηση</span>
+        </Link>
       </div>
     </header>
+  );
+}
+
+/** One of the header's two dropdowns.
+ *
+ *  A `<details>` rather than a button with state: it opens on click and on
+ *  Enter, closes on Escape, and is reachable by keyboard without any of that
+ *  being written here. The cost is that two open at once, which the CSS below
+ *  does not mind.
+ */
+function Menu({
+  label,
+  items,
+  pathname,
+  children,
+}: {
+  label: string;
+  items: NavItem[];
+  pathname: string;
+  children?: React.ReactNode;
+}) {
+  const here = items.some((item) => isActive(item, pathname));
+
+  return (
+    <details className={styles.menu}>
+      <summary className={`${styles.pill} ${here ? styles.pillActive : ""}`}>
+        {label}
+        <span className={styles.caret} aria-hidden="true">
+          ▾
+        </span>
+      </summary>
+      <div className={styles.menuPanel}>
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={styles.menuItem}
+            aria-current={isActive(item, pathname) ? "page" : undefined}
+          >
+            <span className={styles.menuIcon}>
+              <NavIcon item={item} size={17} />
+            </span>
+            {item.label}
+          </Link>
+        ))}
+        {children}
+      </div>
+    </details>
   );
 }

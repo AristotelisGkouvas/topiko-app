@@ -1,3 +1,5 @@
+/* Numbers taken from the Claude Design file's nav block, not approximated:
+   grid of 5, padding 8px 2px 14px, gap 3px, label Fira 600 10px. */
 .bar {
   position: fixed;
   left: 0;
@@ -5,62 +7,62 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  background: var(--color-grey-50);
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--color-surface);
   border-top: 1px solid var(--color-border);
-  /* Clears the iOS home indicator without eating space on other devices. */
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 8px 2px 14px;
+  /* Clears the iOS home indicator on top of the design's own bottom padding,
+     which is drawn for a device that has none. */
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
 }
 
 .tab {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  /* 48px minimum hit target, per the kit. */
-  min-height: 48px;
-  padding: 8px 2px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  /* The design's 8px/14px padding already clears 48px with the icon and label
+     inside; min-height keeps that true if either ever shrinks. */
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 1;
   color: var(--color-grey-600);
+  text-decoration: none;
+}
+
+/* The icon is a shade lighter than the label when idle — #9EA1A4 against
+   #6C6F72 — which is what stops five icons shouting over five words. */
+.icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--color-grey-400);
+}
+
+.label {
+  text-align: center;
 }
 
 .tab:hover {
   color: var(--color-navy-900);
 }
 
-.glyph {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 20px;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.label {
-  font-size: 9.5px;
-  letter-spacing: 0.2px;
-  text-align: center;
-}
-
-.active {
+.tab:hover .icon {
   color: var(--color-navy-900);
 }
 
-.active .glyph {
-  background: var(--color-green-100);
-  border-radius: 999px;
-  width: 34px;
-}
-
-.active .label {
-  font-weight: 600;
+/* Active: one colour for icon and label together, no pill behind it. */
+.active,
+.active .icon {
+  color: var(--color-green-600);
 }
 
 .badge {
   position: absolute;
   top: -1px;
-  right: 1px;
+  right: -1px;
   width: 6px;
   height: 6px;
   border-radius: 50%;

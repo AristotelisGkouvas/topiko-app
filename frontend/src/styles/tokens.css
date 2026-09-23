@@ -10,7 +10,7 @@
   /* --- Navy: primary ------------------------------------------------
      navy-900 carries headers and nav. */
   --color-navy-900: #003c71;
-  --color-navy-700: #0a5591;
+  --color-navy-700: #0a4f8c;
 
   /* --- Green: action ------------------------------------------------
      Two greens, and they are not interchangeable (kit v3): green-600 on light
@@ -36,12 +36,18 @@
   /* --- Neutrals: cool grey ------------------------------------------ */
   --color-grey-50: #ffffff;
   --color-grey-100: #f5f5f5;
-  --color-grey-200: #e4e5e6;
+  --color-grey-200: #e2e3e4;
   --color-grey-400: #9ea1a4;
   --color-grey-600: #6c6f72;
   --color-grey-800: #3a3a3a;
+  /* Ψιλή γραμμή *μέσα* σε κάρτα. Πιο ανοιχτή από το border της κάρτας:
+     χωρίζει σειρές χωρίς να τις κάνει να μοιάζουν ξεχωριστές κάρτες. */
+  --color-hairline: #eeeff0;
+  /* Περίγραμμα ανενεργού chip. Πιο σκούρο από το border, γιατί ένα chip
+     πρέπει να διαβάζεται ως πάτημα πάνω στον καμβά. */
+  --color-chip-border: #d2d3d5;
 
-  --color-canvas: #ecedee;
+  --color-canvas: #f4f5f6;
 
   /* --- Semantic ------------------------------------------------------ */
   --color-win: var(--color-green-600);
@@ -78,6 +84,15 @@
 
   --color-link: var(--color-navy-900);
   --color-link-hover: var(--color-green-600);
+  /* --- Πάνω στο navy ------------------------------------------------
+     Τρία επίπεδα, και δεν εναλλάσσονται: grey-100 για το κύριο κείμενο,
+     nav-idle για ανενεργό tab, navy-muted για δευτερεύον και placeholder. */
+  --color-on-navy: var(--color-grey-100);
+  --color-on-navy-idle: #c9d6e3;
+  --color-on-navy-fill: var(--color-navy-700);
+  /* Πλακέτα κατηγορίας μέσα σε λίστα αποτελεσμάτων. */
+  --color-badge-surface: #eef1f4;
+
   /* Accent for anything drawn on the navy header or nav bar. */
   --color-on-navy-accent: var(--color-green-400);
   /* Secondary text on the navy bar. grey-600 disappears there and white is
@@ -150,11 +165,11 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --color-canvas: #0e1d30;
+    --color-canvas: #0b1622;
     --color-surface: #13243a;
     /* One step up from surface, for rows and chips that sit on a card. */
     --color-surface-raised: #1a2e47;
-    --color-border: #2a4566;
+    --color-border: #1f3550;
 
     --color-text: #e4e8ec;
     --color-text-muted: #93a3b5;
@@ -176,17 +191,21 @@
     --color-live-ink: #f5b79a;
 
     --color-grey-100: #1a2e47;
-    --color-grey-200: #2a4566;
+    --color-grey-200: #1f3550;
+    --color-hairline: #1f3550;
+    --color-chip-border: #2a4566;
+    --color-badge-surface: #1a3252;
+    --color-on-navy-fill: #1a3252;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --color-canvas: #0e1d30;
+  --color-canvas: #0b1622;
   --color-surface: #13243a;
   --color-surface-raised: #1a2e47;
-  --color-border: #2a4566;
+  --color-border: #1f3550;
 
   --color-text: #e4e8ec;
   --color-text-muted: #93a3b5;
@@ -206,5 +225,9 @@
   --color-live-ink: #f5b79a;
 
   --color-grey-100: #1a2e47;
-  --color-grey-200: #2a4566;
+  --color-grey-200: #1f3550;
+  --color-hairline: #1f3550;
+  --color-chip-border: #2a4566;
+  --color-badge-surface: #1a3252;
+  --color-on-navy-fill: #1a3252;
 }
