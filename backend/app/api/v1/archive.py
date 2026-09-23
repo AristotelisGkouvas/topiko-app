@@ -21,6 +21,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, DbSession
 from app.core.config import settings
+from app.models.enums import LeagueKind
 from app.models import (
     Association,
     League,
@@ -29,10 +30,13 @@ from app.models import (
     PlayerStat,
     PlayerSuspension,
     Season,
+    Standing,
     Team,
 )
 from app.services.icalendar import build_calendar
 from app.schemas import (
+    ComparedSideOut,
+    ComparisonOut,
     HeadToHeadOut,
     MatchOut,
     OnThisDayOut,
@@ -367,6 +371,101 @@ async def on_this_day(
         day=day,
         month=month,
         matches=[MatchOut.model_validate(m) for m in result.scalars()],
+    )
+
+
+# ---------------------------------------------------------------------------
+#  Comparison
+# ---------------------------------------------------------------------------
+
+
+async def _side(
+    association: Association, team: Team, season: str | None, db: DbSession
+) -> ComparedSideOut:
+    """A club's line in whichever table it is in this season.
+
+    A club can appear in more than one competition — a cup run alongside the
+    league. The league table is the one being compared, so the championship is
+    preferred and the rest ignored rather than summed, which would double a
+    club's goals for no reason a reader could follow.
+    """
+    stmt = (
+        select(Standing, League)
+        .join(League, Standing.league_id == League.id)
+        .join(Season, League.season_id == Season.id)
+        .where(
+            League.association_id == association.id,
+            Standing.team_id == team.id,
+            Season.slug == season if season else Season.is_current.is_(True),
+        )
+        .order_by(
+            (League.kind != LeagueKind.CHAMPIONSHIP),
+            League.tier.nulls_last(),
+        )
+    )
+    row = (await db.execute(stmt)).first()
+
+    if row is None:
+        return ComparedSideOut(team=TeamRef.model_validate(team))
+
+    standing, league = row
+    return ComparedSideOut(
+        team=TeamRef.model_validate(team),
+        league_slug=league.slug,
+        league_name=league.short_name or league.name,
+        position=standing.position,
+        played=standing.played,
+        won=standing.won,
+        drawn=standing.drawn,
+        lost=standing.lost,
+        goals_for=standing.goals_for,
+        goals_against=standing.goals_against,
+        goal_difference=standing.goal_difference,
+        points=standing.points,
+        form=standing.form,
+    )
+
+
+@router.get(
+    "/{association_slug}/sygkrisi/{left_slug}/{right_slug}",
+    response_model=ComparisonOut,
+)
+async def compare_teams(
+    association: CurrentAssociation,
+    left_slug: str,
+    right_slug: str,
+    db: DbSession,
+    season: Annotated[str | None, Query(description="Slug περιόδου. Default: τρέχουσα.")] = None,
+) -> ComparisonOut:
+    """Two clubs side by side, this season, plus their record against each other."""
+    left = await _team_or_404(association, left_slug, db)
+    right = await _team_or_404(association, right_slug, db)
+
+    if left.id == right.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Χρειάζονται δύο διαφορετικά σωματεία.",
+        )
+
+    resolved_season = season
+    if resolved_season is None:
+        current = (
+            await db.execute(
+                select(Season.slug).where(
+                    Season.association_id == association.id,
+                    Season.is_current.is_(True),
+                )
+            )
+        ).scalar_one_or_none()
+        resolved_season = current or ""
+
+    record = await head_to_head(association, left_slug, right_slug, db, limit=5)
+
+    return ComparisonOut(
+        season=resolved_season,
+        left=await _side(association, left, season, db),
+        right=await _side(association, right, season, db),
+        record=record if record.played else None,
     )
 
 

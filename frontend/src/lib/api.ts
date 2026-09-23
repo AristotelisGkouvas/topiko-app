@@ -2,6 +2,7 @@ import type {
   Association,
   Field,
   League,
+  Comparison,
   HeadToHead,
   LiveTable,
   Match,
@@ -175,6 +176,11 @@ export const api = {
 
   getPlayer: (playerSlug: string) =>
     request<PlayerDetail>(scoped(`/players/${playerSlug}`)),
+
+  compareTeams: (left: string, right: string, season?: string) =>
+    request<Comparison>(scoped(`/sygkrisi/${left}/${right}`), {
+      searchParams: { season },
+    }),
 
   getHeadToHead: (homeSlug: string, awaySlug: string) =>
     request<HeadToHead>(scoped(`/kontra/${homeSlug}/${awaySlug}`)),

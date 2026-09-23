@@ -279,3 +279,28 @@ export interface LiveTable {
   /** Zero means the projection equals the real table. */
   live_matches: number;
 }
+
+export interface ComparedSide {
+  team: TeamRef;
+  /** The two clubs need not be in the same division, so the table each
+   *  position belongs to travels with it. */
+  league_slug: string | null;
+  league_name: string | null;
+  position: number | null;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goals_for: number;
+  goals_against: number;
+  goal_difference: number;
+  points: number;
+  form: string | null;
+}
+
+export interface Comparison {
+  season: string;
+  left: ComparedSide;
+  right: ComparedSide;
+  record: HeadToHead | null;
+}

@@ -58,3 +58,36 @@ class RecordsOut(ORMModel):
     total_matches: int = 0
     total_goals: int = 0
     seasons_covered: int = 0
+
+
+class ComparedSideOut(ORMModel):
+    """One club's season, as it sits beside the other's.
+
+    `league_name` comes along because the two clubs need not be in the same
+    division — comparing a Α΄ Κατηγορία side with a Β΄ one is a normal thing
+    to want, and showing their positions without saying which table each is in
+    would make 3rd look better than 1st.
+    """
+
+    team: TeamRef
+    league_slug: str | None = None
+    league_name: str | None = None
+    position: int | None = None
+    played: int = 0
+    won: int = 0
+    drawn: int = 0
+    lost: int = 0
+    goals_for: int = 0
+    goals_against: int = 0
+    goal_difference: int = 0
+    points: int = 0
+    form: str | None = None
+
+
+class ComparisonOut(ORMModel):
+    season: str
+    left: ComparedSideOut
+    right: ComparedSideOut
+    #: Their record against each other, across every season on file. None when
+    #: they have never met.
+    record: HeadToHeadOut | None = None
