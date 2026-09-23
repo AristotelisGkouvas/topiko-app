@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
+    Announcement,
     Association,
     Field,
     League,
@@ -444,6 +445,7 @@ class Syncer:
             # read once however many seasons follow.
             await self._load_catalog()
             await self._load_players()
+            await self._load_announcements()
 
             for slug, period_id, is_current in targets:
                 html = (
@@ -697,6 +699,57 @@ class Syncer:
         await self.resolver.load_teams(self.source.parse_teams(teams_html))
         fields_html = await self.fetcher.get(self.source.fields_path())
         await self.resolver.load_fields(self.source.parse_fields(fields_html))
+
+
+    async def _load_announcements(self) -> None:
+        """Mirror the federation's notice board.
+
+        Best effort: a broken notices page must not fail a run whose real job
+        is fixtures and results. One extra request per run, which is nothing
+        beside the sixty the rest of it makes.
+        """
+        read = getattr(self.source, "parse_announcements", None)
+        path = getattr(self.source, "announcements_path", None)
+        if read is None or path is None:
+            return
+
+        try:
+            page = await self.fetcher.get(path())
+            scraped = read(page)
+        except Exception as exc:  # noqa: BLE001
+            self.stats.warn(f"Ανακοινώσεις: {type(exc).__name__}: {exc}")
+            return
+
+        existing = {
+            (a.published_at, a.title): a
+            for a in (
+                await self.db.execute(
+                    select(Announcement).where(
+                        Announcement.association_id == self.association.id
+                    )
+                )
+            ).scalars()
+        }
+
+        added = 0
+        for item in scraped:
+            key = (item.published_at, item.title)
+            row = existing.get(key)
+            if row is None:
+                row = Announcement(
+                    association_id=self.association.id,
+                    title=item.title,
+                    published_at=item.published_at,
+                )
+                self.db.add(row)
+                added += 1
+            # Rewritten every run: the source edits notices in place, and a
+            # correction that never reaches us is worse than no mirror at all.
+            row.body = item.body
+            row.image_url = item.image_url
+
+        if added:
+            logger.info("Ανακοινώσεις: %d νέες", added)
 
     async def _load_players(self) -> None:
         """Read the whole player register, once per run.

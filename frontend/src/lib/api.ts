@@ -1,4 +1,5 @@
 import type {
+  Announcement,
   Association,
   Field,
   League,
@@ -190,6 +191,9 @@ export const api = {
   getOnThisDay: () => request<OnThisDay>(scoped("/san-simera"), { revalidate: 3600 }),
 
   getRecords: () => request<Records>(scoped("/rekor"), { revalidate: 3600 }),
+
+  listAnnouncements: (params: { q?: string; limit?: number } = {}) =>
+    request<Announcement[]>(scoped("/anakoinoseis"), { searchParams: params }),
 
   listSuspensions: (params: { season?: string; league?: string } = {}) =>
     request<Suspension[]>(scoped("/poines"), { searchParams: params }),

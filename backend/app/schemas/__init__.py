@@ -25,6 +25,7 @@ from app.schemas.player import (
     SuspensionOut,
 )
 from app.schemas.stories import (
+    AnnouncementOut,
     ComparedSideOut,
     ComparisonOut,
     HeadToHeadOut,
@@ -35,6 +36,7 @@ from app.schemas.stories import (
 )
 
 __all__ = [
+    "AnnouncementOut",
     "ComparisonOut",
     "ComparedSideOut",
     "LiveTableOut",

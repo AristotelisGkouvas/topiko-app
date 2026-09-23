@@ -7,7 +7,7 @@ against a saved HTML file with no database anywhere near it.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, time
+from datetime import date, datetime, time
 
 from app.models.enums import MatchStatus
 
@@ -154,3 +154,13 @@ class ScrapedField:
     surface: str | None = None
     has_floodlights: bool | None = None
     capacity: int | None = None
+
+
+@dataclass(slots=True)
+class ScrapedAnnouncement:
+    """A notice as the federation's page carries it."""
+
+    title: str
+    published_at: datetime | None
+    body: str | None
+    image_url: str | None = None

@@ -5,7 +5,7 @@ asks: how these two clubs stand after sixty-five meetings, what happened on
 this date, which scoreline nobody has beaten.
 """
 
-from datetime import date
+from datetime import date, datetime
 
 from app.schemas.catalog import TeamRef
 from app.schemas.common import ORMModel
@@ -91,3 +91,11 @@ class ComparisonOut(ORMModel):
     #: Their record against each other, across every season on file. None when
     #: they have never met.
     record: HeadToHeadOut | None = None
+
+
+class AnnouncementOut(ORMModel):
+    id: int
+    title: str
+    published_at: datetime | None = None
+    body: str | None = None
+    image_url: str | None = None

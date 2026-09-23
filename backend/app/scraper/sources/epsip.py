@@ -11,12 +11,14 @@ stable `game_id`, every venue to a `field_id`, every club (from teams.php) to a
 from __future__ import annotations
 
 import re
-from datetime import date, time
+from datetime import UTC, date, datetime, time
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup, Tag
 
 from app.models.enums import MatchStatus
 from app.scraper.types import (
+    ScrapedAnnouncement,
     ScrapedField,
     ScrapedLeague,
     ScrapedMatch,
@@ -345,6 +347,57 @@ class EpsipSource:
             )
         return fields
 
+
+    # --- announcements ---------------------------------------------------
+
+    def announcements_path(self) -> str:
+        return "/announcements/announcements.php"
+
+    def parse_announcements(self, html_text: str) -> list[ScrapedAnnouncement]:
+        """Notices from announcements.php.
+
+        Each is a `div.announcement` holding `<b>title</b>, <i>date</i>` and
+        then the body. There is no id and no per-item link, so identity has to
+        be the title and the time it carries.
+
+        The Greek arrives as HTML entities — `&Eta;&Pi;&Sigma;` rather than
+        ΕΠΣ — which BeautifulSoup decodes for us. Reading this page with a
+        plain regex would store the entities verbatim and the site would show
+        them to the reader.
+        """
+        soup = BeautifulSoup(html_text, "html.parser")
+        out: list[ScrapedAnnouncement] = []
+
+        for block in soup.find_all("div", class_="announcement"):
+            title_el = block.find("b")
+            title = _text(title_el) if title_el else ""
+            if not title:
+                continue
+
+            date_el = block.find("i")
+            published = _announcement_date(_text(date_el)) if date_el else None
+
+            # The body is whatever is left once the heading line is removed.
+            for el in (title_el, date_el):
+                if el is not None:
+                    el.decompose()
+            image = block.find("img")
+            image_src = image.get("src") if image else None
+            if image is not None:
+                image.decompose()
+
+            body = re.sub(r"\s+", " ", block.get_text(" ", strip=True)).strip(" ,")
+
+            out.append(
+                ScrapedAnnouncement(
+                    title=title,
+                    published_at=published,
+                    body=body or None,
+                    image_url=_absolute_image(image_src),
+                )
+            )
+        return out
+
     # --- players, statistics and suspensions -----------------------------
 
     def players_path(self, page: int = 1) -> str:
@@ -478,3 +531,35 @@ def _positive_int(value: str) -> int | None:
     except (TypeError, ValueError):
         return None
     return number or None
+
+#: Notice times are Greek wall-clock, like kickoffs.
+ATHENS = ZoneInfo("Europe/Athens")
+
+
+#: The source writes "22/9/2026 08:00", Greek local time, sometimes without
+#: the time at all.
+_ANNOUNCEMENT_FORMATS = ("%d/%m/%Y %H:%M", "%d/%m/%Y")
+
+
+def _announcement_date(value: str) -> datetime | None:
+    cleaned = value.strip().strip(",").strip()
+    for fmt in _ANNOUNCEMENT_FORMATS:
+        try:
+            naive = datetime.strptime(cleaned, fmt)
+        except ValueError:
+            continue
+        # Stored UTC like every other time here. A notice posted at 08:00 in
+        # Greece is not 08:00 UTC, and a list sorted on the wrong one puts the
+        # morning's notice after the evening's.
+        return naive.replace(tzinfo=ATHENS).astimezone(UTC)
+    return None
+
+
+def _absolute_image(src: str | None) -> str | None:
+    """The source writes './../images/...'. Resolved against the site root so
+    the page does not have to know where it came from."""
+    if not src:
+        return None
+    cleaned = src.lstrip(".").lstrip("/")
+    cleaned = cleaned.removeprefix("../")
+    return f"https://epsip.gr/{cleaned}"

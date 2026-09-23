@@ -23,6 +23,7 @@ from app.api.deps import CurrentAssociation, DbSession
 from app.core.config import settings
 from app.models.enums import LeagueKind
 from app.models import (
+    Announcement,
     Association,
     League,
     Match,
@@ -35,6 +36,7 @@ from app.models import (
 )
 from app.services.icalendar import build_calendar
 from app.schemas import (
+    AnnouncementOut,
     ComparedSideOut,
     ComparisonOut,
     HeadToHeadOut,
@@ -372,6 +374,34 @@ async def on_this_day(
         month=month,
         matches=[MatchOut.model_validate(m) for m in result.scalars()],
     )
+
+
+# ---------------------------------------------------------------------------
+#  Announcements
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{association_slug}/anakoinoseis", response_model=list[AnnouncementOut])
+async def list_announcements(
+    association: CurrentAssociation,
+    db: DbSession,
+    q: Annotated[str | None, Query(description="Αναζήτηση στον τίτλο")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 30,
+) -> list[Announcement]:
+    """The federation's notice board, newest first.
+
+    Mirrored rather than linked: epsip.gr publishes these on one page with no
+    feed and no per-item address, so there is nothing to link a reader to.
+    """
+    stmt = (
+        select(Announcement)
+        .where(Announcement.association_id == association.id)
+        .order_by(Announcement.published_at.desc().nulls_last(), Announcement.id.desc())
+        .limit(limit)
+    )
+    if q:
+        stmt = stmt.where(Announcement.title.ilike(f"%{q}%"))
+    return list((await db.execute(stmt)).scalars())
 
 
 # ---------------------------------------------------------------------------

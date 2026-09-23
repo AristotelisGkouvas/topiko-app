@@ -304,3 +304,11 @@ export interface Comparison {
   right: ComparedSide;
   record: HeadToHead | null;
 }
+
+export interface Announcement {
+  id: number;
+  title: string;
+  published_at: string | null;
+  body: string | null;
+  image_url: string | null;
+}

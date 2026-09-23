@@ -7,6 +7,7 @@ that silently never gets a migration.
 
 from app.models.association import Association, Season
 from app.models.base import Base, TimestampMixin
+from app.models.announcement import Announcement
 from app.models.club import Field, Team
 from app.models.event import MatchEvent
 from app.models.enums import (
@@ -34,6 +35,7 @@ from app.models.scraping import ScrapeRun, TeamAlias
 from app.models.user import AuditLog, User, UserAssociation
 
 __all__ = [
+    "Announcement",
     "MANUAL_PRIORITY_WINDOW",
     "Association",
     "AuditLog",
