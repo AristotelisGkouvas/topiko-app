@@ -189,3 +189,11 @@ export const api = {
 /** A URL handed to the browser to fetch for itself — the live-score poll.
  *  API_URL, never the internal one: this string ends up in the page. */
 export const apiUrl = (path: string) => `${API_URL}${scoped(path)}`;
+
+/** The subscribable calendar for a club.
+ *
+ *  Public API_URL for the same reason: it is put in front of a reader to add
+ *  to their own calendar, and their phone has to be able to reach it.
+ */
+export const calendarUrl = (teamSlug: string) =>
+  apiUrl(`/teams/${teamSlug}/imerologio.ics`);

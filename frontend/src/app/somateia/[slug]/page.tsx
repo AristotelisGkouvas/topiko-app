@@ -6,6 +6,7 @@ import { Crest } from "@/components/Crest";
 import { FollowButton } from "@/components/FollowButton";
 import { MatchGrid } from "@/components/MatchGrid";
 import { SectionHeader } from "@/components/SectionHeader";
+import { CalendarLink } from "@/components/CalendarLink";
 import { ApiError, api } from "@/lib/api";
 import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
@@ -190,6 +191,8 @@ export default async function TeamPage({
           </span>
         </Link>
       )}
+
+      <CalendarLink slug={team.slug} name={team.name} />
 
       {team.seasons.length > 1 && (
         <SeasonPicker

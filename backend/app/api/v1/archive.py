@@ -15,11 +15,12 @@ from datetime import UTC, datetime
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy import case, extract, func, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, DbSession
+from app.core.config import settings
 from app.models import (
     Association,
     League,
@@ -30,6 +31,7 @@ from app.models import (
     Season,
     Team,
 )
+from app.services.icalendar import build_calendar
 from app.schemas import (
     HeadToHeadOut,
     MatchOut,
@@ -365,6 +367,74 @@ async def on_this_day(
         day=day,
         month=month,
         matches=[MatchOut.model_validate(m) for m in result.scalars()],
+    )
+
+
+# ---------------------------------------------------------------------------
+#  Calendar feed
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/{association_slug}/teams/{team_slug}/imerologio.ics",
+    response_class=Response,
+    responses={200: {"content": {"text/calendar": {}}}},
+)
+async def team_calendar(
+    association: CurrentAssociation,
+    team_slug: str,
+    db: DbSession,
+    season: Annotated[
+        str | None,
+        Query(description="Slug περιόδου, ή 'all'. Default: τρέχουσα."),
+    ] = None,
+) -> Response:
+    """A club's fixtures as a subscribable calendar.
+
+    Subscribed once, not downloaded: the URL is stable and clients re-poll it,
+    so a postponement reaches somebody's phone without them visiting the site.
+    That is the whole point, and it is why UID and SEQUENCE matter more here
+    than anything visible.
+
+    The current season only, unless asked otherwise. The archive runs to
+    thirteen seasons and 1.187 fixtures for a long-established club — a third
+    of a megabyte of 2014 kickoffs, re-fetched every six hours into a phone
+    calendar nobody wants them in.
+    """
+    team = await _team_or_404(association, team_slug, db)
+
+    stmt = (
+        select(Match)
+        .options(*_MATCH_LOADS)
+        .join(League, Match.league_id == League.id)
+        .where(
+            League.association_id == association.id,
+            Match.kickoff_at.is_not(None),
+            (Match.home_team_id == team.id) | (Match.away_team_id == team.id),
+        )
+        .order_by(Match.kickoff_at)
+    )
+    if season != "all":
+        stmt = stmt.join(Season, League.season_id == Season.id).where(
+            Season.slug == season if season else Season.is_current.is_(True)
+        )
+
+    matches = list((await db.execute(stmt)).scalars())
+    body = build_calendar(
+        team,
+        matches,
+        association_slug=association.slug,
+        site_url=settings.site_url,
+    )
+
+    return Response(
+        content=body,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            # Named so a downloaded copy is identifiable; subscribing ignores it.
+            "Content-Disposition": f'inline; filename="{team.slug}.ics"',
+            "Cache-Control": "public, max-age=1800",
+        },
     )
 
 

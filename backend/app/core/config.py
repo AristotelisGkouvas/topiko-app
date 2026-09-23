@@ -32,6 +32,11 @@ class Settings(BaseSettings):
         "aggregator for Greek amateur football results)"
     )
 
+    #: Public address of the reader-facing site. Used to put a link back on
+    #: each calendar event; without it the event has a title and no way through
+    #: to the match.
+    site_url: str | None = None
+
     # --- Auth ---------------------------------------------------------------
     #
     # Signs session tokens. The default is a visible placeholder rather than a
