@@ -1,140 +1,194 @@
+/* Screen E1's table, to its numbers: a card at radius 12, a 10px/1.4px header
+   rule, 7.5px rows, a 3px zone rail bled into the left edge, and form as 7px
+   dots rather than lettered pills. */
+
 .wrap {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  border-radius: 12px;
   overflow: hidden;
 }
 
-/* The table is the one element allowed to scroll sideways; the page never does. */
 .scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
-  font-size: 13.5px;
-  min-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
 }
 
 .table thead th {
-  font-family: var(--font-display);
-  font-size: 10.5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-hairline);
   font-weight: 600;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-  color: var(--color-grey-600);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
   text-align: left;
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 
 .table tbody td {
-  /* Fixed row height keeps the skeleton and the loaded table the same size, so
-     nothing jumps when data arrives. */
-  height: 44px;
-  padding: 0 8px;
-  border-bottom: 1px solid var(--color-grey-100);
-  vertical-align: middle;
+  padding: 7.5px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  /* The rail slot is reserved on every row, transparent where there is no
+     zone — otherwise a zoned row is 3px wider than its neighbours. */
+  box-shadow: inset 3px 0 0 transparent;
 }
 
 .table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.table tbody tr:hover {
-  background: var(--color-grey-100);
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--color-text-muted);
 }
 
 .posCol {
-  width: 34px;
-  text-align: center !important;
+  width: 24px;
+  text-align: left;
   color: var(--color-text-muted);
-  font-family: var(--font-display);
-  font-weight: 600;
 }
 
 .teamCol {
-  min-width: 150px;
+  width: auto;
+  min-width: 0;
+  text-align: left;
 }
 
-.num,
-.table thead th.num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+.wide {
+  width: 34px;
+}
+
+.formCol {
+  width: 40px;
+  text-align: center;
 }
 
 .pointsCol {
-  font-family: var(--font-display);
-  font-weight: 700;
+  width: 24px;
+  font-weight: 800;
   color: var(--color-heading);
-  padding-right: 12px !important;
 }
 
 .teamLink {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
-  color: var(--color-heading);
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  /* The crest is 18px here — small enough that the club name, not the badge,
+     is what the eye reads down the column. */
+  --crest: 18px;
 }
 
-.teamLink:hover {
-  color: var(--color-terra-500);
+.teamLink :global(span[aria-hidden]) {
+  width: 18px;
+  height: 18px;
+  font-size: 6px;
 }
 
 .teamName {
-  font-family: var(--font-display);
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.sortButton {
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  color: inherit;
-  padding: 2px 0;
+.teamLink:hover .teamName {
+  text-decoration: underline;
 }
 
-.sortButton:hover {
-  color: var(--color-terra-700);
+/* --- form dots ------------------------------------------------------ */
+
+.form {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
 }
 
-.sortActive {
-  color: var(--color-terra-700);
+.pill {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
 }
 
-.sortActive::after {
-  content: " ↓";
+.pillWin {
+  background: var(--color-green-600);
 }
 
-/* --- Zone rails --------------------------------------------------------
-   A 3px inset border rather than a tinted row: the tint would fight the
-   hover state and reduce contrast on the small metadata text. */
+.pillDraw {
+  background: var(--color-amber-600);
+}
+
+.pillLoss {
+  background: var(--color-loss);
+}
+
+/* --- zones ---------------------------------------------------------- */
+
+/* Tinted row plus a rail on its first cell. The club name goes heavy and navy
+   in the promotion zone: the tint alone is 3% of a colour and disappears on a
+   phone held at an angle in the sun. */
+.zone_promotion td {
+  background: var(--color-win-surface);
+}
+
 .zone_promotion td:first-child {
   box-shadow: inset 3px 0 0 var(--color-green-600);
 }
-.zone_promotion_playoff td:first-child {
-  box-shadow: inset 3px 0 0 var(--color-green-300);
+
+.zone_promotion .teamName {
+  font-weight: 800;
+  color: var(--color-heading);
 }
+
+.zone_promotion_playoff td {
+  background: color-mix(in srgb, var(--color-win-surface) 55%, transparent);
+}
+
+.zone_promotion_playoff td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-green-400);
+}
+
+.zone_relegation_playoff td {
+  background: color-mix(in srgb, var(--color-draw-surface) 40%, transparent);
+}
+
 .zone_relegation_playoff td:first-child {
   box-shadow: inset 3px 0 0 var(--color-amber-600);
 }
+
+.zone_relegation td {
+  background: color-mix(in srgb, var(--color-loss-surface) 30%, transparent);
+}
+
 .zone_relegation td:first-child {
   box-shadow: inset 3px 0 0 var(--color-loss);
 }
 
+/* --- legend --------------------------------------------------------- */
+
 .legend {
+  list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 16px;
+  gap: 6px 14px;
   margin: 0;
-  padding: 10px 12px 12px;
-  list-style: none;
-  border-top: 1px solid var(--color-border);
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-body);
   font-size: 11.5px;
   color: var(--color-text-muted);
 }
@@ -145,66 +199,47 @@
   gap: 6px;
 }
 
+/* The same 3px rail as on the rows, so the legend reads as a key to them
+   rather than as a second, unrelated set of colours. */
 .legendSwatch {
-  width: 3px;
-  height: 13px;
+  width: 10px;
+  height: 3px;
   border-radius: 2px;
+  background: var(--color-grey-400);
   flex: none;
 }
 
 .swatch_promotion {
   background: var(--color-green-600);
 }
+
 .swatch_promotion_playoff {
-  background: var(--color-green-300);
+  background: var(--color-green-400);
 }
+
 .swatch_relegation_playoff {
   background: var(--color-amber-600);
 }
+
 .swatch_relegation {
   background: var(--color-loss);
 }
 
-/* --- Form pills -------------------------------------------------------- */
-.form {
-  display: inline-flex;
-  gap: 3px;
+.sortButton {
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.pill {
-  display: grid;
-  place-items: center;
-  width: 17px;
-  height: 17px;
-  border-radius: 3px;
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
+.sortButton:hover {
+  color: var(--color-heading);
 }
 
-/* Ink is per-pill: at 10px none of these can ride on a 4:1 fill. */
-.pillWin {
-  background: var(--color-win-surface);
-  color: var(--color-win-ink);
-}
-.pillDraw {
-  background: var(--color-draw-surface);
-  color: var(--color-draw-ink);
-}
-.pillLoss {
-  background: var(--color-loss-surface);
-  color: var(--color-loss-ink);
-}
-
-/* Below ~560px the win/draw/loss split, the goals column and the form pills are
-   the first things to go — position, name, played and points are what the table
-   is actually for. */
-@media (max-width: 560px) {
-  .wide,
-  .formCol {
-    display: none;
-  }
-  .teamCol {
-    min-width: 0;
-  }
+.sortActive {
+  color: var(--color-green-600);
 }
