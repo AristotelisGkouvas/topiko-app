@@ -7,15 +7,21 @@ import styles from "./Crest.module.css";
 export function Crest({
   team,
   size = "md",
+  onNavy = false,
 }: {
   team: CrestSubject;
   size?: "sm" | "md" | "lg";
+  /** Inverts the disc for use on the navy bar, where green vanishes. */
+  onNavy?: boolean;
 }) {
   // Greek-aware, or a club whose name opens with an accent is badged
   // "ΉΠ" — the tonos survives a plain toUpperCase.
   const label = team.initials ?? upper(team.name.slice(0, 2));
   return (
-    <span className={`${styles.crest} ${styles[size]}`} aria-hidden="true">
+    <span
+      className={`${styles.crest} ${styles[size]} ${onNavy ? styles.onNavy : ""}`}
+      aria-hidden="true"
+    >
       {label}
     </span>
   );

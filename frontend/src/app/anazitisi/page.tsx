@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Empty } from "@/components/States";
+import { PageHeader } from "@/components/PageHeader";
 import { SearchBox } from "@/components/SearchBox";
+import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { readParam, type SearchParams } from "@/lib/leagues";
+import { upper } from "@/lib/format";
 import type { SearchHit, SearchResults } from "@/lib/types";
-import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   description: "Βρες σωματείο, παίκτη ή γήπεδο σε ένα πεδίο.",
 };
 
-type Category = "ola" | "somateia" | "paiktes" | "gipeda";
+type Category = "ola" | "somateia" | "gipeda" | "paiktes";
 
 const TABS: { key: Category; label: string }[] = [
   { key: "ola", label: "Όλα" },
@@ -25,44 +26,94 @@ const TABS: { key: Category; label: string }[] = [
   { key: "gipeda", label: "Γήπεδα" },
 ];
 
-/** Where a hit takes you, and the glyph that says what it is.
+/** Per kind: where a hit goes, what its badge says, and how its avatar reads.
  *
- *  The glyphs are the ones the nav already uses for the same things, so a
- *  reader who has seen the tab bar recognises them without a legend.
+ *  The design gives clubs and players a green circle carrying initials, and
+ *  grounds a square-ish tinted tile with a crosshair — a ground has no
+ *  initials, and a circle full of "ΔΗ" would look like a club that is not one.
  */
 const KIND = {
-  team: { href: "/somateia", glyph: "⬢", noun: "Σωματείο" },
-  player: { href: "/paiktes", glyph: "☗", noun: "Παίκτης" },
-  field: { href: "/gipeda", glyph: "⌖", noun: "Γήπεδο" },
+  team: { href: "/somateia", badge: "ΟΜΑΔΑ", section: "ΟΜΑΔΕΣ" },
+  field: { href: "/gipeda", badge: "ΓΗΠΕΔΟ", section: "ΓΗΠΕΔΑ" },
+  player: { href: "/paiktes", badge: "ΠΑΙΚΤΗΣ", section: "ΠΑΙΚΤΕΣ" },
 } as const;
 
-function counts(results: SearchResults) {
-  return {
-    ola: results.teams.length + results.players.length + results.fields.length,
-    somateia: results.teams.length,
-    paiktes: results.players.length,
-    gipeda: results.fields.length,
-  };
+/** The order the design lists them in for the "Όλα" tab: clubs, then grounds,
+ *  then players. Not by count — by how often each is what somebody meant. A
+ *  player search is the least specific query and the largest register, so on
+ *  top it would bury the club whose name was typed under fifteen namesakes. */
+const ALL_ORDER = ["team", "field", "player"] as const;
+
+function group(results: SearchResults, kind: (typeof ALL_ORDER)[number]) {
+  if (kind === "team") return results.teams;
+  if (kind === "field") return results.fields;
+  return results.players;
 }
 
-/** What the chosen tab shows.
- *
- *  "Όλα" is clubs first, then grounds, then players — not because there are
- *  fewer of each, but because that is how often they are what somebody meant.
- *  Players are the largest register and the least specific query; putting them
- *  on top would bury the club you typed the name of under fifteen namesakes.
- */
-function visible(results: SearchResults, category: Category): SearchHit[] {
-  switch (category) {
-    case "somateia":
-      return results.teams;
-    case "paiktes":
-      return results.players;
-    case "gipeda":
-      return results.fields;
-    default:
-      return [...results.teams, ...results.fields, ...results.players];
-  }
+/** Two letters, Greek-aware — a club opening with an accent must not be badged
+ *  "ΉΠ", which a plain toUpperCase would produce. */
+const initials = (name: string) => upper(name.slice(0, 2));
+
+function Row({
+  hit,
+  last,
+  showBadge,
+}: {
+  hit: SearchHit;
+  last: boolean;
+  showBadge: boolean;
+}) {
+  const kind = KIND[hit.kind];
+  return (
+    <Link
+      href={`${kind.href}/${hit.slug}`}
+      className={`${styles.row} ${last ? styles.rowLast : ""}`}
+    >
+      {hit.kind === "field" ? (
+        <span className={styles.tile} aria-hidden="true">
+          ⌖
+        </span>
+      ) : (
+        <span className={styles.crest} aria-hidden="true">
+          {initials(hit.name)}
+        </span>
+      )}
+      <span className={styles.names}>
+        <span className={styles.name}>{hit.name}</span>
+        {hit.subtitle && <span className={styles.subtitle}>{hit.subtitle}</span>}
+      </span>
+      {/* Inside a single-category tab the group heading above already says
+          what everything is, so a badge on every row is noise. */}
+      {showBadge && <span className={styles.badge}>{kind.badge}</span>}
+    </Link>
+  );
+}
+
+function Section({
+  label,
+  hits,
+  showBadges,
+}: {
+  label: string;
+  hits: SearchHit[];
+  showBadges: boolean;
+}) {
+  if (hits.length === 0) return null;
+  return (
+    <section className={styles.group}>
+      <p className={styles.groupLabel}>{label}</p>
+      <div className={styles.card}>
+        {hits.map((hit, i) => (
+          <Row
+            key={`${hit.kind}:${hit.slug}`}
+            hit={hit}
+            last={i === hits.length - 1}
+            showBadge={showBadges}
+          />
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default async function SearchPage({
@@ -73,15 +124,21 @@ export default async function SearchPage({
   const params = await searchParams;
   const query = readParam(params, "anazitisi")?.trim() ?? "";
   const asked = readParam(params, "kat");
-  const category: Category =
-    TABS.some((t) => t.key === asked) ? (asked as Category) : "ola";
+  const category: Category = TABS.some((t) => t.key === asked)
+    ? (asked as Category)
+    : "ola";
 
-  const empty: SearchResults = { query, teams: [], players: [], fields: [] };
+  const blank: SearchResults = { query, teams: [], players: [], fields: [] };
   // Two characters, the same floor the API applies. Asking below it would
   // return nothing anyway, and this saves the round trip.
-  const results = query.length >= 2 ? await api.search(query) : empty;
-  const total = counts(results);
-  const rows = visible(results, category);
+  const results = query.length >= 2 ? await api.search(query) : blank;
+
+  const counts = {
+    ola: results.teams.length + results.fields.length + results.players.length,
+    somateia: results.teams.length,
+    paiktes: results.players.length,
+    gipeda: results.fields.length,
+  };
 
   const tabHref = (key: Category) => {
     const next = new URLSearchParams();
@@ -91,82 +148,75 @@ export default async function SearchPage({
     return qs ? `/anazitisi?${qs}` : "/anazitisi";
   };
 
+  const shown: (typeof ALL_ORDER)[number][] =
+    category === "ola"
+      ? [...ALL_ORDER]
+      : category === "somateia"
+        ? ["team"]
+        : category === "gipeda"
+          ? ["field"]
+          : ["player"];
+
   return (
-    <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Αναζήτηση</h1>
-      </div>
+    <>
+      <PageHeader title="Αναζήτηση" />
 
-      <SearchBox
-        placeholder="Σωματείο, παίκτης ή γήπεδο…"
-        label="Αναζήτηση σε σωματεία, παίκτες και γήπεδα"
-      />
-
-      {query.length < 2 ? (
-        <Empty
-          title="Τι ψάχνεις;"
-          body="Γράψε δύο γράμματα και πάνω. Ο τόνος δεν παίζει ρόλο — «ολυμπιακος» βρίσκει τον «ΟΛΥΜΠΙΑΚΟ»."
+      <div className={styles.page}>
+        <SearchBox
+          placeholder="Σωματείο, παίκτης ή γήπεδο…"
+          label="Αναζήτηση σε σωματεία, παίκτες και γήπεδα"
         />
-      ) : (
-        <>
-          <nav className={styles.tabs} aria-label="Είδος αποτελέσματος">
-            {TABS.map((tab) => (
-              <Link
-                key={tab.key}
-                href={tabHref(tab.key)}
-                className={styles.tab}
-                aria-current={tab.key === category ? "page" : undefined}
-                scroll={false}
-              >
-                {tab.label}
-                <span className={styles.count}>{total[tab.key]}</span>
-              </Link>
-            ))}
-          </nav>
 
-          {rows.length === 0 ? (
-            <Empty
-              title="Κανένα αποτέλεσμα"
-              body={`Δεν βρέθηκε τίποτα για «${query}»${
-                category === "ola" ? "" : " σε αυτή την κατηγορία"
-              }.`}
-            />
-          ) : (
-            <ul className={styles.list}>
-              {rows.map((hit) => {
-                const kind = KIND[hit.kind];
-                return (
-                  <li key={`${hit.kind}:${hit.slug}`}>
-                    <Link href={`${kind.href}/${hit.slug}`} className={styles.row}>
-                      <span className={styles.glyph} aria-hidden="true">
-                        {kind.glyph}
-                      </span>
-                      <span className={styles.names}>
-                        <span className={styles.name}>{hit.name}</span>
-                        {hit.subtitle && (
-                          <span className={styles.subtitle}>{hit.subtitle}</span>
-                        )}
-                      </span>
-                      {/* Only in the mixed list: inside a tab the heading
-                          already says what everything is. */}
-                      {category === "ola" && (
-                        <span className={styles.noun}>{kind.noun}</span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+        {query.length < 2 ? (
+          <Empty
+            title="Τι ψάχνεις;"
+            body="Γράψε δύο γράμματα και πάνω. Ο τόνος δεν παίζει ρόλο — «ολυμπιακος» βρίσκει τον «ΟΛΥΜΠΙΑΚΟ»."
+          />
+        ) : (
+          <>
+            <nav className={styles.tabs} aria-label="Είδος αποτελέσματος">
+              {TABS.map((tab) => (
+                <Link
+                  key={tab.key}
+                  href={tabHref(tab.key)}
+                  className={`${styles.tab} ${
+                    tab.key === category ? styles.tabActive : ""
+                  }`}
+                  aria-current={tab.key === category ? "page" : undefined}
+                  scroll={false}
+                >
+                  {tab.label}
+                  <span className={styles.count}>{counts[tab.key]}</span>
+                </Link>
+              ))}
+            </nav>
 
-          {rows.length > 0 && (
-            <p className={styles.note}>
-              Δείχνουμε τα οκτώ πρώτα κάθε κατηγορίας. Αν αυτό που ψάχνεις δεν
-              είναι εδώ, γράψε περισσότερα γράμματα.
-            </p>
-          )}
-        </>
-      )}
-    </div>
+            {shown.every((kind) => group(results, kind).length === 0) ? (
+              <Empty
+                title="Κανένα αποτέλεσμα"
+                body={`Δεν βρέθηκε τίποτα για «${query}»${
+                  category === "ola" ? "" : " σε αυτή την κατηγορία"
+                }.`}
+              />
+            ) : (
+              <>
+                {shown.map((kind) => (
+                  <Section
+                    key={kind}
+                    label={KIND[kind].section}
+                    hits={group(results, kind)}
+                    showBadges={shown.length > 1}
+                  />
+                ))}
+                <p className={styles.note}>
+                  Δείχνουμε τα οκτώ πρώτα κάθε κατηγορίας. Αν αυτό που ψάχνεις
+                  δεν είναι εδώ, γράψε περισσότερα γράμματα.
+                </p>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 }

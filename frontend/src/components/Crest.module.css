@@ -1,33 +1,43 @@
+/* The design file draws a club as a solid green disc with two Greek initials
+   in white — not a tinted rounded square. Screen SR1: 30px, radius 50%,
+   background #128C40, Fira 800 11px/1, colour #FFFFFF. */
 .crest {
   display: grid;
   place-items: center;
   flex: none;
-  background: var(--color-green-100);
-  color: var(--color-navy-900);
+  border-radius: 50%;
+  background: var(--color-green-600);
+  color: var(--color-grey-50);
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  border-radius: var(--radius-sm);
+  font-weight: 800;
+  line-height: 1;
   /* The monogram is decorative — the club name is always next to it — so it
      must not be picked up by text selection or copied into a paste. */
   user-select: none;
 }
 
 .sm {
-  width: 22px;
-  height: 22px;
-  font-size: 10px;
+  width: 24px;
+  height: 24px;
+  font-size: 9.5px;
 }
 
+/* The size the design uses in every list row. */
 .md {
-  width: 28px;
-  height: 28px;
-  font-size: 11.5px;
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
 }
 
 .lg {
   width: 64px;
   height: 64px;
-  font-size: 24px;
-  border-radius: var(--radius-md);
+  font-size: 23px;
+}
+
+/* On the navy bar and inside navy cards the green disc all but disappears, so
+   it inverts: off-white disc, navy monogram. Screen S2 does exactly this. */
+.onNavy {
+  background: var(--color-grey-100);
+  color: var(--color-navy-900);
 }
