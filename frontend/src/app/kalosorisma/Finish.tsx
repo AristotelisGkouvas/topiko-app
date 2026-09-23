@@ -27,6 +27,16 @@ export function Finish() {
 
   return (
     <>
+      {/* The design names the club in the heading — "Μάθε πρώτος για τον Άτλα"
+          rather than "Ειδοποιήσεις". The reader has just chosen it, and a
+          heading that repeats their choice back is what makes the switch below
+          feel like it is about their team rather than about the app. */}
+      <h1 className={styles.heading}>
+        {hydrated && favourite
+          ? `Μάθε πρώτος για τον ${favourite.name}`
+          : "Ειδοποιήσεις"}
+      </h1>
+
       {!hydrated ? (
         // Nothing is claimed before the browser has been read: rendering
         // "you follow nobody" and correcting it a frame later reads as a bug.
@@ -34,15 +44,12 @@ export function Finish() {
       ) : favourite ? (
         <>
           <p className={styles.lead}>
-            Ακολουθείς τον <strong>{favourite.name}</strong>. Θες να μαθαίνεις
-            τα γκολ και το τελικό σφύριγμα την ώρα που γίνονται;
+            Στέλνουμε μόνο γκολ και τελικό σφύριγμα, και μόνο για αυτή την
+            ομάδα. Αλλάζει οποτεδήποτε από τη σελίδα του σωματείου.
           </p>
           <div className={styles.notify}>
             <NotifyButton slug={favourite.slug} name={favourite.name} />
           </div>
-          <p className={styles.small}>
-            Μπορείς να τις κλείσεις όποτε θες από τη σελίδα του σωματείου.
-          </p>
         </>
       ) : (
         <p className={styles.lead}>

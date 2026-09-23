@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Logo, Wordmark } from "@/components/Logo";
 import { SearchBox } from "@/components/SearchBox";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { readParam, type SearchParams } from "@/lib/leagues";
 import { ClubPicker, type PickableClub } from "./ClubPicker";
 import { Finish } from "./Finish";
+import { Steps } from "./Steps";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -17,12 +17,12 @@ export const metadata: Metadata = {
   description: "Τρία βήματα για να στηθεί το ΠΑΜΕ ΣΕΝΤΡΑ στα μέτρα σου.",
 };
 
-const STEPS = [
-  { n: 1, label: "Τι είναι" },
-  { n: 2, label: "Το σωματείο σου" },
-  { n: 3, label: "Ειδοποιήσεις" },
-];
-
+/** Screens O1–O3 of the design file.
+ *
+ *  No app chrome: no header, no tab bar. The welcome is the whole screen,
+ *  because it is the one moment the site is asking rather than answering — and
+ *  a tab bar under it is an invitation to leave before the question is done.
+ */
 export default async function WelcomePage({
   searchParams,
 }: {
@@ -39,76 +39,53 @@ export default async function WelcomePage({
     // The folded search when they type, the whole register when they have not
     // — 177 clubs is a scroll, but it is also every possible right answer.
     teams =
-      query.length >= 2
-        ? (await api.search(query)).teams
-        : await api.listTeams();
+      query.length >= 2 ? (await api.search(query)).teams : await api.listTeams();
   }
 
-  return (
-    <div className={styles.page}>
-      <ol className={styles.steps} aria-label="Βήματα">
-        {STEPS.map((s) => (
-          <li
-            key={s.n}
-            className={`${styles.step} ${s.n === step ? styles.stepOn : ""} ${
-              s.n < step ? styles.stepDone : ""
-            }`}
-            aria-current={s.n === step ? "step" : undefined}
-          >
-            <span className={styles.stepDot}>{s.n < step ? "✓" : s.n}</span>
-            <span className={styles.stepLabel}>{s.label}</span>
-          </li>
-        ))}
-      </ol>
-
-      {step === 1 && (
-        <section className={styles.panel}>
-          <div className={styles.brand}>
-            <Logo size={64} />
-            <Wordmark />
-          </div>
-          <p className={styles.lead}>
-            Τα ερασιτεχνικά της Ηπείρου σε ένα μέρος: βαθμολογίες,
-            αποτελέσματα, πρόγραμμα και γήπεδα — χωρίς λογαριασμό και χωρίς
-            διαφημίσεις.
+  if (step === 1) {
+    return (
+      <div className={styles.page}>
+        {/* The hero is the mark itself, at 70px — the design spends the whole
+            upper screen on it, which is the only place in the app that does. */}
+        <div className={styles.hero}>
+          <span className={styles.heroSmall}>ΠΑΜΕ</span>
+          <span className={styles.heroBig}>ΣΕΝΤΡΑ</span>
+          <span className={styles.rule} aria-hidden="true">
+            <span className={styles.ruleLine} />
+            <span className={styles.ruleDot} />
+            <span className={styles.ruleLine} />
+          </span>
+          <p className={styles.heroText}>
+            Αποτελέσματα, βαθμολογίες και live από κάθε γήπεδο της ΕΠΣ Ηπείρου.
           </p>
-          <ul className={styles.bullets}>
-            <li>
-              <strong>Ζωντανά σκορ</strong> την ώρα του αγώνα, με τη βαθμολογία
-              να αλλάζει μαζί τους.
-            </li>
-            <li>
-              <strong>Το σωματείο σου</strong> πρώτο στην αρχική, με το επόμενο
-              παιχνίδι και το γήπεδο.
-            </li>
-            <li>
-              <strong>Δουλεύει και χωρίς σήμα</strong> — ό,τι έχεις δει μένει
-              διαθέσιμο στο γήπεδο.
-            </li>
-          </ul>
-          <div className={styles.actions}>
-            <Link href="/kalosorisma?vima=2" className={styles.primary}>
-              Ξεκίνα
-            </Link>
-            <Link href="/" className={styles.secondary}>
-              Όχι τώρα
-            </Link>
-          </div>
-        </section>
-      )}
+        </div>
 
-      {step === 2 && (
-        <section className={styles.panel}>
-          <h1 className={styles.heading}>Ποιον ακολουθείς;</h1>
-          <p className={styles.lead}>
-            Διάλεξε ένα σωματείο και θα εμφανίζεται πρώτο, παντού.
-          </p>
+        <div className={styles.footerPanel}>
+          <Steps at={1} />
+          <Link href="/kalosorisma?vima=2" className={styles.primary}>
+            Ξεκίνα
+          </Link>
+          <Link href="/" className={styles.skip}>
+            Όχι τώρα
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
+  if (step === 2) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.head}>
+          <Steps at={2} />
+          <h1 className={styles.heading}>Ποια ομάδα υποστηρίζεις;</h1>
           <SearchBox
-            placeholder="Όνομα σωματείου…"
+            placeholder="Αναζήτηση σωματείου ή χωριού…"
             label="Αναζήτηση σωματείου"
           />
+        </div>
 
+        <div className={styles.body}>
           {teams.length === 0 ? (
             <Empty
               title="Κανένα σωματείο"
@@ -117,22 +94,24 @@ export default async function WelcomePage({
           ) : (
             <ClubPicker teams={teams} />
           )}
+        </div>
 
-          <p className={styles.backLink}>
-            <Link href="/kalosorisma">← Πίσω</Link>
-          </p>
-        </section>
-      )}
+        <p className={styles.back}>
+          <Link href="/kalosorisma">‹ Πίσω</Link>
+        </p>
+      </div>
+    );
+  }
 
-      {step === 3 && (
-        <section className={styles.panel}>
-          <h1 className={styles.heading}>Να σου λέμε;</h1>
-          <Finish />
-          <p className={styles.backLink}>
-            <Link href="/kalosorisma?vima=2">← Πίσω</Link>
-          </p>
-        </section>
-      )}
+  return (
+    <div className={styles.page}>
+      <div className={styles.head}>
+        <Steps at={3} />
+        <Finish />
+      </div>
+      <p className={styles.back}>
+        <Link href="/kalosorisma?vima=2">‹ Πίσω</Link>
+      </p>
     </div>
   );
 }
