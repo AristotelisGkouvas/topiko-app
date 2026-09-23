@@ -21,8 +21,13 @@ COPY . .
 # deployment cannot be pointed at another by changing the environment.
 ARG NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 ARG NEXT_PUBLIC_ASSOCIATION=epsip-ipeirou
+# The site's own public address. Without it `metadataBase` falls back to
+# localhost and every og:image on every shared link points at the reader's
+# own machine — which is why links to the site have had no preview.
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_ASSOCIATION=$NEXT_PUBLIC_ASSOCIATION \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

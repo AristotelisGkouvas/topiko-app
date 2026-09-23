@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Logo, Wordmark } from "./Logo";
+import { Wordmark } from "./Logo";
 import { NavIcon } from "./NavIcon";
 import { ThemeToggle } from "./ThemeToggle";
 import {
@@ -16,9 +16,10 @@ import styles from "./SiteHeader.module.css";
 
 /** The design file's two headers, which are not the same header.
  *
- *  On a phone it is a brand bar: mark, wordmark, and the search box — 14px/16px
- *  padding, nothing else, because the five destinations are already under the
- *  thumb at the bottom.
+ *  On a phone it is a brand bar: the stacked lockup and the search box —
+ *  14px/16px padding, nothing else, because the five destinations are already
+ *  under the thumb at the bottom. The lockup only, not the ΠΣ tile: the handoff
+ *  reserves that tile for the app icon, the favicon and notifications.
  *
  *  On a wide screen it is a 60px navy bar carrying the whole of the navigation
  *  as pills, with the search field pushed to the right. The two dropdowns are
@@ -45,10 +46,7 @@ export function SiteHeader() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="Πάμε Σέντρα">
-          <Logo size={32} />
-          <span className={styles.brandText}>
-            <Wordmark />
-          </span>
+          <Wordmark />
         </Link>
 
         {/* Wide screens only: the phone has these at the bottom. */}

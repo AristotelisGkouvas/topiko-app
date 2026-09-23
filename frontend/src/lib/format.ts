@@ -143,3 +143,17 @@ export const matchdayLabel = (matchday: number) => `${matchday}η αγωνιστ
 /** Genitive: "το πρόγραμμα της 27ης αγωνιστικής". */
 export const matchdayGenitive = (matchday: number) =>
   `${matchday}ης αγωνιστικής`;
+
+
+/** What to call a club in a list.
+ *
+ *  The register writes "Α.Ε.ΚΛΗΜΑΤΙΑΣ"; the short name is "ΚΛΗΜΑΤΙΑΣ". On a
+ *  360px row the legal form is six characters of nothing — shared by dozens of
+ *  clubs, identifying none — eating the width the distinctive word needed.
+ *
+ *  The official name is not hidden, it is moved: it belongs on the club's own
+ *  page, where there is room and where it is the right thing to show.
+ */
+export function listName(team: { name: string; short_name?: string | null }): string {
+  return team.short_name ?? team.name;
+}

@@ -129,7 +129,7 @@
 }
 
 .pillDraw {
-  background: var(--color-amber-600);
+  background: var(--color-draw-dot);
 }
 
 .pillLoss {
@@ -142,7 +142,7 @@
    in the promotion zone: the tint alone is 3% of a colour and disappears on a
    phone held at an angle in the sun. */
 .zone_promotion td {
-  background: var(--color-win-surface);
+  background: var(--color-soft);
 }
 
 .zone_promotion td:first-child {
@@ -155,7 +155,7 @@
 }
 
 .zone_promotion_playoff td {
-  background: color-mix(in srgb, var(--color-win-surface) 55%, transparent);
+  background: color-mix(in srgb, var(--color-soft) 55%, transparent);
 }
 
 .zone_promotion_playoff td:first-child {

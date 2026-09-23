@@ -61,35 +61,106 @@ export function Logo({
   );
 }
 
-/** The wordmark as it sits on the navy bar: ΠΑΜΕ in the on-navy green above
- *  ΣΕΝΤΡΑ in off-white. green-600 all but vanishes against navy, which is why
- *  the palette keeps a lighter one for exactly this.
+/** The stacked wordmark — the lockup the handoff puts in every header.
  *
- *  Sized from the mark beside it rather than fixed. The design file draws the
- *  pair twice — 32px on the phone and 34px on the desktop — and every number
- *  in the wordmark moves by the same 34/32: 8.64→9.18, 19.2→20.4, 3.2→3.4.
- *  So there is one ratio, not two sets of pixels to keep in step.
+ *  ΠΑΜΕ above ΣΕΝΤΡΑ, then the halfway line with its centre spot, then
+ *  "ΤΟΠΙΚΟ ΠΟΔΟΣΦΑΙΡΟ". The tagline is dropped below 40px, per the handoff:
+ *  at header size it is three pixels tall and reads as a smudge.
+ *
+ *  The colours swap with the background and are not interchangeable. On navy,
+ *  ΠΑΜΕ and the rule take green-400 — green-600 is 2.6:1 there and effectively
+ *  invisible. On a light background they take green-600, because green-400 on
+ *  white is 2.0:1. `on` says which.
+ *
+ *  Sized from one variable rather than fixed. The design draws the lockup at
+ *  several sizes and every number inside moves by the same ratio, so there is
+ *  one number to change and not six.
  */
-export function Wordmark({ size = 32 }: { size?: number }) {
+export function Wordmark({
+  size = 32,
+  on = "navy",
+}: {
+  size?: number;
+  /** Which background it is sitting on. */
+  on?: "navy" | "light" | "grass";
+}) {
+  const accent =
+    on === "navy"
+      ? "var(--color-on-navy-accent)"
+      : on === "grass"
+        ? "#fff"
+        : "var(--color-green-600)";
+  const ink =
+    on === "navy"
+      ? "var(--color-grey-100)"
+      : on === "grass"
+        ? "#fff"
+        : "var(--color-heading)";
+
   return (
-    <span style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+    <span
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+        // Everything below is a fraction of this, so one media query moves the
+        // whole lockup.
+        ["--lockup" as string]: MARK(size),
+      }}
+    >
       <span
         style={{
-          font: `700 calc(${MARK(size)} * 0.27)/1 var(--font-display)`,
-          letterSpacing: `calc(${MARK(size)} * 0.1)`,
-          color: "var(--color-on-navy-accent)",
+          font: "700 calc(var(--lockup) * 0.27)/1 var(--font-display)",
+          letterSpacing: "calc(var(--lockup) * 0.1)",
+          // The tracking pushes the word right by one gap; pulling it back
+          // keeps it optically centred over ΣΕΝΤΡΑ.
+          textIndent: "calc(var(--lockup) * 0.1)",
+          color: accent,
         }}
       >
         ΠΑΜΕ
       </span>
       <span
         style={{
-          font: `800 calc(${MARK(size)} * 0.6)/.9 var(--font-display)`,
-          color: "var(--color-grey-100)",
+          font: "800 calc(var(--lockup) * 0.6)/.9 var(--font-display)",
+          color: ink,
         }}
       >
         ΣΕΝΤΡΑ
       </span>
+      <span
+        aria-hidden="true"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "calc(var(--lockup) * 0.07)",
+          marginTop: "calc(var(--lockup) * 0.07)",
+        }}
+      >
+        <Rule accent={accent} />
+        <span
+          style={{
+            width: "calc(var(--lockup) * 0.08)",
+            height: "calc(var(--lockup) * 0.08)",
+            borderRadius: "50%",
+            background: accent,
+            flex: "none",
+          }}
+        />
+        <Rule accent={accent} />
+      </span>
     </span>
+  );
+}
+
+function Rule({ accent }: { accent: string }) {
+  return (
+    <span
+      style={{
+        flex: 1,
+        height: "max(1px, calc(var(--lockup) * 0.05))",
+        background: accent,
+      }}
+    />
   );
 }

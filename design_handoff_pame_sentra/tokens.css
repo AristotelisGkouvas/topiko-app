@@ -1,0 +1,63 @@
+/* Πάμε Σέντρα — design tokens (από τα mockups). Βάλτε το στο globals.css ή μεταφέρετέ το στο tailwind.config. */
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@500;600;700;800&family=Noto+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Brand */
+  --ps-navy: #003C71;          /* headers, κύριες επιφάνειες, κείμενο τίτλων */
+  --ps-navy-2: #0A4F8C;        /* chips/inputs μέσα σε navy header, δευτερεύον */
+  --ps-green: #128C40;         /* κουμπιά, ενεργό tab, «η ομάδα μου», άνοδος */
+  --ps-green-2: #0F7E39;       /* 2η ρίγα γρασιδιού (μόνο στο logo/μπλοκ) */
+  --ps-green-light: #4FD07C;   /* «ΠΑΜΕ» & accents πάνω σε navy */
+  --ps-terra: #E0521F;         /* ΜΟΝΟ live / νέο / επείγον */
+  --ps-red: #C0392B;           /* υποβιβασμός, ήττα, ποινές */
+  --ps-amber-bg: #FFF1D6;  --ps-amber: #8A5A00;  /* αναβολή, offline, «δείγμα» */
+
+  /* Light theme */
+  --ps-bg: #F4F5F6;
+  --ps-card: #FFFFFF;
+  --ps-line: #E2E3E4;
+  --ps-line-2: #EEEFF0;        /* διαχωριστικά γραμμών μέσα σε κάρτα */
+  --ps-ink: #3A3A3A;           /* κείμενο σώματος */
+  --ps-muted: #6C6F72;         /* δευτερεύον κείμενο, labels */
+  --ps-head: #003C71;          /* τίτλοι / ονόματα ομάδων */
+  --ps-soft: #E9F6EE;          /* highlight γραμμής «η ομάδα μου» */
+  --ps-pill: #EEF1F4;          /* pill ώρας / σκορ */
+  --ps-chip-border: #D2D3D5;
+  --ps-on-navy-muted: #9CB6CE; /* δευτερεύον κείμενο σε navy */
+  --ps-on-navy-2: #C9D6E3;
+
+  /* Typography */
+  --ps-font-display: "Fira Sans Condensed", sans-serif; /* τίτλοι, ονόματα, αριθμοί, κουμπιά, labels */
+  --ps-font-body: "Noto Sans", sans-serif;              /* κείμενο, meta, inputs */
+
+  /* Radii */
+  --ps-r-sm: 6px;   /* pill ώρας */
+  --ps-r-md: 10px;  /* κουμπιά, inputs */
+  --ps-r-lg: 12px;  /* κάρτες */
+  --ps-r-xl: 14px;  /* hero κάρτες, bottom sheets 20px */
+  --ps-r-chip: 14px;
+
+  /* Spacing (4px βάση) */
+  --ps-s1: 4px; --ps-s2: 8px; --ps-s3: 12px; --ps-s4: 14px; --ps-s5: 16px; --ps-s6: 20px; --ps-s7: 26px;
+
+  --ps-shadow-pop: 0 18px 50px rgba(0,30,60,.25);
+  --ps-tap: 44px; /* ελάχιστο ύψος στόχου αφής */
+}
+
+[data-theme="dark"] {
+  --ps-bg: #0B1622;
+  --ps-card: #13243A;
+  --ps-line: #1F3550;
+  --ps-line-2: #1A2E47;
+  --ps-ink: #E4E8EC;
+  --ps-muted: #93A3B5;
+  --ps-head: #F5F5F5;
+  --ps-soft: #123D2A;
+  --ps-pill: #1F3550;
+  --ps-chip-border: #2A4566;
+  --ps-header: #0E1D30;   /* αντί για --ps-navy στα headers */
+  --ps-header-2: #1A3252;
+}
+
+/* Γρασίδι: μόνο στο logo-block, στο app icon και στις εικόνες social */
+.ps-grass { background: repeating-linear-gradient(90deg, var(--ps-green) 0 var(--stripe, 38px), var(--ps-green-2) var(--stripe, 38px) calc(var(--stripe, 38px) * 2)); }

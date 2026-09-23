@@ -21,13 +21,17 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#003c71",
     theme_color: "#003c71",
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
       {
-        src: "/icon-512.png",
+        // A different file, not the same one relabelled. Android crops a
+        // circle out of a maskable icon, and cropping one from an already
+        // rounded tile shaves the corners off the monogram. The handoff ships
+        // a square, full-bleed version for exactly this.
+        src: "/icon-512-maskable.png",
         sizes: "512x512",
         type: "image/png",
-        // Android crops a circle out of this, so the artwork keeps its margin.
         purpose: "maskable",
       },
     ],

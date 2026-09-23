@@ -112,8 +112,11 @@ async def search_teams(
     return [
         Hit(
             kind="team",
+            # Shown short, matched long: somebody types "κληματ" and the query
+            # runs against "Α.Ε.ΚΛΗΜΑΤΙΑΣ", but the row that comes back reads
+            # "ΚΛΗΜΑΤΙΑΣ" like every other list on the site.
             slug=t.slug,
-            name=t.name,
+            name=t.short_name or t.name,
             subtitle=_latest_league(t),
             logo_url=t.logo_url,
         )

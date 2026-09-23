@@ -19,18 +19,9 @@ from app.models.volunteer import LOCKOUT_MINUTES, MAX_FAILURES
 #: Six digits. See the module docstring on the model for why not four.
 DIGITS = 6
 
-#: Anything that is not a Greek letter separates words. The dots matter:
-#: "Α.Ε.Δ.ΠΩΓΩΝΑΤΟΣ" is one run of characters and four words, and treating
-#: it as one word yields ΑΕΔ — the initials the rule exists to avoid.
-_NOT_GREEK = re.compile(r"[^Α-ΩΆΈΉΊΌΎΏΪΫ]+")
-
-#: Latin letters that are drawn identically to Greek ones. Somebody with an
-#: English keyboard layout typing what is printed on their card produces these
-#: without noticing, and the login would fail for a code they typed correctly.
-_LOOKALIKE = str.maketrans(
-    "ABEZHIKMNOPTYX",
-    "ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ",
-)
+#: Shared with the short-name derivation: the same Latin lookalikes that break
+#: a club's name also break a code typed on an English keyboard layout.
+from app.services.greek import LATIN_LOOKALIKE as _LOOKALIKE, words as _words  # noqa: E402
 
 
 def normalise(raw: str) -> str:
@@ -51,7 +42,7 @@ def _candidates(name: str) -> list[str]:
     the club: "Α.Ε. ΓΙΑΝΝΕΝΑ 2004" is Γιάννενα, not ΑΕΓ. Initial-only forms
     like Α.Ε. and Π.Α.Ο. are shared by dozens of clubs and identify none.
     """
-    letters = [w for w in _NOT_GREEK.split(name.upper()) if w]
+    letters = _words(name)
     long_enough = [w for w in letters if len(w) >= 4]
 
     out: list[str] = []

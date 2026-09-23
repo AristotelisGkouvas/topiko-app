@@ -55,7 +55,11 @@
   /* --- Semantic ------------------------------------------------------ */
   --color-win: var(--color-green-600);
   --color-draw: var(--color-amber-600);
-  --color-loss: #b4392c; /* dark brick, not alarm red */
+  /* Η κουκκίδα ισοπαλίας στη φόρμα. Ουδέτερο γκρι και όχι κεχριμπαρένιο:
+     σε μια σειρά από πράσινο/κόκκινο, το κεχριμπαρένιο διαβάζεται ως
+     προειδοποίηση — και η ισοπαλία δεν είναι. */
+  --color-draw-dot: #c9cccf;
+  --color-loss: #c0392b; /* dark brick, not alarm red */
   --color-live: var(--color-terra-500);
 
   /* Ink for small text sitting on each result colour. White on green-600 is
@@ -95,6 +99,11 @@
   --color-on-navy-fill: var(--color-navy-700);
   /* Πλακέτα κατηγορίας μέσα σε λίστα αποτελεσμάτων. */
   --color-badge-surface: #eef1f4;
+  /* Απαλό highlight γραμμής: ζώνη ανόδου, «η ομάδα μου», επιλεγμένο
+     πλακίδιο. Ξεχωριστό από το χρώμα νίκης — το ένα βάφει μια ολόκληρη
+     γραμμή και πρέπει να μένει πίσω από το κείμενο, το άλλο είναι πλακέτα
+     αποτελέσματος και πρέπει να φωνάζει. */
+  --color-soft: #e9f6ee;
 
   /* Accent for anything drawn on the navy header or nav bar. */
   --color-on-navy-accent: var(--color-green-400);
@@ -110,9 +119,13 @@
   --font-body: var(--font-noto), "Noto Sans", "Segoe UI", Tahoma,
     "DejaVu Sans", sans-serif;
 
-  --radius-sm: 5px;
-  --radius-md: 8px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --radius-lg: 12px;
+  /* Hero κάρτες — «η ομάδα μου», σκορ αγώνα. Ένα σκαλί πάνω από τις
+     λίστες, ώστε να ξεχωρίζει η μία κάρτα που δεν είναι λίστα. */
+  --radius-xl: 14px;
+  --radius-sheet: 20px;
 
   --shadow-card: 0 1px 2px rgba(0, 60, 113, 0.07),
     0 4px 14px rgba(0, 60, 113, 0.06);
@@ -186,7 +199,7 @@
     --color-loss: #c0392b;
     --color-loss-surface: #3a1f1c;
     --color-loss-ink: #f5d5d0;
-    --color-win-surface: #123a24;
+    --color-win-surface: #123d2a;
     --color-win-ink: #9fe0b8;
     --color-draw-surface: #3a3117;
     --color-draw-ink: #f2d88f;
@@ -195,9 +208,11 @@
 
     --color-grey-100: #1a2e47;
     --color-grey-200: #1f3550;
-    --color-hairline: #1f3550;
+    --color-hairline: #1a2e47;
     --color-chip-border: #2a4566;
-    --color-badge-surface: #1a3252;
+    --color-badge-surface: #1f3550;
+  --color-soft: #123d2a;
+    --color-soft: #123d2a;
     --color-on-navy-fill: #1a3252;
   }
 }
@@ -220,7 +235,7 @@
   --color-loss: #c0392b;
   --color-loss-surface: #3a1f1c;
   --color-loss-ink: #f5d5d0;
-  --color-win-surface: #123a24;
+  --color-win-surface: #123d2a;
   --color-win-ink: #9fe0b8;
   --color-draw-surface: #3a3117;
   --color-draw-ink: #f2d88f;
@@ -229,8 +244,9 @@
 
   --color-grey-100: #1a2e47;
   --color-grey-200: #1f3550;
-  --color-hairline: #1f3550;
+  --color-hairline: #1a2e47;
   --color-chip-border: #2a4566;
-  --color-badge-surface: #1a3252;
+  --color-badge-surface: #1f3550;
+  --color-soft: #123d2a;
   --color-on-navy-fill: #1a3252;
 }

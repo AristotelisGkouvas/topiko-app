@@ -33,6 +33,7 @@ from app.models import (
 )
 from app.models.enums import MatchStatus
 from app.services import search as search_service
+from app.services.live import LIVE_WINDOW
 from app.services.standings import project_live_standings
 from app.schemas import (
     AssociationOut,
@@ -295,6 +296,12 @@ async def list_live_matches(
                 Match.is_live.is_(True),
                 Match.status.in_([MatchStatus.LIVE, MatchStatus.HALFTIME]),
             ),
+            # The clock, not just the flag. Without this a stale claim keeps a
+            # finished match in the live strip until the next scrape, and a
+            # wrong one keeps a future fixture there for ever.
+            Match.kickoff_at.is_not(None),
+            Match.kickoff_at <= func.now(),
+            Match.kickoff_at > func.now() - LIVE_WINDOW,
         )
         .order_by(Match.kickoff_at.nulls_last(), Match.id)
     )
@@ -620,7 +627,15 @@ async def get_meta(association: CurrentAssociation, db: DbSession) -> Meta:
     live_count = await db.scalar(
         select(func.count(Match.id))
         .join(League, Match.league_id == League.id)
-        .where(League.association_id == association.id, Match.is_live.is_(True))
+        .where(
+            League.association_id == association.id,
+            Match.is_live.is_(True),
+            # Counted the same way the strip is filtered, or the badge promises
+            # live matches the strip then does not show.
+            Match.kickoff_at.is_not(None),
+            Match.kickoff_at <= func.now(),
+            Match.kickoff_at > func.now() - LIVE_WINDOW,
+        )
     )
     return Meta(
         association=association.slug,

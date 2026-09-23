@@ -16,20 +16,12 @@
   padding: 14px 16px;
 }
 
-/* Drives every size in the mark and the wordmark; see Logo.tsx. */
+/* Drives every size inside the lockup; see Logo.tsx. */
 .brand {
-  --logo-size: 32px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  --logo-size: 34px;
+  display: block;
   text-decoration: none;
   flex: none;
-}
-
-.brandText {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
 }
 
 /* --- the desktop nav ------------------------------------------------ */
@@ -227,7 +219,7 @@
   }
 
   .brand {
-    --logo-size: 34px;
+    --logo-size: 36px;
   }
 
   .nav {

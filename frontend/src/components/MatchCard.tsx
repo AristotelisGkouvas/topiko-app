@@ -6,6 +6,7 @@ import {
   formatShortKickoff,
   formatTime,
   formatWeekday,
+  listName,
   matchStatusLabel,
 } from "@/lib/format";
 import type { Match } from "@/lib/types";
@@ -58,7 +59,7 @@ function TeamRow({
     <div className={`${styles.teamRow} ${dim ? styles.dim : ""}`}>
       <Crest team={team} size="md" />
       <Link href={`/somateia/${team.slug}`} className={styles.teamName}>
-        {team.name}
+        {listName(team)}
       </Link>
       <span className={styles.score}>{score ?? "–"}</span>
     </div>
@@ -92,7 +93,7 @@ export function MatchCard({ match }: { match: Match }) {
       {match.status === "postponed" || match.status === "cancelled" ? (
         <div className={styles.postponed}>
           <span className={styles.postponedTeams}>
-            {match.home_team.name} — {match.away_team.name}
+            {listName(match.home_team)} — {listName(match.away_team)}
           </span>
           <span className={styles.postponedNote}>
             {match.note ?? "Νέα ημερομηνία σύντομα"}
@@ -112,7 +113,7 @@ export function MatchCard({ match }: { match: Match }) {
                 href={`/somateia/${match.home_team.slug}`}
                 className={styles.teamName}
               >
-                {match.home_team.name}
+                {listName(match.home_team)}
               </Link>
             </div>
             <div className={styles.fixtureTeam}>
@@ -121,7 +122,7 @@ export function MatchCard({ match }: { match: Match }) {
                 href={`/somateia/${match.away_team.slug}`}
                 className={styles.teamName}
               >
-                {match.away_team.name}
+                {listName(match.away_team)}
               </Link>
             </div>
           </div>
@@ -150,7 +151,7 @@ export function MatchCard({ match }: { match: Match }) {
 
 /** One line per fixture — the compact form used in "Επόμενη αγωνιστική". */
 export function FixtureRow({ match }: { match: Match }) {
-  const shortName = (t: Match["home_team"]) => t.short_name ?? t.name;
+  const shortName = listName;
   return (
     <li className={styles.fixtureRow}>
       <span className={styles.fixtureRowTeams}>

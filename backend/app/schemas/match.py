@@ -1,8 +1,9 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from app.models.enums import DataSource, MatchStatus, StandingZone
+from app.services.live import effective
 from app.schemas.catalog import FieldRef, LeagueOut, TeamRef
 from app.schemas.common import ORMModel
 
@@ -31,6 +32,28 @@ class MatchOut(ORMModel):
     # same claim as one lifted from the federation site, and the card says so.
     data_source: DataSource
     updated_at: datetime
+
+    @model_validator(mode="after")
+    def _check_the_clock(self) -> "MatchOut":
+        """Drop a live claim the clock does not support.
+
+        Here rather than in the model, so the stored column keeps meaning "what
+        the source said" and every consumer of the API — ticker, cards, feed —
+        gets the same checked answer without having to remember to ask.
+        """
+        status, is_live = effective(
+            status=self.status,
+            is_live=self.is_live,
+            kickoff_at=self.kickoff_at,
+            home_score=self.home_score,
+            away_score=self.away_score,
+        )
+        # Assigned through object.__setattr__-free plain assignment: validation
+        # is not re-run for a model_validator in "after" mode, so this cannot
+        # recurse.
+        self.status = status
+        self.is_live = is_live
+        return self
 
 
 class StandingOut(ORMModel):

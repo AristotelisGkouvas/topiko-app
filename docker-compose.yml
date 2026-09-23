@@ -109,6 +109,9 @@ services:
         # *reader's browser* resolves, never the compose hostname.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}
         NEXT_PUBLIC_ASSOCIATION: ${NEXT_PUBLIC_ASSOCIATION:-epsip-ipeirou}
+        # Same reason: baked in, because og:image URLs are absolute and are
+        # rendered into the HTML at build time.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
     image: pamesentra-frontend
     container_name: pamesentra-web
     restart: unless-stopped

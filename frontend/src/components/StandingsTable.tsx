@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Crest } from "./Crest";
-import { formatGoalDifference, zoneLabel } from "@/lib/format";
+import { formatGoalDifference, listName, zoneLabel } from "@/lib/format";
 import type { League, Standing, StandingZone } from "@/lib/types";
 import styles from "./StandingsTable.module.css";
 
@@ -168,7 +168,7 @@ export function StandingsTable({
                     className={styles.teamLink}
                   >
                     <Crest team={row.team} size="sm" />
-                    <span className={styles.teamName}>{row.team.name}</span>
+                    <span className={styles.teamName}>{listName(row.team)}</span>
                   </Link>
                 </td>
                 <td className={styles.num}>

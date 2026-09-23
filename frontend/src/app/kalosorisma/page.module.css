@@ -194,7 +194,7 @@
 }
 
 .tileOn {
-  background: var(--color-win-surface);
+  background: var(--color-soft);
   /* 2px, and the padding does not change — the design lets the border eat one
      pixel of padding rather than shifting the tile's contents on selection. */
   border: 2px solid var(--color-green-600);

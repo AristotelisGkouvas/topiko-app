@@ -19,7 +19,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -37,6 +37,7 @@ from app.models import (
 from app.models.enums import DataSource, MatchEventKind
 from app.schemas import TeamRef
 from app.services.audit import record
+from app.services.live import LIVE_WINDOW, effective
 from app.services.match_events import apply_events
 from app.services.push import notify_team
 from app.services.standings import recompute_standings
@@ -120,13 +121,23 @@ async def _load(association_id: int, match_id: int, db: DbSession) -> Match:
 
 
 def _feed(match: Match) -> MatchFeedOut:
+    # Through the same clock check as every other view of a match. This builds
+    # its payload by hand rather than from MatchOut, so it would otherwise be
+    # the one place still reporting a stale live flag.
+    status, is_live = effective(
+        status=match.status,
+        is_live=match.is_live,
+        kickoff_at=match.kickoff_at,
+        home_score=match.home_score,
+        away_score=match.away_score,
+    )
     return MatchFeedOut(
         match_id=match.id,
         home_score=match.home_score,
         away_score=match.away_score,
         minute=match.minute,
-        is_live=match.is_live,
-        status=match.status.value,
+        is_live=is_live,
+        status=status.value,
         events=[
             EventOut(
                 id=e.id,
@@ -418,7 +429,15 @@ async def association_feed(
             select(Match)
             .options(selectinload(Match.events).selectinload(MatchEvent.team))
             .join(League, Match.league_id == League.id)
-            .where(League.association_id == association.id, Match.is_live.is_(True))
+            .where(
+                League.association_id == association.id,
+                Match.is_live.is_(True),
+                # Same window as the public strip. A ticker and a strip that
+                # disagree about what is live is worse than either being wrong.
+                Match.kickoff_at.is_not(None),
+                Match.kickoff_at <= func.now(),
+                Match.kickoff_at > func.now() - LIVE_WINDOW,
+            )
             .order_by(Match.kickoff_at.nulls_last(), Match.id)
             .limit(limit)
         )

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Logo } from "@/components/Logo";
+import { Logo, Wordmark } from "@/components/Logo";
 import { VolunteerError, volunteerApi, type Volunteer } from "@/lib/volunteerApi";
 import { CodeInput } from "./CodeInput";
 import styles from "./page.module.css";
@@ -40,10 +40,7 @@ export function CodeForm({ onIn }: { onIn: (who: Volunteer) => void }) {
     <form className={styles.login} onSubmit={submit}>
       <div className={styles.loginBrand}>
         <Logo size={40} />
-        <span className={styles.loginWordmark}>
-          <span className={styles.loginPame}>ΠΑΜΕ</span>
-          <span className={styles.loginSentra}>ΣΕΝΤΡΑ</span>
-        </span>
+        <Wordmark size={40} on="light" />
       </div>
 
       <h1 className={styles.loginTitle}>
