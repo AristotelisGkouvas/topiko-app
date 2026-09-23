@@ -1,37 +1,102 @@
+/* Screens E1 and E3: a centred column, an 84px ring, and one filled action.
+   The ring is what makes an error page read as a designed state rather than a
+   paragraph that failed to load. */
+
 .wrap {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 34px;
   text-align: center;
-  padding: 56px 20px;
+  min-height: 46vh;
+}
+
+.mark {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--color-text-muted);
 }
 
 .title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
   font-size: 21px;
+  color: var(--color-heading);
 }
 
 .body {
+  margin: 0;
+  max-width: 34ch;
+  font-family: var(--font-body);
+  font-weight: 400;
   font-size: 13.5px;
+  line-height: 1.55;
   color: var(--color-text-muted);
-  max-width: 42ch;
+  text-wrap: pretty;
 }
 
-.detail {
-  font-size: 11.5px;
-  color: var(--color-text-muted);
-  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
-  margin-top: 4px;
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  /* The design's 220px column: a full-width button on a 360px screen reads as
+     a banner, and centred at 220px it reads as a choice. */
+  width: 220px;
+  margin-top: 6px;
 }
 
 .action {
-  margin-top: 10px;
-  font-weight: 600;
-  color: var(--color-navy-900);
-  border: 1px solid var(--color-green-300);
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-green-600);
+  border-radius: 10px;
+  background: var(--color-green-600);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .action:hover {
-  background: var(--color-green-100);
+  filter: brightness(1.05);
+}
+
+.quiet {
+  padding: 8px;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  text-decoration: none;
+}
+
+.quiet:hover {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+.detail {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--color-grey-400);
+  font-variant-numeric: tabular-nums;
 }

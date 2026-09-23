@@ -31,7 +31,10 @@
   --color-terra-500: #e0521f;
   --color-terra-300: #f0a98a;
   --color-amber-600: #fcbf49;
-  --color-amber-200: #fde7b4;
+  --color-amber-200: #fff1d6;
+  /* Ink for the offline strip. Dark amber rather than grey: on #FFF1D6 a
+     grey reads as disabled, and the strip is the opposite of disabled. */
+  --color-amber-ink: #8a5a00;
 
   /* --- Neutrals: cool grey ------------------------------------------ */
   --color-grey-50: #ffffff;

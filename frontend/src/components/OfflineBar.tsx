@@ -17,6 +17,12 @@ import styles from "./OfflineBar.module.css";
  *  So the bar says two things: that there is no connection, and *when* what
  *  they are reading was fetched. "Χωρίς σύνδεση" on its own leaves them
  *  guessing how stale the score is, which is the question they actually have.
+ *
+ *  Screen E1 places it as a full-width amber strip directly under the header,
+ *  not as a floating card at the bottom — and dims the stale content beneath it
+ *  to 75%. Both matter: a strip in the flow pushes the old data down instead of
+ *  covering it, and the dimming is what stops a saved table being read as a
+ *  live one. The dimming rule lives in globals.css, keyed off this element.
  */
 export function OfflineBar() {
   const online = useOnline();
@@ -51,24 +57,11 @@ export function OfflineBar() {
   }
 
   return (
-    <div className={styles.bar} role="status">
-      <span className={styles.dot} aria-hidden="true" />
+    <div className={styles.bar} role="status" data-offline="">
       <span className={styles.text}>
         Χωρίς σύνδεση
-        {savedAt && (
-          <>
-            {" · "}
-            <span className={styles.saved}>αποθηκευμένα {savedAt}</span>
-          </>
-        )}
-        {queued > 0 && (
-          <>
-            {" · "}
-            <span className={styles.queued}>
-              {queued} σε αναμονή
-            </span>
-          </>
-        )}
+        {savedAt && <> · αποθηκευμένα {savedAt}</>}
+        {queued > 0 && <> · {queued} σε αναμονή</>}
       </span>
       <button
         type="button"
@@ -76,7 +69,7 @@ export function OfflineBar() {
         onClick={retry}
         disabled={retrying}
       >
-        {retrying ? "…" : "Ξανά"}
+        {retrying ? "…" : "Δοκίμασε ξανά"}
       </button>
     </div>
   );

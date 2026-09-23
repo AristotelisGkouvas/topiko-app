@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
+import { PageHeader } from "@/components/PageHeader";
 import { clockTime, useSavedAt } from "@/lib/freshness";
 import { useOnline } from "@/lib/outbox";
 import styles from "./error.module.css";
@@ -14,6 +15,8 @@ import styles from "./error.module.css";
  *  standing in a field that something went wrong — when what went wrong is
  *  their reception — sends them to reload a page that cannot load, and leaves
  *  them thinking the site is unreliable.
+ *
+ *  Both take screen E3's shape: a ringed mark, a sentence, one filled action.
  */
 export default function Error({
   error,
@@ -38,33 +41,49 @@ export default function Error({
 
   if (!online) {
     return (
-      <div className={styles.wrap}>
-        <h1 className={styles.title}>Χωρίς σύνδεση</h1>
-        <p className={styles.body}>
-          Το κινητό δεν έχει σήμα αυτή τη στιγμή, οπότε η σελίδα δεν μπόρεσε να
-          φορτώσει. Θα ξαναδοκιμάσει μόνη της μόλις επανέλθει.
-          {savedAt !== null && (
-            <> Είχε φορτώσει τελευταία στις {clockTime(savedAt)}.</>
-          )}
-        </p>
-        <button type="button" className={styles.action} onClick={reset}>
-          Δοκίμασε ξανά
-        </button>
-      </div>
+      <>
+        <PageHeader title="Χωρίς σύνδεση" />
+        <div className={styles.wrap}>
+          <span className={styles.mark} aria-hidden="true">
+            ⌁
+          </span>
+          <p className={styles.title}>Δεν φόρτωσε η σελίδα</p>
+          <p className={styles.body}>
+            Το κινητό δεν έχει σήμα αυτή τη στιγμή. Θα ξαναδοκιμάσει μόνη της
+            μόλις επανέλθει.
+            {savedAt !== null && (
+              <> Είχε φορτώσει τελευταία στις {clockTime(savedAt)}.</>
+            )}
+          </p>
+          <div className={styles.actions}>
+            <button type="button" className={styles.action} onClick={reset}>
+              Δοκίμασε ξανά
+            </button>
+          </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className={styles.wrap}>
-      <h1 className={styles.title}>Κάτι πήγε στραβά</h1>
-      <p className={styles.body}>
-        Δεν καταφέραμε να φορτώσουμε τα δεδομένα. Συνήθως φταίει προσωρινή
-        διακοπή — δοκίμασε ξανά σε λίγο.
-      </p>
-      {error.digest && <p className={styles.detail}>Κωδικός: {error.digest}</p>}
-      <button type="button" className={styles.action} onClick={reset}>
-        Δοκίμασε ξανά
-      </button>
-    </div>
+    <>
+      <PageHeader title="Ωχ!" />
+      <div className={styles.wrap}>
+        <span className={styles.mark} aria-hidden="true">
+          !
+        </span>
+        <p className={styles.title}>Κάτι πήγε στραβά</p>
+        <p className={styles.body}>
+          Δεν καταφέραμε να φορτώσουμε τα δεδομένα. Συνήθως φταίει προσωρινή
+          διακοπή — δοκίμασε ξανά σε λίγο.
+        </p>
+        <div className={styles.actions}>
+          <button type="button" className={styles.action} onClick={reset}>
+            Δοκίμασε ξανά
+          </button>
+        </div>
+        {error.digest && <p className={styles.detail}>Κωδικός: {error.digest}</p>}
+      </div>
+    </>
   );
 }

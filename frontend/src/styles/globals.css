@@ -98,3 +98,12 @@ table {
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+
+/* Screen E1 dims everything below the offline strip to 75%.
+   Scoped with :has() to the strip's own marker attribute, so nothing has to
+   thread an "offline" flag through the page tree to make it happen. The strip
+   itself is excluded — it is the one thing on screen that is current. */
+main:has([data-offline]) > *:not([data-offline]) {
+  opacity: 0.75;
+}

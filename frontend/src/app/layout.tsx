@@ -91,9 +91,11 @@ export default async function RootLayout({
         </a>
         <SiteHeader />
         <main id="content" className={styles.main}>
+          {/* First in the flow, so it pushes the stale content down instead of
+              covering it — screen E1. */}
+          <OfflineBar />
           {children}
         </main>
-        <OfflineBar />
         <BottomNav liveCount={liveCount} />
         <ServiceWorker />
       </body>
