@@ -8,19 +8,22 @@ import { EditorError, editorApi, type EditorUser } from "@/lib/editorApi";
 import { AuditList } from "./AuditList";
 import { LoginForm } from "./LoginForm";
 import { MatchEditor } from "./MatchEditor";
+import { MatchSheet } from "./MatchSheet";
 import { VenueEditor } from "./VenueEditor";
 import styles from "./page.module.css";
 
-type Tab = "matches" | "venues" | "audit";
+type Tab = "sheet" | "matches" | "venues" | "audit";
 
 const TABS: { id: Tab; label: string }[] = [
+  // First, and the default: on a Sunday this is the only screen that matters.
+  { id: "sheet", label: "Φύλλο αγώνα" },
   { id: "matches", label: "Αγώνες" },
   { id: "venues", label: "Γήπεδα" },
   { id: "audit", label: "Ιστορικό" },
 ];
 
 export function EditorDashboard() {
-  const [tab, setTab] = useState<Tab>("matches");
+  const [tab, setTab] = useState<Tab>("sheet");
 
   // The session is a cookie this page cannot read, so whether anyone is logged
   // in is a question only the API can answer.
@@ -90,6 +93,7 @@ export function EditorDashboard() {
         ))}
       </nav>
 
+      {tab === "sheet" && <MatchSheet />}
       {tab === "matches" && <MatchEditor />}
       {tab === "venues" && <VenueEditor />}
       {tab === "audit" && <AuditList />}

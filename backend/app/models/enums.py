@@ -68,3 +68,26 @@ class PredictionChoice(str, enum.Enum):
     HOME = "home"
     DRAW = "draw"
     AWAY = "away"
+
+
+class MatchEventKind(str, enum.Enum):
+    """What the person on the touchline is recording.
+
+    Penalties and own goals are separate kinds rather than a flag on a goal,
+    because the ticker reads differently for each and a boolean would have to
+    be interpreted at every call site.
+    """
+
+    GOAL = "goal"                    # ΓΚΟΛ
+    PENALTY_GOAL = "penalty_goal"    # ΓΚΟΛ ΑΠΟ ΠΕΝΑΛΤΙ
+    OWN_GOAL = "own_goal"            # ΑΥΤΟΓΚΟΛ
+    PENALTY_MISS = "penalty_miss"    # ΧΑΜΕΝΟ ΠΕΝΑΛΤΙ
+    YELLOW = "yellow"                # ΚΙΤΡΙΝΗ
+    SECOND_YELLOW = "second_yellow"  # ΔΕΥΤΕΡΗ ΚΙΤΡΙΝΗ
+    RED = "red"                      # ΚΟΚΚΙΝΗ
+    SUBSTITUTION = "substitution"    # ΑΛΛΑΓΗ
+    KICKOFF = "kickoff"              # ΣΕΝΤΡΑ
+    HALFTIME = "halftime"            # ΗΜΙΧΡΟΝΟ
+    SECOND_HALF = "second_half"      # Β ΗΜΙΧΡΟΝΟ
+    FULLTIME = "fulltime"            # ΤΕΛΙΚΟ
+    NOTE = "note"                    # ΣΗΜΕΙΩΣΗ

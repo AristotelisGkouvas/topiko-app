@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
+import { MatchTicker } from "@/components/MatchTicker";
 import { Prediction } from "@/components/Prediction";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
@@ -127,6 +128,8 @@ export default async function MatchPage({
             : "Καταχωρήθηκε από συντάκτη και επιβεβαιώθηκε."}
         </p>
       )}
+
+      <MatchTicker matchId={match.id} />
 
       <Prediction
         matchId={match.id}

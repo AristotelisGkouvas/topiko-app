@@ -96,6 +96,12 @@ class Match(Base, TimestampMixin):
     conflicts: Mapped[list[ScrapeConflict]] = relationship(
         back_populates="match", cascade="all, delete-orphan", passive_deletes=True
     )
+    events: Mapped[list["MatchEvent"]] = relationship(  # noqa: F821
+        back_populates="match",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="MatchEvent.minute.nulls_last(), MatchEvent.id",
+    )
 
     def scraper_may_overwrite(self, now: datetime | None = None) -> bool:
         """True when the scraper is allowed to replace this row's scores.

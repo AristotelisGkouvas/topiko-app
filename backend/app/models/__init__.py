@@ -8,11 +8,13 @@ that silently never gets a migration.
 from app.models.association import Association, Season
 from app.models.base import Base, TimestampMixin
 from app.models.club import Field, Team
+from app.models.event import MatchEvent
 from app.models.enums import (
     ConflictStatus,
     DataSource,
     FieldSurface,
     LeagueKind,
+    MatchEventKind,
     MatchStatus,
     PredictionChoice,
     ScrapeRunStatus,
@@ -44,6 +46,8 @@ __all__ = [
     "LeagueKind",
     "LeagueTeam",
     "Match",
+    "MatchEvent",
+    "MatchEventKind",
     "MatchPrediction",
     "MatchStatus",
     "Player",

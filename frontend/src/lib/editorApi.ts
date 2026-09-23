@@ -1,6 +1,7 @@
 "use client";
 
 import { API_URL, ASSOCIATION } from "./api";
+import type { MatchFeed } from "@/components/MatchTicker";
 import type { Field, Match } from "./types";
 
 /** The editor talks to the API from the browser, not through the server.
@@ -114,6 +115,23 @@ export const editorApi = {
     call<Field>(`${scoped}/editor/fields/${slug}`, {
       method: "PATCH",
       body: JSON.stringify(edit),
+    }),
+
+  feed: (matchId: number) =>
+    call<MatchFeed>(`${scoped}/matches/${matchId}/feed`),
+
+  addEvent: (
+    matchId: number,
+    event: { kind: string; team_id?: number; minute?: number; player_name?: string },
+  ) =>
+    call<MatchFeed>(`${scoped}/editor/matches/${matchId}/events`, {
+      method: "POST",
+      body: JSON.stringify(event),
+    }),
+
+  undoEvent: (matchId: number, eventId: number) =>
+    call<MatchFeed>(`${scoped}/editor/matches/${matchId}/events/${eventId}`, {
+      method: "DELETE",
     }),
 
   audit: (limit = 30) => call<AuditEntry[]>(`${scoped}/editor/audit?limit=${limit}`),
