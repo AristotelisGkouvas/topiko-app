@@ -13,6 +13,9 @@ pydantic==2.10.4
 # bcrypt, has no 72-byte input truncation to remember.
 argon2-cffi==23.1.0
 PyJWT==2.10.1
+# Web Push. Signing a push message needs VAPID, which is ECDSA over a curve
+# the standard library does not do — this pulls in `cryptography` for it.
+pywebpush==2.0.3
 pydantic-settings==2.7.0
 python-dotenv==1.0.1
 greenlet==3.1.1

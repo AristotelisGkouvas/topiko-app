@@ -12,6 +12,7 @@ step; it needs a grant table keyed on club rather than association, which
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -22,14 +23,26 @@ from sqlalchemy.orm import selectinload
 
 from app.api.auth_deps import CurrentUser, EditableAssociation, may_edit_live
 from app.api.deps import CurrentAssociation, DbSession
-from app.models import League, Match, MatchEvent
+from app.models import League, Match, MatchEvent, Team
 from app.models.enums import DataSource, MatchEventKind
 from app.schemas import TeamRef
 from app.services.audit import record
 from app.services.match_events import apply_events
+from app.services.push import notify_team
 from app.services.standings import recompute_standings
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/v1", tags=["events"])
+
+#: Worth a buzz. Cards and substitutions are not: a phone that lights up for
+#: every yellow gets its notifications turned off by the end of the first half.
+_NOTIFY_KINDS = (
+    MatchEventKind.GOAL,
+    MatchEventKind.PENALTY_GOAL,
+    MatchEventKind.OWN_GOAL,
+    MatchEventKind.FULLTIME,
+)
 
 
 class EventOut(BaseModel):
@@ -186,10 +199,13 @@ async def add_event(
     await db.refresh(match, ["events"])
 
     await _settle(match, user, association, request, db)
+    fresh = await _load(association.id, match_id, db)
+    # After the commit, so a failed push cannot roll back the goal.
+    await _announce(fresh, event, db)
     # Reloaded rather than refreshed: the commit expired everything, and a
     # refresh brings back the events without their teams — which _feed then
     # lazy-loads, outside the greenlet asyncpg needs.
-    return _feed(await _load(association.id, match_id, db))
+    return _feed(fresh)
 
 
 @router.delete(
@@ -267,6 +283,52 @@ async def _settle(
     if league is not None:
         await recompute_standings(db, league)
     await db.commit()
+
+
+async def _announce(match: Match, event: MatchEvent, db: DbSession) -> None:
+    """Tell the people following either club.
+
+    Both sides, because a goal is news to whoever follows either of them — and
+    only for the events somebody would want their phone to buzz for. A card in
+    the 23rd minute is not one of them.
+    """
+    if event.kind not in _NOTIFY_KINDS:
+        return
+
+    home = await db.get(Team, match.home_team_id)
+    away = await db.get(Team, match.away_team_id)
+    if home is None or away is None:
+        return
+
+    league = await db.get(League, match.league_id)
+    if league is None:
+        return
+
+    if event.kind is MatchEventKind.FULLTIME:
+        title = "Τελικό"
+    else:
+        title = "ΓΚΟΛ"
+
+    body = (
+        f"{home.short_name or home.name} {match.home_score or 0}"
+        f"–{match.away_score or 0} {away.short_name or away.name}"
+    )
+    if event.minute is not None and event.kind is not MatchEventKind.FULLTIME:
+        body += f"  ({event.minute}′)"
+
+    try:
+        await notify_team(
+            db,
+            association_id=league.association_id,
+            team_slugs=[home.slug, away.slug],
+            title=title,
+            body=body,
+            url=f"/agones/{match.id}",
+        )
+        await db.commit()
+    except Exception:  # noqa: BLE001
+        # A push service being down must not undo a goal that was recorded.
+        logger.exception("Αποτυχία ειδοποιήσεων για τον αγώνα %s", match.id)
 
 
 @router.get("/{association_slug}/feed", response_model=list[MatchFeedOut])

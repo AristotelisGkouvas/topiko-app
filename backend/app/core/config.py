@@ -37,6 +37,20 @@ class Settings(BaseSettings):
     #: to the match.
     site_url: str | None = None
 
+    # --- Web Push -----------------------------------------------------------
+    #
+    # Generate once with:
+    #   python -m scripts.vapid_keys
+    #
+    # Empty means notifications are simply off. A federation that has not set
+    # these should get a working site and no push, not an error on every goal.
+    vapid_public_key: str | None = None
+    vapid_private_key: str | None = None
+    #: Required by the spec: a mailto: or https: the push service can use to
+    #: reach whoever is sending. Not optional — services reject a push without
+    #: it, and the rejection reads as a key problem.
+    vapid_subject: str | None = None
+
     # --- Auth ---------------------------------------------------------------
     #
     # Signs session tokens. The default is a visible placeholder rather than a

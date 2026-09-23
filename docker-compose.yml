@@ -48,6 +48,9 @@ services:
       SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
       DEBUG: ${DEBUG:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
     ports:
       - "8000:8000"
     depends_on:

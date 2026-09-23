@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { calendarUrl } from "@/lib/api";
+import { NotifyButton } from "./NotifyButton";
 import styles from "./CalendarLink.module.css";
 
 /** Subscribe to a club's fixtures.
@@ -60,6 +61,8 @@ export function CalendarLink({ slug, name }: { slug: string; name: string }) {
       <p className={styles.hint}>
         Στο Google Calendar: «Άλλα ημερολόγια» → «Από URL» και επικόλληση.
       </p>
+
+      <NotifyButton slug={slug} name={name} />
     </section>
   );
 }
