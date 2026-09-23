@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { APP_TAGLINE, NAV_ITEMS, isActive } from "@/lib/nav";
 import { Logo, Wordmark } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader() {
@@ -21,6 +22,8 @@ export function SiteHeader() {
             <span className={styles.tagline}>{APP_TAGLINE}</span>
           </span>
         </Link>
+
+        <ThemeToggle className={styles.theme} />
 
         {/* Hidden on phones, where the bottom bar carries the same five
             destinations within thumb reach. */}

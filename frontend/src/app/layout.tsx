@@ -70,6 +70,20 @@ export default async function RootLayout({
 
   return (
     <html lang="el" className={`${display.variable} ${body.variable}`}>
+      <head>
+        {/* Runs before the first paint. A reader who chose dark and is served
+            a light page for one frame sees a flash that no amount of CSS can
+            remove afterwards — the attribute has to be on <html> already.
+            Wrapped in try/catch because storage can throw, and a theme is not
+            worth a blank page. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('pamesentra:theme');" +
+              "if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}",
+          }}
+        />
+      </head>
       <body>
         <a href="#content" className={styles.skip}>
           Μετάβαση στο περιεχόμενο

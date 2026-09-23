@@ -67,6 +67,9 @@
   --color-heading: var(--color-navy-900);
   --color-border: var(--color-grey-200);
   --color-surface: var(--color-grey-50);
+  /* One step up from surface. Equal to it in light, where depth comes from
+     the border and shadow instead. */
+  --color-surface-raised: var(--color-grey-50);
 
   --color-link: var(--color-navy-900);
   --color-link-hover: var(--color-green-600);
@@ -124,4 +127,79 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ─── Dark ────────────────────────────────────────────────────────────────
+ *
+ * Only the semantic tokens move. The brand scale — navy, green, terra, amber
+ * — stays exactly as it is: those are the colours of the thing, not of the
+ * page, and a green that changes with the time of day stops being the brand.
+ *
+ * The grounds are blue-black rather than neutral grey, which is what keeps
+ * navy readable as a colour rather than as "slightly less black".
+ *
+ * Declared twice on purpose: the media query follows the system, and the
+ * attribute lets a reader override it. The attribute comes second so it wins.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-canvas: #0e1d30;
+    --color-surface: #13243a;
+    /* One step up from surface, for rows and chips that sit on a card. */
+    --color-surface-raised: #1a2e47;
+    --color-border: #2a4566;
+
+    --color-text: #e4e8ec;
+    --color-text-muted: #93a3b5;
+    /* navy-900 is the page here, so a heading in it would vanish. */
+    --color-heading: #f5f5f5;
+
+    --color-link: #9cb6ce;
+    --color-link-hover: var(--color-green-400);
+
+    /* Brick on a dark ground needs to come up to stay legible. */
+    --color-loss: #c0392b;
+    --color-loss-surface: #3a1f1c;
+    --color-loss-ink: #f5d5d0;
+    --color-win-surface: #123a24;
+    --color-win-ink: #9fe0b8;
+    --color-draw-surface: #3a3117;
+    --color-draw-ink: #f2d88f;
+    --color-live-surface: #4a2414;
+    --color-live-ink: #f5b79a;
+
+    --color-grey-100: #1a2e47;
+    --color-grey-200: #2a4566;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-canvas: #0e1d30;
+  --color-surface: #13243a;
+  --color-surface-raised: #1a2e47;
+  --color-border: #2a4566;
+
+  --color-text: #e4e8ec;
+  --color-text-muted: #93a3b5;
+  --color-heading: #f5f5f5;
+
+  --color-link: #9cb6ce;
+  --color-link-hover: var(--color-green-400);
+
+  --color-loss: #c0392b;
+  --color-loss-surface: #3a1f1c;
+  --color-loss-ink: #f5d5d0;
+  --color-win-surface: #123a24;
+  --color-win-ink: #9fe0b8;
+  --color-draw-surface: #3a3117;
+  --color-draw-ink: #f2d88f;
+  --color-live-surface: #4a2414;
+  --color-live-ink: #f5b79a;
+
+  --color-grey-100: #1a2e47;
+  --color-grey-200: #2a4566;
 }
