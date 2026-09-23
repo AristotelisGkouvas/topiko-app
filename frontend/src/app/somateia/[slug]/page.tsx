@@ -228,6 +228,13 @@ export default async function TeamPage({
           }}
         />
       </section>
+
+      {/* The one place a club official would look. The tool is not in the nav
+          — it is not for readers — but a door nobody can find is not a door. */}
+      <p className={styles.volunteer}>
+        Είσαι από το σωματείο; <Link href="/ethelontis">Δήλωσε αγώνα</Link> με
+        τον κωδικό που σου έδωσε η ένωση.
+      </p>
     </div>
   );
 }
