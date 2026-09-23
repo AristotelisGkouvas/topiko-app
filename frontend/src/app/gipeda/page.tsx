@@ -1,7 +1,10 @@
+import "leaflet/dist/leaflet.css";
+
 import type { Metadata } from "next";
 
 import { Empty } from "@/components/States";
 import { SearchBox } from "@/components/SearchBox";
+import { VenueMap } from "@/components/VenueMap";
 import { api } from "@/lib/api";
 import { readParam, type SearchParams } from "@/lib/leagues";
 import type { Field } from "@/lib/types";
@@ -81,6 +84,12 @@ export default async function FieldsPage({
   const params = await searchParams;
   const query = readParam(params, "anazitisi");
   const fields = await api.listFields(query);
+  // Counted here so the page can say what is missing. Zero is the honest
+  // starting state: the federation publishes a surface and a floodlight flag
+  // for every ground and nothing that locates one.
+  const located = fields.filter(
+    (field) => field.latitude !== null && field.longitude !== null,
+  ).length;
 
   return (
     <div className={pageStyles.page}>
@@ -94,6 +103,16 @@ export default async function FieldsPage({
       </div>
 
       <SearchBox placeholder="Αναζήτηση γηπέδου…" label="Αναζήτηση γηπέδου" />
+
+      <VenueMap fields={fields} />
+
+      {located === 0 && (
+        <p className={styles.noPins}>
+          Κανένα γήπεδο δεν έχει ακόμη θέση στον χάρτη. Η ένωση δεν δημοσιεύει
+          συντεταγμένες — συμπληρώνονται από τη{" "}
+          <a href="/diaxeirisi">διαχείριση</a>.
+        </p>
+      )}
 
       {fields.length > 0 ? (
         <div className={styles.grid}>

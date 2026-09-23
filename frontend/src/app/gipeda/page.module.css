@@ -62,3 +62,18 @@
   font-weight: 600;
   justify-self: start;
 }
+
+.noPins {
+  margin: 0 2px 16px;
+  padding: 11px 13px;
+  background: var(--color-amber-200);
+  color: var(--color-grey-800);
+  border-radius: var(--radius-md, 8px);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.noPins a {
+  color: var(--color-navy-900);
+  font-weight: 600;
+}

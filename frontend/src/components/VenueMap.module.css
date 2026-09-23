@@ -1,0 +1,24 @@
+/* Leaflet's own stylesheet is imported by the page that uses the map, not
+   here: a CSS module cannot carry a third-party global sheet. */
+
+.map {
+  height: 380px;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  /* Leaflet paints panes absolutely; without this the tiles spill past the
+     rounded corners. */
+  overflow: hidden;
+  background: var(--color-grey-100);
+  margin-bottom: 16px;
+}
+
+/* The tile layer sits below everything the page draws over it. */
+.map :global(.leaflet-pane) {
+  z-index: 0;
+}
+
+.map :global(.leaflet-control-attribution) {
+  font-size: 10px;
+}
