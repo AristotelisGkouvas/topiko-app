@@ -313,6 +313,13 @@ export interface Announcement {
   image_url: string | null;
 }
 
+/** All a crest needs. A search hit has no id and should not have to
+ *  invent one to be badged. */
+export interface CrestSubject {
+  name: string;
+  initials?: string | null;
+}
+
 /** A ground's own page: everything `Field` has, plus who plays there. */
 export interface FieldDetail extends Field {
   home_teams: TeamRef[];

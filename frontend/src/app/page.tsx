@@ -5,6 +5,7 @@ import { MyClub } from "@/components/MyClub";
 import { FixtureRow } from "@/components/MatchCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StandingsTable } from "@/components/StandingsTable";
+import { WelcomeCard } from "@/components/WelcomeCard";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayGenitive } from "@/lib/format";
@@ -66,6 +67,8 @@ export default async function HomePage({
           sourceUrl={meta.source_url}
         />
       </div>
+
+      <WelcomeCard />
 
       <MyClub />
 

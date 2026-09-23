@@ -1,5 +1,5 @@
 import { upper } from "@/lib/format";
-import type { TeamRef } from "@/lib/types";
+import type { CrestSubject } from "@/lib/types";
 import styles from "./Crest.module.css";
 
 /** Placeholder crest: the club monogram on a tinted square.
@@ -8,7 +8,7 @@ export function Crest({
   team,
   size = "md",
 }: {
-  team: TeamRef;
+  team: CrestSubject;
   size?: "sm" | "md" | "lg";
 }) {
   // Greek-aware, or a club whose name opens with an accent is badged
