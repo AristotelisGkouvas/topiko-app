@@ -2,6 +2,7 @@ import type {
   Announcement,
   Association,
   Field,
+  FieldDetail,
   League,
   Comparison,
   HeadToHead,
@@ -15,6 +16,7 @@ import type {
   PlayerSearchResult,
   Records,
   Scorer,
+  SearchResults,
   Season,
   Standing,
   Suspension,
@@ -155,7 +157,13 @@ export const api = {
   listFields: (q?: string) =>
     request<Field[]>(scoped("/fields"), { searchParams: { q } }),
 
-  getField: (fieldSlug: string) => request<Field>(scoped(`/fields/${fieldSlug}`)),
+  getField: (fieldSlug: string) =>
+    request<FieldDetail>(scoped(`/fields/${fieldSlug}`)),
+
+  getFieldMatches: (fieldSlug: string, season?: string) =>
+    request<Match[]>(scoped(`/fields/${fieldSlug}/matches`), {
+      searchParams: { season },
+    }),
 
   getLiveStandings: (leagueSlug: string) =>
     request<LiveTable>(scoped(`/leagues/${leagueSlug}/standings/live`), {
@@ -197,6 +205,18 @@ export const api = {
 
   listSuspensions: (params: { season?: string; league?: string } = {}) =>
     request<Suspension[]>(scoped("/poines"), { searchParams: params }),
+
+  /** One box over clubs, players and grounds.
+   *
+   *  Uncached: the URL carries the query, so caching would fill Next's data
+   *  cache with one entry per thing anybody ever typed — including every
+   *  prefix of it, since the box searches as you type.
+   */
+  search: (q: string) =>
+    request<SearchResults>(scoped("/search"), {
+      searchParams: { q },
+      revalidate: 0,
+    }),
 
   getMeta: () => request<Meta>(scoped("/meta"), { revalidate: 0 }),
 };

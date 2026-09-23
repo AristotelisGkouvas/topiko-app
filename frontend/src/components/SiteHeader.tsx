@@ -23,6 +23,13 @@ export function SiteHeader() {
           </span>
         </Link>
 
+        {/* Always visible, unlike the nav: on a phone the bottom bar has
+            no room for a sixth tab, and search is the way in for anybody who
+            knows the name of what they want and not where it lives. */}
+        <Link href="/anazitisi" className={styles.search} aria-label="Αναζήτηση">
+          <span aria-hidden="true">⌕</span>
+        </Link>
+
         <ThemeToggle className={styles.theme} />
 
         {/* Hidden on phones, where the bottom bar carries the same five

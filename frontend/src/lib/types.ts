@@ -312,3 +312,29 @@ export interface Announcement {
   body: string | null;
   image_url: string | null;
 }
+
+/** A ground's own page: everything `Field` has, plus who plays there. */
+export interface FieldDetail extends Field {
+  home_teams: TeamRef[];
+}
+
+/** One row in the search results.
+ *
+ *  The same shape whatever was found, because the "Όλα" tab shows all three
+ *  kinds in one list and a row that branches on its payload renders three ways.
+ *  `kind` is only used to pick the destination and the little glyph.
+ */
+export interface SearchHit {
+  kind: "team" | "player" | "field";
+  slug: string;
+  name: string;
+  subtitle: string | null;
+  logo_url: string | null;
+}
+
+export interface SearchResults {
+  query: string;
+  teams: SearchHit[];
+  players: SearchHit[];
+  fields: SearchHit[];
+}

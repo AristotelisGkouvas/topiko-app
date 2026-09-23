@@ -61,6 +61,18 @@ class TeamRef(ORMModel):
     logo_url: str | None = None
 
 
+class FieldDetailOut(FieldOut):
+    """The ground's own page.
+
+    Adds the clubs that call it home — which is the only thing that makes a
+    ground more than a name and a surface type. The list endpoint does not
+    carry them: it renders 114 cards, and a relationship loaded 114 times to
+    print something the card has no room for is a query nobody asked for.
+    """
+
+    home_teams: list[TeamRef] = []
+
+
 class TeamOut(TeamRef):
     founded_year: int | None = None
     city: str | None = None

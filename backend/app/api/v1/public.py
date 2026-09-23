@@ -5,6 +5,7 @@ separate /editor and /admin routers (phase 3) so that "can this request change
 data?" is answerable from the URL alone.
 """
 
+import dataclasses
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -30,9 +31,11 @@ from app.models import (
     Team,
 )
 from app.models.enums import MatchStatus
+from app.services import search as search_service
 from app.services.standings import project_live_standings
 from app.schemas import (
     AssociationOut,
+    FieldDetailOut,
     FieldOut,
     LeagueOut,
     LiveStandingOut,
@@ -41,6 +44,8 @@ from app.schemas import (
     MatchOut,
     Meta,
     ScorerOut,
+    SearchHitOut,
+    SearchOut,
     SeasonOut,
     StandingOut,
     TeamDetailOut,
@@ -317,14 +322,91 @@ async def list_fields(
     return list(result.scalars())
 
 
-@router.get("/{association_slug}/fields/{field_slug}", response_model=FieldOut)
+@router.get("/{association_slug}/search", response_model=SearchOut)
+async def search(
+    association: CurrentAssociation,
+    db: DbSession,
+    q: Annotated[str, Query(description="Τι ψάχνουμε", max_length=80)] = "",
+) -> SearchOut:
+    """One box over clubs, players and grounds.
+
+    Accent-blind and case-blind, because that is how the words arrive from a
+    phone keyboard. See `app.services.search` for what "blind" means exactly.
+
+    A query shorter than two characters returns nothing rather than an error:
+    the box is searched as it is typed, and the first keystroke is not a
+    mistake to be scolded for.
+    """
+    needle = search_service.fold(q.strip())
+    if len(needle) < search_service.MIN_QUERY:
+        return SearchOut(query=q)
+
+    teams, players, fields = (
+        await search_service.search_teams(
+            db, association_id=association.id, needle=needle
+        ),
+        await search_service.search_players(
+            db, association_id=association.id, needle=needle
+        ),
+        await search_service.search_fields(
+            db, association_id=association.id, needle=needle
+        ),
+    )
+
+    def out(hits: list[search_service.Hit]) -> list[SearchHitOut]:
+        return [SearchHitOut(**dataclasses.asdict(h)) for h in hits]
+
+    return SearchOut(
+        query=q, teams=out(teams), players=out(players), fields=out(fields)
+    )
+
+
+@router.get(
+    "/{association_slug}/fields/{field_slug}", response_model=FieldDetailOut
+)
 async def get_field(
     association: CurrentAssociation, field_slug: str, db: DbSession
 ) -> Field:
+    field = await _load_field(association, field_slug, db)
+    return field
+
+
+@router.get(
+    "/{association_slug}/fields/{field_slug}/matches",
+    response_model=list[MatchOut],
+)
+async def list_field_matches(
+    association: CurrentAssociation,
+    field_slug: str,
+    season: CurrentSeason,
+    db: DbSession,
+) -> list[Match]:
+    """Everything played at this ground this season.
+
+    Both fixtures and results, in kickoff order, because the two questions a
+    reader has standing outside a pitch — "what is on here" and "what happened
+    here" — are the same list read from different ends.
+    """
+    field = await _load_field(association, field_slug, db)
     result = await db.execute(
-        select(Field).where(
-            Field.association_id == association.id, Field.slug == field_slug
+        select(Match)
+        .options(*_MATCH_LOADS)
+        .join(League, Match.league_id == League.id)
+        .where(
+            League.association_id == association.id,
+            League.season_id == season.id,
+            Match.field_id == field.id,
         )
+        .order_by(Match.kickoff_at.nulls_last(), Match.id)
+    )
+    return list(result.scalars())
+
+
+async def _load_field(association, field_slug: str, db) -> Field:
+    result = await db.execute(
+        select(Field)
+        .options(selectinload(Field.home_teams))
+        .where(Field.association_id == association.id, Field.slug == field_slug)
     )
     field = result.scalar_one_or_none()
     if field is None:

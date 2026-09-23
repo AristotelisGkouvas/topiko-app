@@ -1,5 +1,6 @@
 from app.schemas.catalog import (
     AssociationOut,
+    FieldDetailOut,
     FieldOut,
     FieldRef,
     LeagueOut,
@@ -24,6 +25,7 @@ from app.schemas.player import (
     ScorerOut,
     SuspensionOut,
 )
+from app.schemas.search import SearchHitOut, SearchOut
 from app.schemas.stories import (
     AnnouncementOut,
     ComparedSideOut,
@@ -51,6 +53,7 @@ __all__ = [
     "OnThisDayOut",
     "HeadToHeadOut",
     "AssociationOut",
+    "FieldDetailOut",
     "FieldOut",
     "FieldRef",
     "LeagueOut",
@@ -60,6 +63,8 @@ __all__ = [
     "ORMModel",
     "PlayerRef",
     "ScorerOut",
+    "SearchHitOut",
+    "SearchOut",
     "SeasonOut",
     "StandingOut",
     "TeamDetailOut",

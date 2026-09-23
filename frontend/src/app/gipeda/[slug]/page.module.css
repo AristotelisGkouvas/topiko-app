@@ -1,0 +1,114 @@
+.crumb {
+  margin: 0 0 4px;
+  font-size: 0.8125rem;
+}
+
+.crumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumb a:hover {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.facts {
+  display: grid;
+  /* Two columns on a phone, more as the screen allows. A single column turns
+     four short facts into a tall list with nothing on the right of it. */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin: 14px 0 0;
+  padding: 0;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.fact {
+  background: var(--color-surface);
+  padding: 10px 14px;
+}
+
+.fact dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.fact dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.directions {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  /* green-600 is the dark green; it takes white, not navy. */
+  background: var(--color-green-600);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.directions:hover {
+  filter: brightness(1.05);
+}
+
+.noPin {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.section {
+  margin-top: 26px;
+}
+
+.clubs {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.club {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.club:hover {
+  background: var(--color-grey-100);
+}
+
+.notes {
+  margin: 20px 0 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}

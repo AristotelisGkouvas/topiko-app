@@ -1,6 +1,7 @@
 import "leaflet/dist/leaflet.css";
 
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Empty } from "@/components/States";
 import { SearchBox } from "@/components/SearchBox";
@@ -46,7 +47,9 @@ function FieldCard({ field }: { field: Field }) {
   return (
     <article className={styles.card}>
       <div className={styles.cardHead}>
-        <h2 className={styles.name}>{field.name}</h2>
+        <h2 className={styles.name}>
+          <Link href={`/gipeda/${field.slug}`}>{field.name}</Link>
+        </h2>
         {field.city && <p className={styles.city}>{field.city}</p>}
       </div>
 
