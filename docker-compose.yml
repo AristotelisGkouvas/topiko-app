@@ -51,6 +51,14 @@ services:
       SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
       DEBUG: ${DEBUG:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      # Without this the container falls back to the placeholder in config.py
+      # and refuses to boot outside development — which is the guard working,
+      # but only because it was there.
+      SECRET_KEY: ${SECRET_KEY:-}
+      ACCESS_TOKEN_TTL_MINUTES: ${ACCESS_TOKEN_TTL_MINUTES:-720}
+      # True once there is HTTPS in front. A secure cookie over plain http is
+      # dropped by the browser and the dashboard silently never logs in.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-}
