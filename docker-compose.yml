@@ -14,7 +14,10 @@ services:
       POSTGRES_INITDB_ARGS: >-
         --encoding=UTF8 --locale-provider=icu --icu-locale=el-GR --locale=C
     ports:
-      - "5432:5432"
+      # Loopback by default. A database reachable from the internet is a
+      # database somebody else will find, and nothing outside this compose
+      # network needs it.
+      - "${DB_PORT:-127.0.0.1:5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -52,7 +55,9 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-}
     ports:
-      - "8000:8000"
+      # Configurable because a server rarely has 8000 free — and behind a
+      # reverse proxy this should not be public at all.
+      - "${API_PORT:-8000}:8000"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -104,7 +109,7 @@ services:
       # on the compose network instead of leaving the host and coming back.
       API_INTERNAL_URL: http://api:8000
     ports:
-      - "3000:3000"
+      - "${WEB_PORT:-3000}:3000"
     depends_on:
       api:
         condition: service_healthy
