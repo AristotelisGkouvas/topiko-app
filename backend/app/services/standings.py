@@ -129,6 +129,14 @@ async def _ordered_rows(
     h2h: dict[tuple[int, int], int] = defaultdict(int)
 
     for m in matches:
+        if m.home_score is None or m.away_score is None:
+            # The query above asks for this too, and that is not enough. The
+            # session runs with autoflush off, so a match whose score was just
+            # cleared in memory still matches the WHERE clause against the old
+            # value in the database — and comes back as the in-memory object,
+            # with None in it. A match with no score belongs in no table.
+            continue
+
         home, away = rows.get(m.home_team_id), rows.get(m.away_team_id)
         if home is None or away is None:
             # A match against a team not registered in this league is a data

@@ -23,9 +23,10 @@ from sqlalchemy.orm import selectinload
 
 from app.api.auth_deps import CurrentUser, EditableAssociation, may_edit_live
 from app.api.deps import DbSession
-from app.models import AuditLog, Field, League, Match, Team
+from app.models import AuditLog, ClubAccessCode, Field, League, Match, Team
 from app.models.enums import DataSource, FieldSurface, MatchStatus
 from app.schemas import FieldOut, MatchOut
+from app.services import volunteer as volunteer_service
 from app.services.audit import changed_fields, record
 from app.services.standings import recompute_standings
 
@@ -338,3 +339,162 @@ async def list_audit(
         .limit(limit)
     )
     return list(result.scalars())
+
+
+class ClubCodeOut(BaseModel):
+    """A code as the dashboard lists it. Never the code itself."""
+
+    id: int
+    team_slug: str
+    team_name: str
+    prefix: str
+    label: str | None = None
+    is_active: bool
+    last_used_at: datetime | None = None
+    created_at: datetime
+
+
+class IssuedCodeOut(ClubCodeOut):
+    #: The plaintext, returned exactly once — at the moment it is created and
+    #: never again. It is stored hashed, so there is nowhere to read it back
+    #: from. Write it on the card before closing the dialog.
+    code: str
+
+
+class IssueCodeIn(BaseModel):
+    team_slug: str = PydanticField(min_length=1, max_length=120)
+    #: Who is getting the paper. Worth more in six months than a row that only
+    #: says a code exists.
+    label: str | None = PydanticField(default=None, max_length=120)
+
+
+@router.get("/{association_slug}/editor/club-codes", response_model=list[ClubCodeOut])
+async def list_club_codes(
+    association: EditableAssociation, user: CurrentUser, db: DbSession
+) -> list[ClubCodeOut]:
+    rows = (
+        await db.execute(
+            select(ClubAccessCode)
+            .where(ClubAccessCode.association_id == association.id)
+            .options(selectinload(ClubAccessCode.team))
+            .order_by(ClubAccessCode.is_active.desc(), ClubAccessCode.prefix)
+        )
+    ).scalars()
+    return [
+        ClubCodeOut(
+            id=c.id,
+            team_slug=c.team.slug,
+            team_name=c.team.name,
+            prefix=c.prefix,
+            label=c.label,
+            is_active=c.is_active,
+            last_used_at=c.last_used_at,
+            created_at=c.created_at,
+        )
+        for c in rows
+    ]
+
+
+@router.post(
+    "/{association_slug}/editor/club-codes",
+    response_model=IssuedCodeOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def issue_club_code(
+    association: EditableAssociation,
+    user: CurrentUser,
+    payload: IssueCodeIn,
+    request: Request,
+    db: DbSession,
+) -> IssuedCodeOut:
+    """Issue a club a fresh code, retiring whatever it had.
+
+    Reissuing is the only recovery: the old one is stored hashed and cannot be
+    read back, which is the point. The retired row stays, so the events it
+    authored still name who reported them.
+    """
+    team = (
+        await db.execute(
+            select(Team).where(
+                Team.association_id == association.id, Team.slug == payload.team_slug
+            )
+        )
+    ).scalar_one_or_none()
+    if team is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Δεν βρέθηκε σωματείο '{payload.team_slug}'.",
+        )
+
+    code, plaintext = await volunteer_service.issue(
+        db,
+        association_id=association.id,
+        team=team,
+        label=(payload.label or "").strip() or None,
+        created_by_id=user.id,
+    )
+    record(
+        db,
+        user=user,
+        association=association,
+        action="club_code.issue",
+        entity_type="club_access_code",
+        entity_id=code.id,
+        # The code itself is not in the trail. An audit log that quotes the
+        # secret is a second place the secret lives.
+        after={"team": team.slug, "prefix": code.prefix, "label": code.label},
+        request=request,
+    )
+    await db.commit()
+
+    return IssuedCodeOut(
+        id=code.id,
+        team_slug=team.slug,
+        team_name=team.name,
+        prefix=code.prefix,
+        label=code.label,
+        is_active=True,
+        last_used_at=None,
+        created_at=code.created_at,
+        code=plaintext,
+    )
+
+
+@router.delete(
+    "/{association_slug}/editor/club-codes/{code_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
+async def revoke_club_code(
+    association: EditableAssociation,
+    user: CurrentUser,
+    code_id: int,
+    request: Request,
+    db: DbSession,
+) -> None:
+    """Withdraw a code. Takes effect on the next request, not on expiry."""
+    code = (
+        await db.execute(
+            select(ClubAccessCode).where(
+                ClubAccessCode.id == code_id,
+                ClubAccessCode.association_id == association.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if code is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Δεν βρέθηκε ο κωδικός."
+        )
+
+    code.is_active = False
+    record(
+        db,
+        user=user,
+        association=association,
+        action="club_code.revoke",
+        entity_type="club_access_code",
+        entity_id=code.id,
+        after={"prefix": code.prefix, "is_active": False},
+        request=request,
+    )
+    await db.commit()

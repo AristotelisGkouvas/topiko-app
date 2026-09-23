@@ -79,6 +79,12 @@ class MatchEvent(Base, TimestampMixin):
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
+    #: The other kind of author: a club's own representative, reporting with a
+    #: code rather than an account. Exactly one of the two is set — an event
+    #: with neither is one nobody can be asked about.
+    created_by_code_id: Mapped[int | None] = mapped_column(
+        ForeignKey("club_access_codes.id", ondelete="SET NULL")
+    )
 
     match: Mapped[Match] = relationship(back_populates="events")
     team: Mapped[Team | None] = relationship()
@@ -87,6 +93,7 @@ class MatchEvent(Base, TimestampMixin):
         foreign_keys=[related_player_id]
     )
     created_by: Mapped[User | None] = relationship()
+    created_by_code: Mapped["ClubAccessCode | None"] = relationship()  # noqa: F821
 
     def __repr__(self) -> str:
         return f"<MatchEvent {self.kind} match={self.match_id} {self.minute}'>"

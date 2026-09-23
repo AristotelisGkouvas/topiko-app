@@ -5,9 +5,10 @@ and unauthenticated — a ticker nobody can see is pointless — and the write s
 needs `can_edit_live`, the permission that already means "trusted with a score
 while the match is being played".
 
-A per-club secretary role would be narrower still, and is the obvious next
-step; it needs a grant table keyed on club rather than association, which
-`user_associations` is not.
+The narrower per-club role now exists too, in `volunteer.py`: a code instead
+of an account, good for one club's matches and nothing else. It writes through
+`record_event` below, so both kinds of author land in the same log under the
+same rules.
 """
 
 from __future__ import annotations
@@ -19,11 +20,20 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.auth_deps import CurrentUser, EditableAssociation, may_edit_live
 from app.api.deps import CurrentAssociation, DbSession
-from app.models import League, Match, MatchEvent, Team
+from app.models import (
+    Association,
+    ClubAccessCode,
+    League,
+    Match,
+    MatchEvent,
+    Team,
+    User,
+)
 from app.models.enums import DataSource, MatchEventKind
 from app.schemas import TeamRef
 from app.services.audit import record
@@ -140,27 +150,26 @@ async def match_feed(
     return _feed(await _load(association.id, match_id, db))
 
 
-@router.post(
-    "/{association_slug}/editor/matches/{match_id}/events",
-    response_model=MatchFeedOut,
-    status_code=status.HTTP_201_CREATED,
-)
-async def add_event(
-    association: EditableAssociation,
-    user: CurrentUser,
-    match_id: int,
+async def record_event(
+    match: Match,
     payload: EventIn,
+    *,
+    association: Association,
     request: Request,
-    db: DbSession,
+    db: AsyncSession,
+    user: User | None = None,
+    code: ClubAccessCode | None = None,
 ) -> MatchFeedOut:
-    if not may_edit_live(user, association):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Δεν έχεις δικαίωμα καταγραφής ζωντανού αγώνα.",
-        )
+    """Put one event in the log and bring everything else in line with it.
 
-    match = await _load(association.id, match_id, db)
+    Shared by the dashboard and by a club's own representative. The two differ
+    in who may call it and in how the author is written down; everything after
+    that — the idempotency check, the score, the table, the audit row and the
+    notification — is the same work, and a second copy of it would be a second
+    place for the score to come out differently.
 
+    The caller has already established that this author may touch this match.
+    """
     if payload.kind in _MATCH_WIDE:
         if payload.team_id is not None:
             raise HTTPException(
@@ -192,20 +201,100 @@ async def add_event(
         minute=payload.minute,
         player_name=(payload.player_name or "").strip() or None,
         note=payload.note,
-        created_by_id=user.id,
+        created_by_id=user.id if user else None,
+        created_by_code_id=code.id if code else None,
     )
     db.add(event)
     await db.flush()
     await db.refresh(match, ["events"])
 
-    await _settle(match, user, association, request, db)
-    fresh = await _load(association.id, match_id, db)
+    await _settle(
+        match,
+        association=association,
+        request=request,
+        db=db,
+        user=user,
+        actor=_actor(user, code),
+    )
+    fresh = await _load(association.id, match.id, db)
     # After the commit, so a failed push cannot roll back the goal.
     await _announce(fresh, event, db)
     # Reloaded rather than refreshed: the commit expired everything, and a
     # refresh brings back the events without their teams — which _feed then
     # lazy-loads, outside the greenlet asyncpg needs.
     return _feed(fresh)
+
+
+async def remove_event(
+    match: Match,
+    event_id: int,
+    *,
+    association: Association,
+    request: Request,
+    db: AsyncSession,
+    user: User | None = None,
+    code: ClubAccessCode | None = None,
+) -> MatchFeedOut:
+    """Take one event back, recomputing from what is left.
+
+    The score is recomputed rather than decremented, so an undo cannot leave
+    the board disagreeing with the log it is supposed to summarise.
+    """
+    event = next((e for e in match.events if e.id == event_id), None)
+    if event is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Δεν βρέθηκε το γεγονός σε αυτόν τον αγώνα.",
+        )
+
+    await db.delete(event)
+    await db.flush()
+    await db.refresh(match, ["events"])
+
+    await _settle(
+        match,
+        association=association,
+        request=request,
+        db=db,
+        user=user,
+        actor=_actor(user, code),
+    )
+    # Reloaded rather than refreshed, for the same reason as above.
+    return _feed(await _load(association.id, match.id, db))
+
+
+def _actor(user: User | None, code: ClubAccessCode | None) -> str | None:
+    """What to write in the trail when there is no account behind the change."""
+    if user is not None:
+        return None
+    if code is not None:
+        return f"{code.prefix} · {code.team.name}"
+    return None
+
+
+@router.post(
+    "/{association_slug}/editor/matches/{match_id}/events",
+    response_model=MatchFeedOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_event(
+    association: EditableAssociation,
+    user: CurrentUser,
+    match_id: int,
+    payload: EventIn,
+    request: Request,
+    db: DbSession,
+) -> MatchFeedOut:
+    if not may_edit_live(user, association):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Δεν έχεις δικαίωμα καταγραφής ζωντανού αγώνα.",
+        )
+
+    match = await _load(association.id, match_id, db)
+    return await record_event(
+        match, payload, association=association, request=request, db=db, user=user
+    )
 
 
 @router.delete(
@@ -220,11 +309,6 @@ async def undo_event(
     request: Request,
     db: DbSession,
 ) -> MatchFeedOut:
-    """Take one event back.
-
-    The score is recomputed rather than decremented, so an undo cannot leave
-    the board disagreeing with the log it is supposed to summarise.
-    """
     if not may_edit_live(user, association):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -232,30 +316,19 @@ async def undo_event(
         )
 
     match = await _load(association.id, match_id, db)
-    event = next((e for e in match.events if e.id == event_id), None)
-    if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Δεν βρέθηκε το γεγονός σε αυτόν τον αγώνα.",
-        )
-
-    await db.delete(event)
-    await db.flush()
-    await db.refresh(match, ["events"])
-
-    await _settle(match, user, association, request, db)
-    # Reloaded rather than refreshed: the commit expired everything, and a
-    # refresh brings back the events without their teams — which _feed then
-    # lazy-loads, outside the greenlet asyncpg needs.
-    return _feed(await _load(association.id, match_id, db))
+    return await remove_event(
+        match, event_id, association=association, request=request, db=db, user=user
+    )
 
 
 async def _settle(
     match: Match,
-    user: CurrentUser,
-    association: EditableAssociation,
+    *,
+    association: Association,
     request: Request,
-    db: DbSession,
+    db: AsyncSession,
+    user: User | None = None,
+    actor: str | None = None,
 ) -> None:
     """Bring the match row, the table and the audit trail in line with the log."""
     before = {"home_score": match.home_score, "away_score": match.away_score}
@@ -270,6 +343,7 @@ async def _settle(
     record(
         db,
         user=user,
+        actor=actor,
         association=association,
         action="match.event",
         entity_type="match",

@@ -8,7 +8,7 @@ import { EditorError, editorApi, type EditorUser } from "@/lib/editorApi";
 import { AuditList } from "./AuditList";
 import { LoginForm } from "./LoginForm";
 import { MatchEditor } from "./MatchEditor";
-import { MatchSheet } from "./MatchSheet";
+import { MatchSheet } from "@/components/MatchSheet";
 import { VenueEditor } from "./VenueEditor";
 import styles from "./page.module.css";
 

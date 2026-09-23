@@ -31,7 +31,8 @@ def changed_fields(
 def record(
     db: AsyncSession,
     *,
-    user: User,
+    user: User | None = None,
+    actor: str | None = None,
     association: Association | None,
     action: str,
     entity_type: str,
@@ -40,12 +41,21 @@ def record(
     after: dict[str, Any] | None = None,
     request: Request | None = None,
 ) -> AuditLog:
-    """Add a log row to the current transaction. Does not commit."""
+    """Add a log row to the current transaction. Does not commit.
+
+    Either a `user` or an `actor` label. The label is for callers with no
+    account behind them — a club reporting its own match with a code — and it
+    goes in the same column as the email so that reading the trail does not
+    mean joining two kinds of author together.
+    """
+    if user is None and not actor:
+        raise ValueError("κάθε εγγραφή χρειάζεται συντάκτη")
+
     entry = AuditLog(
-        user_id=user.id,
+        user_id=user.id if user else None,
         # Copied, not just referenced: the row survives the account being
         # deleted, and a user_id pointing at nothing names nobody.
-        user_email=user.email,
+        user_email=user.email if user else actor,
         association_id=association.id if association else None,
         action=action,
         entity_type=entity_type,

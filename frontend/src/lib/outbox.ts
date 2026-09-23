@@ -25,6 +25,14 @@ export interface QueuedEvent {
   team_id?: number;
   minute?: number;
   queued_at: number;
+  /** Which door this goes through — an editor's account or a club's code.
+   *
+   *  Stored on the event rather than read at flush time: the queue can outlive
+   *  the session that filled it, and a goal a club reported must not be
+   *  retried hours later against the editor endpoint just because somebody has
+   *  since logged in as one.
+   */
+  via?: "editor" | "ethelontis";
 }
 
 function read(): QueuedEvent[] {
@@ -67,8 +75,9 @@ function drop(clientId: string) {
 }
 
 async function send(event: QueuedEvent): Promise<Response> {
+  const base = event.via === "ethelontis" ? "ethelontis" : "editor";
   return fetch(
-    `${API_URL}/api/v1/${ASSOCIATION}/editor/matches/${event.match_id}/events`,
+    `${API_URL}/api/v1/${ASSOCIATION}/${base}/matches/${event.match_id}/events`,
     {
       method: "POST",
       credentials: "include",

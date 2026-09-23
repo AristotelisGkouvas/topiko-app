@@ -15,7 +15,37 @@ import {
 } from "@/lib/outbox";
 import { formatTime } from "@/lib/format";
 import type { Match } from "@/lib/types";
-import styles from "./sheet.module.css";
+import styles from "./MatchSheet.module.css";
+
+/** Where the sheet gets its data and where it sends it.
+ *
+ *  The same screen serves an editor with an account and a club with a code.
+ *  They differ only in which endpoints answer and which queue the events are
+ *  tagged for, so that difference is one object passed in rather than a second
+ *  copy of the screen that would drift from this one by the first change.
+ */
+export interface SheetBackend {
+  key: string;
+  matches: () => Promise<Match[]>;
+  feed: (matchId: number) => Promise<MatchFeed>;
+  undo: (matchId: number, eventId: number) => Promise<MatchFeed>;
+  /** Which endpoint a queued event is eventually posted to. */
+  via: "editor" | "ethelontis";
+  empty: { title: string; body: string };
+}
+
+/** The dashboard's own: today's matches, across the whole federation. */
+export const EDITOR_SHEET: SheetBackend = {
+  key: "editor:sheet",
+  matches: () => editorApi.matches(1),
+  feed: (matchId) => editorApi.feed(matchId),
+  undo: (matchId, eventId) => editorApi.undoEvent(matchId, eventId),
+  via: "editor",
+  empty: {
+    title: "Κανένας αγώνας σήμερα",
+    body: "Το φύλλο αγώνα δείχνει τους αγώνες της ημέρας.",
+  },
+};
 
 /** Φύλλο αγώνα — the screen used standing up at the ground.
  *
@@ -24,27 +54,32 @@ import styles from "./sheet.module.css";
  *  itself goes unrecorded. Names are filled in afterwards, from the match
  *  page, by somebody sitting down.
  */
-export function MatchSheet() {
+export function MatchSheet({
+  backend = EDITOR_SHEET,
+}: {
+  backend?: SheetBackend;
+}) {
   const [chosen, setChosen] = useState<Match | null>(null);
 
   const { data: matches, isLoading } = useSWR<Match[]>(
-    ["editor:sheet", 1],
-    () => editorApi.matches(1),
+    [backend.key, 1],
+    () => backend.matches(),
   );
 
   if (chosen) {
-    return <Sheet match={chosen} onBack={() => setChosen(null)} />;
+    return (
+      <Sheet
+        match={chosen}
+        backend={backend}
+        onBack={() => setChosen(null)}
+      />
+    );
   }
 
   if (isLoading) return <p className={styles.loading}>Φόρτωση…</p>;
 
   if (!matches?.length) {
-    return (
-      <Empty
-        title="Κανένας αγώνας σήμερα"
-        body="Το φύλλο αγώνα δείχνει τους αγώνες της ημέρας."
-      />
-    );
+    return <Empty title={backend.empty.title} body={backend.empty.body} />;
   }
 
   return (
@@ -70,7 +105,15 @@ export function MatchSheet() {
   );
 }
 
-function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
+function Sheet({
+  match,
+  backend,
+  onBack,
+}: {
+  match: Match;
+  backend: SheetBackend;
+  onBack: () => void;
+}) {
   const [feed, setFeed] = useState<MatchFeed | null>(null);
   const [minute, setMinute] = useState("");
   const [busy, setBusy] = useState(false);
@@ -98,8 +141,8 @@ function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
   }, [match.id]);
 
   useSWR<MatchFeed>(
-    ["sheet:feed", match.id],
-    () => editorApi.feed(match.id),
+    [`${backend.key}:feed`, match.id],
+    () => backend.feed(match.id),
     {
       // Polled so two people logging the same match see each other's entries
       // rather than each building a private version of the afternoon.
@@ -122,12 +165,14 @@ function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
       kind,
       team_id: teamId,
       minute: Number.isInteger(parsed) ? parsed : undefined,
+      // Tagged now, not at flush time: the queue can outlive this session.
+      via: backend.via,
     });
 
     try {
       const result = await flush();
       if (result.blocked) setError(result.blocked);
-      if (result.sent > 0) setFeed(await editorApi.feed(match.id));
+      if (result.sent > 0) setFeed(await backend.feed(match.id));
     } catch (err) {
       setError(err instanceof EditorError ? err.message : "Παραμένει σε αναμονή.");
     } finally {
@@ -141,7 +186,7 @@ function Sheet({ match, onBack }: { match: Match; onBack: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      setFeed(await editorApi.undoEvent(match.id, last.id));
+      setFeed(await backend.undo(match.id, last.id));
     } catch (err) {
       setError(err instanceof EditorError ? err.message : "Απέτυχε.");
     } finally {
