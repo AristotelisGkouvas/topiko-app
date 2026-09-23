@@ -1,114 +1,304 @@
-.crumb {
-  margin: 0 0 4px;
-  font-size: 0.8125rem;
+/* Screen VN1 of the Claude Design file, to its numbers. */
+
+/* Breaks out of <main>'s padding: the band and the navy title block reach both
+   edges in the design, and the body pads itself. */
+.page {
+  margin: -18px -16px 0;
 }
 
-.crumb a {
-  color: var(--color-text-muted);
+.banner {
+  position: relative;
+  height: 190px;
+  flex: none;
+  overflow: hidden;
+}
+
+.banner :global(.leaflet-container),
+.banner > :first-child {
+  height: 190px;
+}
+
+/* The design's own placeholder: a 135° hatch. Kept rather than replaced with a
+   flat grey, because the hatch reads as "a picture belongs here" while flat
+   grey reads as a rendering fault. */
+.hatch {
+  height: 190px;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--color-grey-200) 0 12px,
+    var(--color-grey-100) 12px 24px
+  );
+}
+
+.back {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 500; /* above Leaflet's own panes */
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 10px;
+  border-radius: 14px;
+  background: rgb(0 30 60 / 0.6);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
   text-decoration: none;
+  backdrop-filter: blur(2px);
 }
 
-.crumb a:hover {
-  color: var(--color-link);
-  text-decoration: underline;
+.back:hover {
+  background: rgb(0 30 60 / 0.78);
 }
 
-.subtitle {
-  margin: 4px 0 0;
-  color: var(--color-text-muted);
-  font-size: 0.9375rem;
+.titleBlock {
+  background: var(--color-navy-900);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
+
+.name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--color-on-navy);
+}
+
+.sub {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--color-on-navy-muted);
+}
+
+.body {
+  padding: 14px 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- label / value rows --------------------------------------------- */
 
 .facts {
-  display: grid;
-  /* Two columns on a phone, more as the screen allows. A single column turns
-     four short facts into a tall list with nothing on the right of it. */
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1px;
-  margin: 14px 0 0;
-  padding: 0;
-  background: var(--color-border);
+  margin: 0;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .fact {
-  background: var(--color-surface);
-  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-.fact dt {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.fact:last-child {
+  border-bottom: none;
+}
+
+.factLabel {
+  width: 90px;
+  flex: none;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 
-.fact dd {
-  margin: 2px 0 0;
+.factValue {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-body);
   font-weight: 600;
+  font-size: 13.5px;
+  color: var(--color-text);
 }
 
-.directions {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 9px 16px;
-  border-radius: var(--radius-md);
-  /* green-600 is the dark green; it takes white, not navy. */
-  background: var(--color-green-600);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9375rem;
+/* --- the two buttons ------------------------------------------------ */
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary,
+.secondary {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  padding: 0 16px;
+  flex: 1;
+  box-sizing: border-box;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
   text-decoration: none;
+  cursor: pointer;
 }
 
-.directions:hover {
+.primary {
+  background: var(--color-green-600);
+  border: 1px solid var(--color-green-600);
+  color: #fff;
+}
+
+.primary:hover {
   filter: brightness(1.05);
 }
 
-.noPin {
-  margin: 12px 0 0;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-}
-
-.section {
-  margin-top: 26px;
-}
-
-.clubs {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.club {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 14px 7px 7px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
+.secondary {
   background: var(--color-surface);
-  color: var(--color-text);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.875rem;
+  border: 1px solid var(--color-chip-border);
+  color: var(--color-navy-900);
 }
 
-.club:hover {
+.secondary:hover {
   background: var(--color-grey-100);
 }
 
+.noPin {
+  margin: 0 2px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+/* --- grouped lists -------------------------------------------------- */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.groupLabel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  color: var(--color-text-muted);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  min-height: 48px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.rowLast {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--color-grey-100);
+}
+
+.rowName {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--color-heading);
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-grey-400);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.none {
+  margin: 0;
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
 .notes {
-  margin: 20px 0 0;
+  margin: 0 2px 0;
   padding: 12px 14px;
   border-left: 3px solid var(--color-border);
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* --- wide ----------------------------------------------------------- */
+
+@media (min-width: 860px) {
+  .page {
+    margin: -18px -16px 0;
+    max-width: none;
+  }
+
+  .banner,
+  .banner > :first-child,
+  .hatch,
+  .banner :global(.leaflet-container) {
+    height: 260px;
+  }
+
+  .titleBlock {
+    padding: 18px 26px;
+  }
+
+  .name {
+    font-size: 34px;
+  }
+
+  .body {
+    padding: 20px 26px 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Screen VD puts the facts and the actions beside the lists rather than
+       above them — there is a column of width going spare. */
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    gap: 20px 26px;
+    align-items: start;
+  }
+
+  .group,
+  .noPin {
+    grid-column: 2;
+  }
+
+  .facts,
+  .actions {
+    grid-column: 1;
+  }
+
+  .notes {
+    grid-column: 1 / -1;
+  }
 }
