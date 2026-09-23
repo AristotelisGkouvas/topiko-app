@@ -59,3 +59,12 @@ class ScrapeRunStatus(str, enum.Enum):
     #: Finished, but something was skipped or could not be resolved.
     PARTIAL = "partial"
     FAILED = "failed"
+
+
+class PredictionChoice(str, enum.Enum):
+    """A reader's call. Named for the sides rather than 1-X-2, because the UI
+    shows club names and the coupon shorthand means nothing to most people."""
+
+    HOME = "home"
+    DRAW = "draw"
+    AWAY = "away"

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
+import { Prediction } from "@/components/Prediction";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
 import {
@@ -126,6 +127,12 @@ export default async function MatchPage({
             : "Καταχωρήθηκε από συντάκτη και επιβεβαιώθηκε."}
         </p>
       )}
+
+      <Prediction
+        matchId={match.id}
+        homeName={match.home_team.short_name ?? match.home_team.name}
+        awayName={match.away_team.short_name ?? match.away_team.name}
+      />
 
       {head_to_head.length > 0 && (
         <section className={styles.history}>

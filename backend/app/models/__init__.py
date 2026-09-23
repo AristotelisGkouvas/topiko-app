@@ -14,6 +14,7 @@ from app.models.enums import (
     FieldSurface,
     LeagueKind,
     MatchStatus,
+    PredictionChoice,
     ScrapeRunStatus,
     StandingZone,
     UserRole,
@@ -26,6 +27,7 @@ from app.models.match import (
     Standing,
 )
 from app.models.player import Player, PlayerStat, PlayerSuspension
+from app.models.prediction import MatchPrediction
 from app.models.scraping import ScrapeRun, TeamAlias
 from app.models.user import AuditLog, User, UserAssociation
 
@@ -42,11 +44,13 @@ __all__ = [
     "LeagueKind",
     "LeagueTeam",
     "Match",
+    "MatchPrediction",
     "MatchStatus",
     "Player",
     "PlayerStat",
     "PlayerSuspension",
     "ScrapeConflict",
+    "PredictionChoice",
     "ScrapeRun",
     "ScrapeRunStatus",
     "Season",
