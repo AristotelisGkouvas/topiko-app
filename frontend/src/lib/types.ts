@@ -266,3 +266,16 @@ export interface Suspension {
   fixture: string | null;
   match_id: number | null;
 }
+
+export interface LiveStanding extends Standing {
+  /** Where the official table has this club, so movement can be drawn without
+   *  comparing against a previous poll — which would show a club moving every
+   *  time somebody else scored. */
+  actual_position: number | null;
+}
+
+export interface LiveTable {
+  rows: LiveStanding[];
+  /** Zero means the projection equals the real table. */
+  live_matches: number;
+}

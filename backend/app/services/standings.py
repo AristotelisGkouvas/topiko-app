@@ -12,7 +12,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import League, LeagueTeam, Match, Standing
@@ -49,6 +49,27 @@ class _Row:
         return self.points - self.deduction
 
 
+@dataclass(slots=True)
+class LiveRow:
+    """A projected table row. Deliberately not a Standing: an ORM instance
+    built here would be added to the session by SQLAlchemy's autoflush and
+    written to the database, which is the one thing this must not do."""
+
+    team_id: int
+    position: int
+    actual_position: int | None
+    played: int
+    won: int
+    drawn: int
+    lost: int
+    goals_for: int
+    goals_against: int
+    goal_difference: int
+    points: int
+    form: str | None
+    zone: StandingZone | None
+
+
 def _zone_for(position: int, zones: dict) -> StandingZone | None:
     """Map a finishing position onto a coloured rail.
 
@@ -66,8 +87,15 @@ def _zone_for(position: int, zones: dict) -> StandingZone | None:
     return None
 
 
-async def recompute_standings(db: AsyncSession, league: League) -> list[Standing]:
-    """Rebuild every Standing row for `league` and return them, ordered."""
+async def _ordered_rows(
+    db: AsyncSession, league: League, statuses: tuple[MatchStatus, ...]
+) -> tuple[list[_Row], dict[int, _Row]]:
+    """Build and order the table from the matches with these statuses.
+
+    Split out so the live projection is the same computation over a wider set
+    of matches, rather than a second implementation of the ΕΠΟ tie-breaks that
+    could drift from this one.
+    """
     entries = list(
         (
             await db.execute(
@@ -86,7 +114,7 @@ async def recompute_standings(db: AsyncSession, league: League) -> list[Standing
                 select(Match)
                 .where(
                     Match.league_id == league.id,
-                    Match.status.in_(COUNTED_STATUSES),
+                    Match.status.in_(statuses),
                     Match.home_score.is_not(None),
                     Match.away_score.is_not(None),
                 )
@@ -165,6 +193,13 @@ async def recompute_standings(db: AsyncSession, league: League) -> list[Standing
         resolved.extend(block)
         i = j + 1
 
+    return resolved, rows
+
+
+async def recompute_standings(db: AsyncSession, league: League) -> list[Standing]:
+    """Rebuild every Standing row for `league` and return them, ordered."""
+    resolved, rows = await _ordered_rows(db, league, COUNTED_STATUSES)
+
     existing = {
         s.team_id: s
         for s in (
@@ -203,3 +238,69 @@ async def recompute_standings(db: AsyncSession, league: League) -> list[Standing
 
     await db.flush()
     return out
+
+
+#: What a live projection counts on top of the finished matches. A match in
+#: progress has a score that means something; a postponed one does not.
+LIVE_STATUSES = COUNTED_STATUSES + (MatchStatus.LIVE, MatchStatus.HALFTIME)
+
+
+async def project_live_standings(
+    db: AsyncSession, league: League
+) -> tuple[list[LiveRow], int]:
+    """The table as it would stand if every match in progress ended now.
+
+    Returns the projected rows and how many matches are being played.
+
+    Nothing is written. This is a hypothetical — "αν τελείωνε τώρα" — and
+    persisting it would leave the real table wrong the moment somebody scored,
+    and wrong for good if the process died before the final whistle.
+
+    Positions are compared against the stored table rather than against the
+    previous projection, so the arrows say "would move from where it actually
+    is", which is the question being asked.
+    """
+    resolved, _ = await _ordered_rows(db, league, LIVE_STATUSES)
+
+    stored = {
+        standing.team_id: standing
+        for standing in (
+            await db.execute(select(Standing).where(Standing.league_id == league.id))
+        ).scalars()
+    }
+
+    live_count = (
+        await db.execute(
+            select(func.count())
+            .select_from(Match)
+            .where(
+                Match.league_id == league.id,
+                Match.status.in_((MatchStatus.LIVE, MatchStatus.HALFTIME)),
+                Match.home_score.is_not(None),
+            )
+        )
+    ).scalar_one()
+
+    out: list[LiveRow] = []
+    for position, row in enumerate(resolved, start=1):
+        current = stored.get(row.team_id)
+        out.append(
+            LiveRow(
+                team_id=row.team_id,
+                position=position,
+                #: Where the official table has them. None for a club with no
+                #: stored row yet, which is every club before round one.
+                actual_position=current.position if current else None,
+                played=row.played,
+                won=row.won,
+                drawn=row.drawn,
+                lost=row.lost,
+                goals_for=row.goals_for,
+                goals_against=row.goals_against,
+                goal_difference=row.goal_difference,
+                points=row.final_points,
+                form="".join(row.form[-5:]) or None,
+                zone=_zone_for(position, league.zones or {}),
+            )
+        )
+    return out, int(live_count)

@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { LastUpdated } from "@/components/LastUpdated";
 import { LeagueTabs } from "@/components/LeagueTabs";
+import { LiveStandings } from "@/components/LiveStandings";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { StandingsTable } from "@/components/StandingsTable";
 import { Empty } from "@/components/States";
@@ -55,6 +56,8 @@ export default async function StandingsPage({
         <SeasonPicker seasons={seasons} active={season} />
         <LeagueTabs leagues={leagues} active={league.slug} />
       </div>
+
+      <LiveStandings leagueSlug={league.slug} />
 
       {/* The only route to the scorers on a phone: the tab bar is five slots
           and this is the table people arrive at first. */}

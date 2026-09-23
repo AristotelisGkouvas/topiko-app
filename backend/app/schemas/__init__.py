@@ -9,7 +9,13 @@ from app.schemas.catalog import (
     TeamRef,
 )
 from app.schemas.common import Meta, ORMModel
-from app.schemas.match import MatchDetailOut, MatchOut, StandingOut
+from app.schemas.match import (
+    LiveStandingOut,
+    LiveTableOut,
+    MatchDetailOut,
+    MatchOut,
+    StandingOut,
+)
 from app.schemas.player import (
     PlayerDetailOut,
     PlayerRef,
@@ -27,6 +33,8 @@ from app.schemas.stories import (
 )
 
 __all__ = [
+    "LiveTableOut",
+    "LiveStandingOut",
     "SuspensionOut",
     "PlayerSearchOut",
     "TopScorerAllTimeOut",

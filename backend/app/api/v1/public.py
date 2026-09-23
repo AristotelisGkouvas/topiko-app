@@ -30,10 +30,13 @@ from app.models import (
     Team,
 )
 from app.models.enums import MatchStatus
+from app.services.standings import project_live_standings
 from app.schemas import (
     AssociationOut,
     FieldOut,
     LeagueOut,
+    LiveStandingOut,
+    LiveTableOut,
     MatchDetailOut,
     MatchOut,
     Meta,
@@ -42,6 +45,7 @@ from app.schemas import (
     StandingOut,
     TeamDetailOut,
     TeamOut,
+    TeamRef,
 )
 
 # Loader options reused by every match query — a match card is useless without
@@ -145,6 +149,53 @@ async def list_league_matches(
     stmt = stmt.order_by(Match.matchday, Match.kickoff_at.nulls_last(), Match.id)
     result = await db.execute(stmt)
     return list(result.scalars())
+
+
+@router.get(
+    "/{association_slug}/leagues/{league_slug}/standings/live",
+    response_model=LiveTableOut,
+)
+async def live_standings(
+    league: CurrentLeague, db: DbSession
+) -> LiveTableOut:
+    """The table as it would stand if every match in progress ended now.
+
+    Computed, never stored. Writing a hypothetical would leave the real table
+    wrong the moment somebody scored — and wrong permanently if the process
+    died before the final whistle.
+    """
+    rows, live = await project_live_standings(db, league)
+    teams = {
+        team.id: team
+        for team in (
+            await db.execute(
+                select(Team).where(Team.id.in_([r.team_id for r in rows]))
+            )
+        ).scalars()
+    }
+    return LiveTableOut(
+        live_matches=live,
+        rows=[
+            LiveStandingOut(
+                team=TeamRef.model_validate(teams[row.team_id]),
+                position=row.position,
+                actual_position=row.actual_position,
+                previous_position=None,
+                played=row.played,
+                won=row.won,
+                drawn=row.drawn,
+                lost=row.lost,
+                goals_for=row.goals_for,
+                goals_against=row.goals_against,
+                goal_difference=row.goal_difference,
+                points=row.points,
+                form=row.form,
+                zone=row.zone,
+            )
+            for row in rows
+            if row.team_id in teams
+        ],
+    )
 
 
 @router.get("/{association_slug}/matches/live", response_model=list[MatchOut])

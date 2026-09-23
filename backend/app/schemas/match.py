@@ -63,3 +63,23 @@ class MatchDetailOut(ORMModel):
     head_to_head: list[MatchOut] = []
     home_standing: StandingOut | None = None
     away_standing: StandingOut | None = None
+
+
+class LiveStandingOut(StandingOut):
+    """A projected row.
+
+    `actual_position` is where the official table has the club, so the client
+    can draw the movement without asking for the real table as well — and
+    without inferring it from a previous poll, which would show a club moving
+    every time somebody else scored.
+    """
+
+    actual_position: int | None = None
+
+
+class LiveTableOut(ORMModel):
+    rows: list[LiveStandingOut] = []
+    #: How many matches in this competition are being played right now. Zero
+    #: means the projection equals the real table, and the client says so
+    #: rather than implying something is happening.
+    live_matches: int = 0

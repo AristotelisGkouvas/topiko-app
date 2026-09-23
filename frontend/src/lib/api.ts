@@ -3,6 +3,7 @@ import type {
   Field,
   League,
   HeadToHead,
+  LiveTable,
   Match,
   MatchDetail,
   MatchStatus,
@@ -153,6 +154,11 @@ export const api = {
     request<Field[]>(scoped("/fields"), { searchParams: { q } }),
 
   getField: (fieldSlug: string) => request<Field>(scoped(`/fields/${fieldSlug}`)),
+
+  getLiveStandings: (leagueSlug: string) =>
+    request<LiveTable>(scoped(`/leagues/${leagueSlug}/standings/live`), {
+      revalidate: 0,
+    }),
 
   listScorers: (leagueSlug: string, params: { season?: string; limit?: number } = {}) =>
     request<Scorer[]>(scoped(`/leagues/${leagueSlug}/scorers`), {
