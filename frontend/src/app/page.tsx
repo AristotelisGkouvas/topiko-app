@@ -1,21 +1,20 @@
 import { LastUpdated } from "@/components/LastUpdated";
-import { LeagueTabs } from "@/components/LeagueTabs";
 import { LiveMatches } from "@/components/LiveMatches";
 import { MyClub } from "@/components/MyClub";
 import { FixtureRow } from "@/components/MatchCard";
 import { SectionHeader } from "@/components/SectionHeader";
-import { StandingsTable } from "@/components/StandingsTable";
+import { LeagueRail } from "@/components/LeagueRail";
+import { MiniStandings } from "@/components/MiniStandings";
 import { WelcomeCard } from "@/components/WelcomeCard";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayGenitive } from "@/lib/format";
 import { resolveLeague, type SearchParams } from "@/lib/leagues";
+import type { League, Standing } from "@/lib/types";
 import styles from "./page.module.css";
 
 /** Live scores mean the home page can never be statically cached. */
 export const dynamic = "force-dynamic";
-
-const STANDINGS_PREVIEW = 5;
 
 export default async function HomePage({
   searchParams,
@@ -23,13 +22,12 @@ export default async function HomePage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const [{ leagues, league }, meta, association] = await Promise.all([
+  const [{ leagues, league }, meta] = await Promise.all([
     // The home screen is about today — live scores and the next αγωνιστική —
     // so it stays on the current season even if ?periodos= is in the URL.
     // Honouring it here would show a 2016 table beside a live strip.
     resolveLeague({ ...params, periodos: undefined }),
     api.getMeta(),
-    api.getAssociation(),
   ]);
 
   if (!league) {
@@ -60,34 +58,89 @@ export default async function HomePage({
 
   return (
     <div className={styles.page}>
-      <div className={styles.titleBlock}>
-        <h1>{association.short_name ?? association.name}</h1>
+      {/* Screen D01's three columns: division rail, the page, the numbers.
+          One column on a phone, where the rail's job belongs to the header
+          chip and the right-hand numbers come after the results. */}
+      <LeagueRail
+        leagues={leagues}
+        active={league.slug}
+        matchday={league.current_matchday}
+        totalMatchdays={league.total_matchdays}
+      />
+
+      <div className={styles.main}>
+        <WelcomeCard />
+
+        {/* The design opens on the reader's own club. Everything below is the
+            league; this is the one block that is about them. */}
+        <MyClub />
+
+        {/* Only when something is actually being played — an empty strip
+            labelled "ΤΩΡΑ ΖΩΝΤΑΝΑ" reads as a broken feature. */}
+        <LiveMatches initial={live} />
+
+        <section className={styles.section} aria-labelledby="results-heading">
+          <SectionHeader
+            id="results-heading"
+            title={`ΑΠΟΤΕΛΕΣΜΑΤΑ · ${shownMatchday}η`}
+            action={{
+              href: `/agones?liga=${league.slug}&agonistiki=${shownMatchday}`,
+              label: "Όλα ›",
+            }}
+          />
+          {fixtures.length > 0 ? (
+            <div className={styles.card}>
+              <ul className={styles.fixtureList}>
+                {fixtures.map((match) => (
+                  <FixtureRow key={match.id} match={match} />
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <Empty
+              title="Καμία αναμέτρηση"
+              body={`Το πρόγραμμα της ${matchdayGenitive(shownMatchday)} δεν έχει ανακοινωθεί ακόμη.`}
+              action={{
+                href: `/agones?liga=${league.slug}`,
+                label: "Δες τους αγώνες",
+              }}
+            />
+          )}
+        </section>
+
+        {/* Phone only: on a wide screen these live in the right-hand column,
+            beside the results rather than below them. */}
+        <div className={styles.narrowOnly}>
+          <Numbers standings={standings} league={league} />
+        </div>
+      </div>
+
+      <aside className={styles.side} aria-label="Βαθμολογία και σκόρερ">
+        <Numbers standings={standings} league={league} />
         <LastUpdated
           timestamp={meta.last_scraped_at}
           sourceUrl={meta.source_url}
         />
-      </div>
+      </aside>
+    </div>
+  );
+}
 
-      <WelcomeCard />
-
-      <MyClub />
-
-      <LeagueTabs leagues={leagues} active={league.slug} />
-
-      <LiveMatches initial={live} />
-
+/** The table preview and the scorers — the same block in both layouts, so the
+ *  phone and the desktop cannot drift apart. */
+function Numbers({
+  standings,
+  league,
+}: {
+  standings: Standing[];
+  league: League;
+}) {
+  return (
+    <>
       <section className={styles.section} aria-labelledby="standings-heading">
-        <SectionHeader
-          id="standings-heading"
-          title="Βαθμολογία"
-          action={{ href: `/vathmologia?liga=${league.slug}`, label: "Πλήρης" }}
-        />
+        <SectionHeader id="standings-heading" title="ΒΑΘΜΟΛΟΓΙΑ" />
         {standings.length > 0 ? (
-          <StandingsTable
-            standings={standings.slice(0, STANDINGS_PREVIEW)}
-            league={league}
-            compact
-          />
+          <MiniStandings standings={standings} league={league} />
         ) : (
           <Empty
             title="Χωρίς βαθμολογία"
@@ -95,37 +148,6 @@ export default async function HomePage({
           />
         )}
       </section>
-
-      <section className={styles.section} aria-labelledby="upcoming-heading">
-        <SectionHeader
-          id="upcoming-heading"
-          title={seasonOver ? "Τελευταία αγωνιστική" : "Επόμενη αγωνιστική"}
-          action={{
-            href: seasonOver
-              ? `/apotelesmata?liga=${league.slug}&agonistiki=${shownMatchday}`
-              : `/programma?liga=${league.slug}&agonistiki=${shownMatchday}`,
-            label: seasonOver ? "Αποτελέσματα" : "Πρόγραμμα",
-          }}
-        />
-        {fixtures.length > 0 ? (
-          <div className={styles.card}>
-            <ul className={styles.fixtureList}>
-              {fixtures.map((match) => (
-                <FixtureRow key={match.id} match={match} />
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <Empty
-            title="Καμία αναμέτρηση"
-            body={`Το πρόγραμμα της ${matchdayGenitive(shownMatchday)} δεν έχει ανακοινωθεί ακόμη.`}
-            action={{
-              href: `/apotelesmata?liga=${league.slug}`,
-              label: "Δες τα αποτελέσματα",
-            }}
-          />
-        )}
-      </section>
-    </div>
+    </>
   );
 }

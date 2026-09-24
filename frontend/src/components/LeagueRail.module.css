@@ -1,0 +1,113 @@
+/* Screen D01's left column. Hidden on a phone, where the header chip picks the
+   division and the tab bar owns the bottom of the screen. */
+
+.rail {
+  display: none;
+}
+
+@media (min-width: 1040px) {
+  .rail {
+    display: block;
+  }
+}
+
+.label {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  color: var(--color-text-muted);
+}
+
+.label + .label,
+.list + .label {
+  margin-top: 20px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.item {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
+  text-decoration: none;
+  /* Reserved on every row so the selected one does not shift its neighbours. */
+  box-shadow: inset 3px 0 0 transparent;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item:hover {
+  background: var(--color-grey-100);
+}
+
+.itemOn {
+  background: var(--color-soft);
+  box-shadow: inset 3px 0 0 var(--color-green-600);
+  font-weight: 800;
+  color: var(--color-heading);
+}
+
+.matchday {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-heading);
+}
+
+/* --- install ------------------------------------------------------- */
+
+.install {
+  margin-top: 20px;
+  padding: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.installTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--color-heading);
+}
+
+.installBody {
+  margin: 4px 0 10px;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.installButton {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--color-green-600);
+  border-radius: var(--radius-md);
+  background: var(--color-green-600);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.installButton:hover {
+  filter: brightness(1.05);
+}

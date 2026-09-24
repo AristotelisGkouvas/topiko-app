@@ -160,7 +160,6 @@
 /* --- search --------------------------------------------------------- */
 
 .search {
-  margin-left: auto;
   flex: none;
   display: flex;
   align-items: center;
@@ -245,5 +244,98 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+/* --- the division chip (phone) -------------------------------------- */
+
+.leagueWrap {
+  margin-left: auto;
+  min-width: 0;
+}
+
+.league {
+  position: relative;
+}
+
+.leagueChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 46vw;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: var(--color-on-navy-fill);
+  color: var(--color-on-navy);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  list-style: none;
+  /* 44px of target around a 26px chip. */
+  min-height: 34px;
+  box-sizing: border-box;
+}
+
+.leagueChip::-webkit-details-marker {
+  display: none;
+}
+
+.leagueChip:focus-visible {
+  outline: 2px solid var(--color-on-navy-accent);
+  outline-offset: 2px;
+}
+
+.leaguePanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 3;
+  min-width: 210px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.leagueItem {
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.leagueItem:hover {
+  background: var(--color-grey-100);
+}
+
+.leagueItemOn {
+  background: var(--color-soft);
+  color: var(--color-heading);
+  font-weight: 800;
+}
+
+/* On a wide screen the rail owns this, and the chip would be a second control
+   for the same thing sitting a few hundred pixels away from the first. */
+@media (min-width: 1040px) {
+  .leagueWrap {
+    display: none;
   }
 }

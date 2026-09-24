@@ -1,0 +1,162 @@
+/* The home page's table preview. Same column rhythm as the full table so the
+   two read as the same object seen at two sizes: 24px 1fr 30px 40px 24px. */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.head,
+.row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 30px 40px 24px;
+  align-items: center;
+  gap: 10px;
+}
+
+.head {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+}
+
+.headPos {
+  text-align: left;
+}
+
+.headNum {
+  text-align: right;
+}
+
+.headForm {
+  text-align: center;
+}
+
+.row {
+  padding: 7.5px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
+  text-decoration: none;
+  /* The rail slot is reserved on every row, so the reader's own row does not
+     sit 3px to the right of its neighbours. */
+  box-shadow: inset 3px 0 0 transparent;
+}
+
+.row:hover {
+  background: var(--color-grey-100);
+}
+
+.rowMine {
+  background: var(--color-soft);
+  box-shadow: inset 3px 0 0 var(--color-green-600);
+}
+
+.rowMine .name {
+  font-weight: 800;
+  color: var(--color-heading);
+}
+
+.pos {
+  color: var(--color-text-muted);
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.crest {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-navy-900);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 6px;
+  line-height: 1;
+  color: #fff;
+  user-select: none;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.form {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.win {
+  background: var(--color-green-600);
+}
+
+.draw {
+  background: var(--color-draw-dot);
+}
+
+.loss {
+  background: var(--color-loss);
+}
+
+.points {
+  text-align: right;
+  font-weight: 800;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The break between the top five and the reader's own row. */
+.gap {
+  padding: 2px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: center;
+  color: var(--color-grey-400);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.all {
+  display: block;
+  padding: 10px 12px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--color-green-600);
+  text-decoration: none;
+}
+
+.all:hover {
+  background: var(--color-grey-100);
+  text-decoration: underline;
+}

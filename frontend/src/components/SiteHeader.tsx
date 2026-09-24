@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Wordmark } from "./Logo";
+import { LeaguePicker, type PickerLeague } from "./LeaguePicker";
 import { NavIcon } from "./NavIcon";
 import { ThemeToggle } from "./ThemeToggle";
 import {
@@ -37,7 +38,13 @@ const bySlug = (hrefs: string[]): NavItem[] =>
     .map((href) => SECONDARY_NAV_ITEMS.find((item) => item.href === href))
     .filter((item): item is NavItem => item !== undefined);
 
-export function SiteHeader() {
+export function SiteHeader({
+  leagues = [],
+  activeLeague = null,
+}: {
+  leagues?: PickerLeague[];
+  activeLeague?: PickerLeague | null;
+}) {
   const pathname = usePathname();
   const stats = bySlug(STATS_MENU);
   const union = bySlug(UNION_MENU);
@@ -77,6 +84,12 @@ export function SiteHeader() {
             </span>
           </Menu>
         </nav>
+
+        {/* Phone only: the division the reader is looking at, and the way to
+            change it. On a wide screen the left-hand rail does this. */}
+        <div className={styles.leagueWrap}>
+          <LeaguePicker leagues={leagues} active={activeLeague} />
+        </div>
 
         {/* The design's search field: a filled slot on the navy, not an icon.
             On a phone it collapses to the icon, where 240px will not fit. */}

@@ -39,20 +39,22 @@
   text-decoration: underline;
 }
 
-/* 14px, a step above the 12px of the list cards — this is the one card on the
-   home screen that is about the reader rather than about the league. */
+/* Navy, and 14px where the list cards are 12. This is the one card on the home
+   screen that is about the reader rather than about the league, and the design
+   spends the page's only block of brand colour on it — a white card here would
+   be the fifth white rectangle down the screen. */
 .card {
   display: block;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
+  background: var(--color-navy-900);
+  border: 1px solid var(--color-navy-900);
+  border-radius: var(--radius-xl);
   padding: 14px 16px;
-  color: inherit;
+  color: var(--color-on-navy);
   text-decoration: none;
 }
 
 .card:hover {
-  border-color: var(--color-grey-400);
+  filter: brightness(1.12);
 }
 
 .meta {
@@ -64,7 +66,7 @@
   font-weight: 600;
   font-size: 10.5px;
   letter-spacing: 1px;
-  color: var(--color-text-muted);
+  color: var(--color-on-navy-muted);
   text-transform: uppercase;
 }
 
@@ -100,7 +102,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 13px;
-  color: var(--color-heading);
+  color: var(--color-on-navy);
   text-align: center;
   max-width: 100%;
   overflow: hidden;
@@ -112,7 +114,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 15px;
-  color: var(--color-text-muted);
+  color: var(--color-on-navy-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -120,7 +122,14 @@
 .none {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--color-on-navy-muted);
+}
+
+/* On navy the green disc disappears, so the crest inverts — off-white with a
+   navy monogram, which is what screen S2 does in the same situation. */
+.sideCrest > span {
+  background: var(--color-grey-100);
+  color: var(--color-navy-900);
 }
 
 /* --- the invitation, when no club is followed ----------------------- */

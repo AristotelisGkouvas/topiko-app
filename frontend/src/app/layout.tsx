@@ -6,6 +6,7 @@ import { OfflineBar } from "@/components/OfflineBar";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { SiteHeader } from "@/components/SiteHeader";
 import { api } from "@/lib/api";
+import { leagueLabel, resolveLeague } from "@/lib/leagues";
 import { APP_NAME, APP_TAGLINE } from "@/lib/nav";
 import "@/styles/globals.css";
 import styles from "./layout.module.css";
@@ -69,6 +70,15 @@ export default async function RootLayout({
     .then((meta) => meta.live_matches)
     .catch(() => 0);
 
+  // The header's division chip. Resolved here rather than in each page so the
+  // chip says the same thing on every screen, including the ones that have no
+  // division of their own — search, the ground pages, the welcome.
+  const { leagues, league } = await resolveLeague({}).catch(() => ({
+    leagues: [],
+    league: null,
+  }));
+  const pickable = leagues.map((l) => ({ slug: l.slug, label: leagueLabel(l) }));
+
   return (
     <html lang="el" className={`${display.variable} ${body.variable}`}>
       <head>
@@ -89,7 +99,12 @@ export default async function RootLayout({
         <a href="#content" className={styles.skip}>
           Μετάβαση στο περιεχόμενο
         </a>
-        <SiteHeader />
+        <SiteHeader
+          leagues={pickable}
+          activeLeague={
+            league ? { slug: league.slug, label: leagueLabel(league) } : null
+          }
+        />
         <main id="content" className={styles.main}>
           {/* First in the flow, so it pushes the stale content down instead of
               covering it — screen E1. */}

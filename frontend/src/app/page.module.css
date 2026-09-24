@@ -1,24 +1,44 @@
+/* Screen 01 on a phone, D01 on a desktop.
+
+   One column under 1040px: division chip in the header, then the reader's club,
+   then live, then results, then the table preview.
+
+   Three above it — 200px | 1fr | 320px with a 22px gap, as the handoff
+   specifies — because at that width the numbers can sit beside the results
+   instead of a screen below them. */
+
 .page {
   display: grid;
   gap: 22px;
+  align-items: start;
 }
 
-/* A grid item's min-width defaults to auto, which means "as wide as my
-   content" — and that beats overflow-x:auto on a child. The league tab strip
-   then widens the whole page instead of scrolling inside itself, pushing
-   scores and points off a phone screen. min-width:0 lets the item shrink and
-   the strip scroll, which is what it was always meant to do.
+/* A grid item's min-width defaults to auto — "as wide as my content" — which
+   beats overflow-x:auto on a child. Without this the league strip widens the
+   whole page instead of scrolling inside itself, pushing scores off a phone.
 
-   Invisible while an association published two leagues; the moment the
+   Invisible while the association published two divisions; the moment the
    backfill brought in seventeen, every mobile page lost its right-hand
    columns. */
 .page > * {
   min-width: 0;
 }
 
-.titleBlock {
+.main {
   display: grid;
-  gap: 6px;
+  gap: 22px;
+  align-items: start;
+  min-width: 0;
+}
+
+.main > * {
+  min-width: 0;
+}
+
+/* Below the breakpoint the right-hand column is folded into the flow; above it
+   the copy inside .main is hidden and the aside carries it. */
+.side {
+  display: none;
 }
 
 .section {
@@ -26,26 +46,11 @@
   gap: 0;
 }
 
-/* Season picker and league tabs share a line on a wide screen and stack on a
-   phone, where the tab strip needs the full width to scroll in. */
-.pickers {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 18px;
-}
-
-.pickers > :last-child {
-  min-width: 0;
-  flex: 1 1 260px;
-}
-
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 4px 14px;
+  overflow: hidden;
 }
 
 .fixtureList {
@@ -54,44 +59,33 @@
   padding: 0;
 }
 
-.grid {
+.titleBlock {
   display: grid;
+  gap: 6px;
+}
+
+/* Season picker and league tabs share a line on a wide screen and stack on a
+   phone, where the tab strip needs the full width to scroll in. */
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
-@media (min-width: 720px) {
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+@media (min-width: 1040px) {
+  .page {
+    grid-template-columns: 200px minmax(0, 1fr) 320px;
+    padding: 4px 0 0;
   }
-}
 
-/* Desktop: table on the left, live and fixtures on the right, as in the kit. */
-@media (min-width: 1000px) {
-  .twoCol {
+  .side {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 22px;
     align-items: start;
   }
 
-  .aside {
-    display: grid;
-    gap: 22px;
+  .narrowOnly {
+    display: none;
   }
-}
-
-/* A sideways link out of a page to its companion table. */
-.crossLink {
-  margin: 0 0 12px;
-  font-size: 13px;
-}
-
-.crossLink a {
-  color: var(--color-link);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.crossLink a:hover {
-  color: var(--color-link-hover);
 }

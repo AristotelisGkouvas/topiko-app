@@ -1,5 +1,10 @@
+import { cookies } from "next/headers";
+
 import { api } from "./api";
+import { LEAGUE_COOKIE } from "./leagueCookie";
 import type { League, Season } from "./types";
+
+export { LEAGUE_COOKIE };
 
 /** Next 15 hands search params in as a promise. */
 export type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -31,7 +36,23 @@ export interface LeagueContext {
  *
  * An unknown ?periodos= falls back to the current season rather than erroring:
  * a stale link should still show football.
+ *
+ * With no ?liga= at all the choice comes from the `ps_league` cookie, so the
+ * division a reader picked on the home page is still the one they get on the
+ * standings and the fixtures. Without that, every page reset them to whichever
+ * division the API happened to list first, which for most people is not theirs.
+ * A shared link still wins: ?liga= is explicit and the cookie is a preference.
  */
+async function rememberedLeague(): Promise<string | undefined> {
+  try {
+    return (await cookies()).get(LEAGUE_COOKIE)?.value;
+  } catch {
+    // Read outside a request — a generateMetadata call on a static route, for
+    // instance. No cookie is not an error; it means "no preference".
+    return undefined;
+  }
+}
+
 export async function resolveLeague(
   params: Record<string, string | string[] | undefined>,
 ): Promise<LeagueContext> {
@@ -42,7 +63,7 @@ export async function resolveLeague(
     : undefined;
 
   const leagues = await api.listLeagues(season);
-  const wanted = readParam(params, "liga");
+  const wanted = readParam(params, "liga") ?? (await rememberedLeague());
   const league = leagues.find((l) => l.slug === wanted) ?? leagues[0] ?? null;
   return { seasons, season, leagues, league };
 }
