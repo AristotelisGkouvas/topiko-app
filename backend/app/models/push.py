@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, SmallInteger, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
@@ -42,6 +43,32 @@ class PushSubscription(Base, TimestampMixin):
     #: Which club this subscription is about. A slug rather than an id because
     #: that is what the browser knows — it followed a club from its page.
     team_slug: Mapped[str] = mapped_column(String(120), nullable=False)
+
+    #: Which events this browser wants for *this* club, as {kind: bool}.
+    #:
+    #: A dict rather than five columns: the set of things worth a notification
+    #: is a product decision that has already changed twice, and a migration
+    #: per change is how a feature stops being adjusted. Missing keys mean the
+    #: default, so an older row keeps working when a new kind is added.
+    prefs: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default="{}"
+    )
+
+    #: When not to send, as hours in the browser's own local time. Stored on
+    #: every row this browser owns and written together, because it is a
+    #: property of the phone and not of the club — the alternative is a second
+    #: table joined on an endpoint string.
+    #:
+    #: Null means no quiet hours. The pair is only meaningful together, and a
+    #: window that wraps midnight (23→8) is the normal case rather than the
+    #: exception.
+    quiet_from: Mapped[int | None] = mapped_column(SmallInteger)
+    quiet_to: Mapped[int | None] = mapped_column(SmallInteger)
+    #: Minutes east of UTC, as the browser reports them. Without it "23:00" is
+    #: 23:00 on the server, which is a different hour in the reader's evening.
+    utc_offset: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
 
     #: Set when the push service last told us this endpoint is gone. Kept
     #: rather than deleted immediately so a transient 404 during an outage

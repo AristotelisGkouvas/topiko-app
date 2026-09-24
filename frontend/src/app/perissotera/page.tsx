@@ -40,6 +40,18 @@ export default function MorePage() {
 
         <p className={styles.sectionLabel}>ΡΥΘΜΙΣΕΙΣ</p>
         <div className={styles.card}>
+          <Link href="/eidopoiiseis" className={styles.row}>
+            <span className={styles.icon}>
+              <NavIcon
+                item={{ icon: "M5 9v6h3l5 4V5L8 9zM17 9a4 4 0 0 1 0 6" }}
+                size={20}
+              />
+            </span>
+            <span className={styles.label}>Ειδοποιήσεις</span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
           <div className={styles.row}>
             <span className={styles.icon}>
               <NavIcon

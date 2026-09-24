@@ -21,6 +21,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models import PushSubscription
+from app.models.enums import MatchEventKind
+from app.services.notify_prefs import is_quiet, wants
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +69,16 @@ async def notify_team(
     title: str,
     body: str,
     url: str | None = None,
+    kind: MatchEventKind | None = None,
 ) -> int:
     """Tell everybody following these clubs. Returns how many were reached.
 
     Both clubs in a match are notified, because a goal is news to the people
     who follow either of them.
+
+    `kind` is what happened. Without it every subscription is written to, which
+    is right for the handful of notices that are not match events — a
+    federation announcement — and wrong for everything else.
     """
     if not configured() or not team_slugs:
         return 0
@@ -87,6 +94,22 @@ async def notify_team(
             )
         ).scalars()
     )
+
+    if kind is not None:
+        # Filtered here rather than in SQL: the answer depends on a default
+        # per group and on the reader's own clock, and encoding either in a
+        # WHERE clause puts the rule in two places.
+        subscriptions = [
+            s
+            for s in subscriptions
+            if wants(s.prefs, kind)
+            and not is_quiet(
+                quiet_from=s.quiet_from,
+                quiet_to=s.quiet_to,
+                utc_offset=s.utc_offset,
+            )
+        ]
+
     if not subscriptions:
         return 0
 

@@ -38,6 +38,7 @@ from app.models.enums import DataSource, MatchEventKind
 from app.schemas import TeamRef
 from app.services.audit import record
 from app.services.live import LIVE_WINDOW, effective
+from app.services.notify_prefs import group_for
 from app.services.match_events import apply_events
 from app.services.push import notify_team
 from app.services.standings import recompute_standings
@@ -46,14 +47,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["events"])
 
-#: Worth a buzz. Cards and substitutions are not: a phone that lights up for
-#: every yellow gets its notifications turned off by the end of the first half.
-_NOTIFY_KINDS = (
-    MatchEventKind.GOAL,
-    MatchEventKind.PENALTY_GOAL,
-    MatchEventKind.OWN_GOAL,
-    MatchEventKind.FULLTIME,
-)
+#: Which events can produce a notification at all.
+#:
+#: Was a fixed four. Now it is "anything a reader has a switch for", and the
+#: switch decides — cards are off by default and can be turned on, which is the
+#: same outcome for somebody who never opens the settings and a better one for
+#: somebody who wants them. See `app.services.notify_prefs`.
 
 
 class EventOut(BaseModel):
@@ -377,7 +376,7 @@ async def _announce(match: Match, event: MatchEvent, db: DbSession) -> None:
     only for the events somebody would want their phone to buzz for. A card in
     the 23rd minute is not one of them.
     """
-    if event.kind not in _NOTIFY_KINDS:
+    if group_for(event.kind) is None:
         return
 
     home = await db.get(Team, match.home_team_id)
@@ -409,6 +408,8 @@ async def _announce(match: Match, event: MatchEvent, db: DbSession) -> None:
             title=title,
             body=body,
             url=f"/agones/{match.id}",
+            # So a reader who turned cards off does not get one anyway.
+            kind=event.kind,
         )
         await db.commit()
     except Exception:  # noqa: BLE001

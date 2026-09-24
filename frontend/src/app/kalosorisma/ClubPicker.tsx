@@ -24,14 +24,14 @@ export interface PickableClub extends CrestSubject {
  *  with a mistap and no way back.
  */
 export function ClubPicker({ teams }: { teams: PickableClub[] }) {
-  const { favourite, toggle } = useFavourite();
+  const { clubs, favourite, toggle } = useFavourite();
   const hydrated = useHydrated();
 
   return (
     <>
       <ul className={styles.grid}>
         {teams.map((team) => {
-          const chosen = hydrated && favourite?.slug === team.slug;
+          const chosen = hydrated && clubs.some((c) => c.slug === team.slug);
           return (
             <li key={team.slug}>
               <button
@@ -61,9 +61,23 @@ export function ClubPicker({ teams }: { teams: PickableClub[] }) {
           className={favourite ? styles.primary : styles.secondary}
         >
           {/* Skippable: somebody who follows no single club is a perfectly
-              ordinary reader of a federation's results. */}
-          {favourite ? `Συνέχεια με ${favourite.name}` : "Προσπέρασέ το"}
+              ordinary reader of a federation's results.
+
+              With more than one chosen the button counts them rather than
+              naming them — three club names do not fit, and the first is
+              named on the next screen anyway. */}
+          {!favourite
+            ? "Προσπέρασέ το"
+            : clubs.length === 1
+              ? `Συνέχεια με ${favourite.name}`
+              : `Συνέχεια με ${clubs.length} ομάδες`}
         </Link>
+        {clubs.length > 1 && (
+          <p className={styles.small}>
+            Πρώτη είναι ο <strong>{favourite!.name}</strong> — αυτή ανοίγει η
+            αρχική. Πάτα την ξανά για να την αφαιρέσεις.
+          </p>
+        )}
       </div>
     </>
   );
