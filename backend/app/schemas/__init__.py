@@ -13,7 +13,6 @@ from app.schemas.common import Meta, ORMModel
 from app.schemas.match import (
     LiveStandingOut,
     LiveTableOut,
-    MatchDayOut,
     MatchDetailOut,
     MatchOut,
     StandingOut,
@@ -59,7 +58,6 @@ __all__ = [
     "FieldRef",
     "LeagueOut",
     "Meta",
-    "MatchDayOut",
     "MatchDetailOut",
     "MatchOut",
     "ORMModel",

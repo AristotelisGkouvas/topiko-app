@@ -6,7 +6,6 @@ data?" is answerable from the URL alone.
 """
 
 import dataclasses
-from datetime import UTC, datetime, time, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -42,7 +41,6 @@ from app.schemas import (
     LeagueOut,
     LiveStandingOut,
     LiveTableOut,
-    MatchDayOut,
     MatchDetailOut,
     MatchOut,
     Meta,
@@ -203,80 +201,6 @@ async def live_standings(
             for row in rows
             if row.team_id in teams
         ],
-    )
-
-
-@router.get("/{association_slug}/matches/day", response_model=MatchDayOut)
-async def list_matches_on_day(
-    association: CurrentAssociation,
-    db: DbSession,
-    date: Annotated[
-        str | None, Query(description="Ημερομηνία ΥΥΥΥ-ΜΜ-ΗΗ. Χωρίς αυτό, σήμερα.")
-    ] = None,
-) -> MatchDayOut:
-    """Everything played across the federation on one day.
-
-    The tab this feeds does not separate fixtures from results, because a
-    Sunday does not: the same list read in the morning is the programme and read
-    in the evening is the scoreboard. Splitting them into two pages made the
-    reader pick the right one before they were allowed to look.
-
-    Neighbouring days come back with it — the nearest day either side that
-    actually has football. Stepping one calendar day at a time through a
-    Wednesday in July is eleven taps of nothing.
-    """
-    try:
-        day = (
-            datetime.strptime(date, "%Y-%m-%d").date()
-            if date
-            else datetime.now(UTC).date()
-        )
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Η ημερομηνία θέλει μορφή ΥΥΥΥ-ΜΜ-ΗΗ.",
-        ) from None
-
-    # Half-open on purpose: `kickoff_at < day + 1` keeps a 23:30 kickoff on its
-    # own day, which BETWEEN with a date cast would round away.
-    start = datetime.combine(day, time.min, tzinfo=UTC)
-    end = start + timedelta(days=1)
-
-    scoped_matches = (
-        select(Match)
-        .join(League, Match.league_id == League.id)
-        .where(League.association_id == association.id)
-    )
-
-    result = await db.execute(
-        scoped_matches.options(*_MATCH_LOADS)
-        .where(Match.kickoff_at >= start, Match.kickoff_at < end)
-        .order_by(Match.kickoff_at.nulls_last(), Match.id)
-    )
-    matches = list(result.scalars())
-
-    previous = (
-        await db.execute(
-            select(func.max(func.date(Match.kickoff_at)))
-            .select_from(Match)
-            .join(League, Match.league_id == League.id)
-            .where(League.association_id == association.id, Match.kickoff_at < start)
-        )
-    ).scalar_one_or_none()
-    next_day = (
-        await db.execute(
-            select(func.min(func.date(Match.kickoff_at)))
-            .select_from(Match)
-            .join(League, Match.league_id == League.id)
-            .where(League.association_id == association.id, Match.kickoff_at >= end)
-        )
-    ).scalar_one_or_none()
-
-    return MatchDayOut(
-        date=day,
-        matches=[MatchOut.model_validate(m) for m in matches],
-        previous_date=previous,
-        next_date=next_day,
     )
 
 

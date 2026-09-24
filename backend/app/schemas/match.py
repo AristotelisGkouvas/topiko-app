@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from pydantic import BaseModel, model_validator
 
@@ -108,19 +108,3 @@ class LiveTableOut(ORMModel):
     #: means the projection equals the real table, and the client says so
     #: rather than implying something is happening.
     live_matches: int = 0
-
-
-class MatchDayOut(BaseModel):
-    """One day of football across the whole federation.
-
-    Carries its neighbours with it. The client needs to know which way it may
-    step before it draws the arrows, and "the next day with a match" is a
-    question only the database can answer — guessing "+1 day" walks a reader
-    through an empty week in July one tap at a time.
-    """
-
-    date: date
-    matches: list[MatchOut] = []
-    #: Nearest earlier day that has a match, or null at the start of the record.
-    previous_date: date | None = None
-    next_date: date | None = None

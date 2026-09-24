@@ -8,7 +8,6 @@ import type {
   HeadToHead,
   LiveTable,
   Match,
-  MatchDay,
   MatchDetail,
   MatchStatus,
   Meta,
@@ -138,14 +137,6 @@ export const api = {
         status: params.status,
         season: params.season,
       },
-    }),
-
-  /** One day's matches, federation-wide. Uncached: the day in question is
-   *  usually today, and today's scores change. */
-  getMatchDay: (date?: string) =>
-    request<MatchDay>(scoped("/matches/day"), {
-      searchParams: { date },
-      revalidate: 0,
     }),
 
   // Never cached: this is the endpoint the live strip polls.

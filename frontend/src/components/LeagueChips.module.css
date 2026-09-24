@@ -1,0 +1,44 @@
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Bleeds to the screen edge so the last chip is not clipped mid-word behind
+     the page padding — it scrolls past it instead. */
+  margin: 0 -14px;
+  padding: 0 14px;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-height: 34px;
+  padding: 5px 12px;
+  border-radius: var(--radius-chip, 14px);
+  border: 1px solid var(--color-chip-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.chip:hover {
+  border-color: var(--color-grey-400);
+}
+
+.chipOn {
+  background: var(--color-navy-900);
+  border-color: var(--color-navy-900);
+  color: var(--color-grey-50);
+  font-weight: 700;
+}

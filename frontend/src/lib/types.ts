@@ -313,17 +313,6 @@ export interface Announcement {
   image_url: string | null;
 }
 
-/** One day of football across the federation, with the days either side.
- *
- *  `previous_date`/`next_date` are the nearest days that actually have a match,
- *  not yesterday and tomorrow — the arrows have to skip an empty July. */
-export interface MatchDay {
-  date: string;
-  matches: Match[];
-  previous_date: string | null;
-  next_date: string | null;
-}
-
 /** All a crest needs. A search hit has no id and should not have to
  *  invent one to be badged. */
 export interface CrestSubject {

@@ -1,59 +1,78 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { MatchGrid } from "@/components/MatchGrid";
+import { LeagueChips } from "@/components/LeagueChips";
+import { MatchRow } from "@/components/MatchRow";
+import { MatchdayStrip } from "@/components/MatchdayStrip";
 import { PageHeader, PageHeaderStepper } from "@/components/PageHeader";
+import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
-import { formatDayDate } from "@/lib/format";
-import { readParam, type SearchParams } from "@/lib/leagues";
+import { formatDayDate, upper } from "@/lib/format";
+import { resolveLeague, resolveMatchday, type SearchParams } from "@/lib/leagues";
+import type { Match } from "@/lib/types";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Αγώνες",
-  description: "Τι παίζεται και τι έγινε, μέρα με τη μέρα.",
+  description: "Το πρόγραμμα και τα αποτελέσματα κάθε αγωνιστικής.",
 };
 
-/** One day at a time, fixtures and results together.
+/** Matches by matchday, grouped by the day they are played.
  *
- *  The design merges what were two tabs, and it is right to: a Sunday is one
- *  list, and whether a row is a fixture or a result depends only on what time
- *  it is. Two pages made the reader choose before being allowed to look, and
- *  the choice was wrong half the afternoon.
+ *  One page, not two. The site used to have "Αποτελέσματα" and "Πρόγραμμα" as
+ *  separate destinations, which made the reader choose before they were allowed
+ *  to look — and for most of a weekend the right answer is "both", because half
+ *  the round has been played and half has not.
  */
-export default async function MatchDayPage({
+export default async function MatchesPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const asked = readParam(params, "imera");
-  const day = await api.getMatchDay(asked);
+  const { leagues, league } = await resolveLeague(params);
 
-  // `date` is a bare YYYY-MM-DD; the formatter wants something it can parse as
-  // an instant, and noon keeps it on its own day in every timezone.
-  const label = formatDayDate(`${day.date}T12:00:00Z`);
-  const today = new Date().toISOString().slice(0, 10);
-  const isToday = day.date === today;
+  if (!league) {
+    return (
+      <>
+        <PageHeader title="Αγώνες" />
+        <Empty
+          title="Καμία διοργάνωση"
+          body="Δεν έχει δημοσιευτεί πρωτάθλημα για αυτή την περίοδο."
+        />
+      </>
+    );
+  }
 
-  const href = (date: string) => `/agones?imera=${date}`;
+  // Opens on the round the league is on, which for most of a weekend is half
+  // result and half fixture — the reason the two pages became one.
+  const matchday = resolveMatchday(params, league);
+  const matches = await api.listMatches(league.slug, { matchday });
+
+  const days = groupByDay(matches);
+  const span = dateSpan(matches);
+  const total = league.total_matchdays;
+
+  const href = (n: number) => `/agones?liga=${league.slug}&agonistiki=${n}`;
 
   return (
     <>
       <PageHeader
         title="Αγώνες"
-        aside={`${day.matches.length} ${day.matches.length === 1 ? "αγώνας" : "αγώνες"}`}
+        aside={span}
         controls={
           <PageHeaderStepper
-            label={isToday ? `Σήμερα · ${label}` : label}
+            label={`${matchday}η αγωνιστική`}
             previous={
-              day.previous_date
-                ? { href: href(day.previous_date), label: "Προηγούμενη αγωνιστική μέρα" }
+              matchday > 1
+                ? { href: href(matchday - 1), label: "Προηγούμενη αγωνιστική" }
                 : undefined
             }
             next={
-              day.next_date
-                ? { href: href(day.next_date), label: "Επόμενη αγωνιστική μέρα" }
+              total === null || matchday < total
+                ? { href: href(matchday + 1), label: "Επόμενη αγωνιστική" }
                 : undefined
             }
           />
@@ -61,38 +80,85 @@ export default async function MatchDayPage({
       />
 
       <div className={styles.page}>
-        {day.matches.length === 0 ? (
-          // The design's own empty state for this screen: a big grey zero in a
-          // ring, then the nearest day that has something. Saying only "no
-          // matches" leaves the reader with nowhere to go from here.
-          <div className={styles.empty}>
-            <span className={styles.zero} aria-hidden="true">
-              0
-            </span>
-            <p className={styles.emptyTitle}>Κανένας αγώνας</p>
-            <p className={styles.emptyBody}>
-              Δεν παίζεται τίποτα {isToday ? "σήμερα" : `στις ${label}`}.
-            </p>
-            <div className={styles.emptyActions}>
-              {day.previous_date && (
-                <a className={styles.emptyLink} href={href(day.previous_date)}>
-                  ‹ {formatDayDate(`${day.previous_date}T12:00:00Z`)}
-                </a>
-              )}
-              {day.next_date && (
-                <a className={styles.emptyLink} href={href(day.next_date)}>
-                  {formatDayDate(`${day.next_date}T12:00:00Z`)} ›
-                </a>
-              )}
-            </div>
-          </div>
-        ) : (
-          <MatchGrid
-            matches={day.matches}
-            empty={{ title: "Κανένας αγώνας", body: "" }}
+        <LeagueChips leagues={leagues} active={league.slug} basePath="/agones" />
+
+        {/* Wide screens get the whole season at once. The stepper still works,
+            but walking from the 2nd round to the 24th two taps at a time is
+            not something a mouse should have to do. */}
+        {total !== null && total > 1 && (
+          <MatchdayStrip
+            total={total}
+            active={matchday}
+            href={href}
+            current={league.current_matchday}
           />
         )}
+
+        {days.length === 0 ? (
+          <Empty
+            title="Καμία αναμέτρηση"
+            body={`Το πρόγραμμα της ${matchday}ης αγωνιστικής δεν έχει ανακοινωθεί ακόμη.`}
+          />
+        ) : (
+          <div className={styles.days}>
+            {days.map(([day, dayMatches]) => (
+              <section key={day} className={styles.day}>
+                <p className={styles.dayLabel}>{day}</p>
+                <div className={styles.card}>
+                  {dayMatches.map((match, i) => (
+                    <MatchRow
+                      key={match.id}
+                      match={match}
+                      last={i === dayMatches.length - 1}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        <p className={styles.note}>
+          Οι διαιτητές φαίνονται στη σελίδα του κάθε αγώνα.{" "}
+          <Link href={`/vathmologia?liga=${league.slug}`}>Βαθμολογία ›</Link>
+        </p>
       </div>
     </>
   );
+}
+
+/** Matches bucketed under a day heading, in kickoff order.
+ *
+ *  A Map, so the first time a day is seen fixes its position — the matches
+ *  arrive sorted by kickoff, and sorting the days separately afterwards would
+ *  be a second ordering to keep in step with the first.
+ */
+function groupByDay(matches: Match[]): [string, Match[]][] {
+  const days = new Map<string, Match[]>();
+  for (const match of matches) {
+    const label = match.kickoff_at
+      ? upper(formatDayDate(match.kickoff_at))
+      : "ΧΩΡΙΣ ΗΜΕΡΟΜΗΝΙΑ";
+    const bucket = days.get(label);
+    if (bucket) bucket.push(match);
+    else days.set(label, [match]);
+  }
+  return [...days];
+}
+
+/** "19–20/09" — what the header prints beside the round number. */
+function dateSpan(matches: Match[]): string | undefined {
+  const dates = matches
+    .map((m) => m.kickoff_at)
+    .filter((d): d is string => d !== null)
+    .sort();
+  if (dates.length === 0) return undefined;
+
+  const day = (iso: string) => {
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const first = day(dates[0]);
+  const last = day(dates[dates.length - 1]);
+  return first === last ? first : `${first}–${last}`;
 }
