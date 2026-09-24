@@ -22,8 +22,18 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.auth_deps import CurrentUser, EditableAssociation, may_edit_live
-from app.api.deps import DbSession
-from app.models import AuditLog, ClubAccessCode, Field, League, Match, Team
+from app.api.deps import CurrentSeason, DbSession
+from app.models import (
+    AuditLog,
+    ClubAccessCode,
+    Field,
+    League,
+    Match,
+    MvpCandidate,
+    MvpPoll,
+    Player,
+    Team,
+)
 from app.models.enums import DataSource, FieldSurface, MatchStatus
 from app.schemas import FieldOut, MatchOut
 from app.services import volunteer as volunteer_service
@@ -498,3 +508,151 @@ async def revoke_club_code(
         request=request,
     )
     await db.commit()
+
+
+class MvpCandidateIn(BaseModel):
+    player_slug: str = PydanticField(min_length=1, max_length=140)
+    team_slug: str | None = PydanticField(default=None, max_length=120)
+    #: Why they are on the list — "3 γκολ", "κράτησε το μηδέν".
+    reason: str | None = PydanticField(default=None, max_length=120)
+
+
+class MvpPollIn(BaseModel):
+    league_slug: str = PydanticField(min_length=1, max_length=120)
+    matchday: int = PydanticField(ge=1, le=60)
+    closes_at: datetime | None = None
+    candidates: list[MvpCandidateIn] = PydanticField(min_length=2, max_length=12)
+
+
+class MvpPollOut(BaseModel):
+    id: int
+    league_slug: str
+    matchday: int
+    closes_at: datetime | None = None
+    candidates: int
+
+
+@router.post(
+    "/{association_slug}/editor/mvp",
+    response_model=MvpPollOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def open_mvp_poll(
+    association: EditableAssociation,
+    user: CurrentUser,
+    payload: MvpPollIn,
+    season: CurrentSeason,
+    request: Request,
+    db: DbSession,
+) -> MvpPollOut:
+    """Open — or replace — the vote for one round of one division.
+
+    Replacing rather than erroring on a second call: a federation that adds a
+    player they forgot should not have to find a delete button first. The old
+    poll's votes go with it, which is the honest outcome — a ballot with a new
+    name on it is a different ballot, and carrying the old counts across would
+    be counting votes for a question nobody was asked.
+    """
+    # Scoped to the season. A division's slug is only unique *within* one —
+    # six seasons each have an "a-katigoria" — so an unscoped lookup finds
+    # several and fails, which is how this was found.
+    league = (
+        await db.execute(
+            select(League).where(
+                League.association_id == association.id,
+                League.season_id == season.id,
+                League.slug == payload.league_slug,
+            )
+        )
+    ).scalar_one_or_none()
+    if league is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Δεν βρέθηκε διοργάνωση '{payload.league_slug}'.",
+        )
+
+    players = {
+        p.slug: p
+        for p in (
+            await db.execute(
+                select(Player).where(
+                    Player.association_id == association.id,
+                    Player.slug.in_([c.player_slug for c in payload.candidates]),
+                )
+            )
+        ).scalars()
+    }
+    missing = [c.player_slug for c in payload.candidates if c.player_slug not in players]
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Δεν βρέθηκαν παίκτες: {', '.join(missing)}.",
+        )
+
+    teams = {
+        t.slug: t
+        for t in (
+            await db.execute(
+                select(Team).where(
+                    Team.association_id == association.id,
+                    Team.slug.in_(
+                        [c.team_slug for c in payload.candidates if c.team_slug]
+                    ),
+                )
+            )
+        ).scalars()
+    }
+
+    existing = (
+        await db.execute(
+            select(MvpPoll).where(
+                MvpPoll.league_id == league.id, MvpPoll.matchday == payload.matchday
+            )
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        await db.delete(existing)
+        await db.flush()
+
+    poll = MvpPoll(
+        association_id=association.id,
+        league_id=league.id,
+        matchday=payload.matchday,
+        closes_at=payload.closes_at,
+        created_by_id=user.id,
+        candidates=[
+            MvpCandidate(
+                player_id=players[c.player_slug].id,
+                team_id=teams[c.team_slug].id if c.team_slug in teams else None,
+                reason=(c.reason or "").strip() or None,
+            )
+            for c in payload.candidates
+        ],
+    )
+    db.add(poll)
+    await db.flush()
+
+    record(
+        db,
+        user=user,
+        association=association,
+        action="mvp.open",
+        entity_type="mvp_poll",
+        entity_id=poll.id,
+        after={
+            "league": league.slug,
+            "matchday": payload.matchday,
+            "candidates": [c.player_slug for c in payload.candidates],
+            "replaced": existing is not None,
+        },
+        request=request,
+    )
+    await db.commit()
+
+    return MvpPollOut(
+        id=poll.id,
+        league_slug=league.slug,
+        matchday=poll.matchday,
+        closes_at=poll.closes_at,
+        candidates=len(payload.candidates),
+    )

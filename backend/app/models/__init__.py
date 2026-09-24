@@ -31,6 +31,7 @@ from app.models.match import (
 )
 from app.models.player import Player, PlayerStat, PlayerSuspension
 from app.models.prediction import MatchPrediction
+from app.models.mvp import MvpCandidate, MvpPoll, MvpVote
 from app.models.push import PushSubscription
 from app.models.volunteer import ClubAccessCode
 from app.models.scraping import ScrapeRun, TeamAlias
@@ -59,6 +60,9 @@ __all__ = [
     "PlayerSuspension",
     "ScrapeConflict",
     "PredictionChoice",
+    "MvpCandidate",
+    "MvpPoll",
+    "MvpVote",
     "PushSubscription",
     "ClubAccessCode",
     "ScrapeRun",

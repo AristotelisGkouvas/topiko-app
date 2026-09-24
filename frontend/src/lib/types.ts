@@ -345,3 +345,28 @@ export interface SearchResults {
   players: SearchHit[];
   fields: SearchHit[];
 }
+
+/** One name on the MVP ballot. */
+export interface MvpCandidate {
+  id: number;
+  player_slug: string;
+  player_name: string;
+  team_name: string | null;
+  team_slug: string | null;
+  reason: string | null;
+  /** Null until this reader has voted — a running count tells the undecided
+   *  what to pick, which is the one thing a ballot must not do. */
+  votes: number | null;
+}
+
+export interface MvpPoll {
+  id: number;
+  league_slug: string;
+  league_name: string;
+  matchday: number;
+  closes_at: string | null;
+  open: boolean;
+  candidates: MvpCandidate[];
+  my_vote: number | null;
+  total_votes: number | null;
+}

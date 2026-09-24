@@ -6,6 +6,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.editor import router as editor_router
 from app.api.v1.events import router as events_router
 from app.api.v1.predictions import router as predictions_router
+from app.api.v1.mvp import router as mvp_router
 from app.api.v1.push import router as push_router
 from app.api.v1.volunteer import router as volunteer_router
 from app.api.v1.public import router as public_router
@@ -35,6 +36,7 @@ app.include_router(editor_router)
 app.include_router(events_router)
 app.include_router(predictions_router)
 app.include_router(push_router)
+app.include_router(mvp_router)
 app.include_router(volunteer_router)
 app.include_router(public_router)
 # After the public router: its /{association_slug}/{...} routes are more

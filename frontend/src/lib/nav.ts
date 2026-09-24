@@ -61,6 +61,7 @@ export const SECONDARY_NAV_ITEMS: NavItem[] = [
   { href: "/skorer", label: "Σκόρερ", icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8v4l3 2", secondary: true },
   { href: "/paiktes", label: "Παίκτες", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-5 8-5s8 1.7 8 5", secondary: true },
   { href: "/poines", label: "Ποινές", icon: "M9 4h8v16H9zM9 4 7 20", secondary: true },
+  { href: "/mvp", label: "Παίκτης αγωνιστικής", icon: "m12 4 2.4 5 5.6.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.6-.8z", secondary: true },
   { href: "/rekor", label: "Ρεκόρ", icon: "m12 4 2.4 5 5.6.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.6-.8z", secondary: true },
   { href: "/san-simera", label: "Σαν σήμερα", icon: "M12 4a8 8 0 1 0 8 8M12 4v4M12 4h4M12 12l4 2", secondary: true },
   { href: "/anakoinoseis", label: "Ανακοινώσεις", icon: "M5 9v6h3l5 4V5L8 9zM17 9a4 4 0 0 1 0 6", secondary: true },
