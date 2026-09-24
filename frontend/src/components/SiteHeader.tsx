@@ -98,6 +98,10 @@ export function SiteHeader({
             ⌕
           </span>
           <span className={styles.searchText}>Αναζήτηση ομάδας, παίκτη…</span>
+          {/* A shortcut nobody is told about is a shortcut nobody uses. */}
+          <span className={styles.searchKey} aria-hidden="true">
+            /
+          </span>
           <span className={styles.searchLabel}>Αναζήτηση</span>
         </Link>
       </div>

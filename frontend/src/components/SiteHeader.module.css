@@ -188,6 +188,10 @@
   display: none;
 }
 
+.searchKey {
+  display: none;
+}
+
 .searchLabel {
   position: absolute;
   width: 1px;
@@ -244,6 +248,21 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .searchKey {
+    display: grid;
+    place-items: center;
+    margin-left: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 0.14);
+    color: var(--color-on-navy-idle);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1;
   }
 }
 

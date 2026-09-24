@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 
 import { Crest } from "@/components/Crest";
@@ -27,9 +28,7 @@ export default async function PlayersPage({
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Παίκτες</h1>
-      </div>
+      <PageHeader title="Παίκτες" />
 
       <SearchBox placeholder="Αναζήτηση παίκτη…" label="Αναζήτηση παίκτη" />
 

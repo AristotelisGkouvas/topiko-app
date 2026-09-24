@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 
 import { SectionHeader } from "@/components/SectionHeader";
@@ -34,12 +35,11 @@ export default async function OnThisDayPage() {
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Σαν σήμερα</h1>
-        <p className={styles.date}>
-          {day.day} {MONTHS[day.month - 1]}
-        </p>
-      </div>
+      <PageHeader title="Σαν σήμερα" />
+
+      <p className={styles.date}>
+        {day.day} {MONTHS[day.month - 1]}
+      </p>
 
       {years.length === 0 ? (
         <Empty

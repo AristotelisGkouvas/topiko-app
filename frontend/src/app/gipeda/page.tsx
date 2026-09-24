@@ -1,4 +1,5 @@
 import "leaflet/dist/leaflet.css";
+import { PageHeader } from "@/components/PageHeader";
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -96,14 +97,13 @@ export default async function FieldsPage({
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Γήπεδα</h1>
-        <p className={styles.subtitle}>
-          {query
-            ? `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} για «${query}».`
-            : `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} της ένωσης.`}
-        </p>
-      </div>
+      <PageHeader title="Γήπεδα" />
+
+      <p className={styles.subtitle}>
+        {query
+        ? `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} για «${query}».`
+        : `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} της ένωσης.`}
+      </p>
 
       <SearchBox placeholder="Αναζήτηση γηπέδου…" label="Αναζήτηση γηπέδου" />
 

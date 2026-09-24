@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
@@ -31,9 +32,7 @@ export default async function ComparePage({
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Σύγκριση</h1>
-      </div>
+      <PageHeader title="Σύγκριση" />
 
       <ComparisonPicker teams={teams} left={left} right={right} />
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 
 import { LastUpdated } from "@/components/LastUpdated";
 import { SearchBox } from "@/components/SearchBox";
@@ -30,13 +31,12 @@ export default async function AnnouncementsPage({
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Ανακοινώσεις</h1>
-        <LastUpdated
-          timestamp={meta.last_scraped_at}
-          sourceUrl={meta.source_url}
-        />
-      </div>
+      <PageHeader title="Ανακοινώσεις" />
+
+      <LastUpdated
+        timestamp={meta.last_scraped_at}
+        sourceUrl={meta.source_url}
+      />
 
       <SearchBox
         placeholder="Αναζήτηση ανακοίνωσης…"

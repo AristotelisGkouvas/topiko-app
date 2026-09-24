@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 
 import { SectionHeader } from "@/components/SectionHeader";
@@ -20,9 +21,7 @@ export default async function RecordsPage() {
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Ρεκόρ</h1>
-      </div>
+      <PageHeader title="Ρεκόρ" />
 
       <dl className={styles.totals}>
         <Total value={records.total_matches.toLocaleString("el-GR")} label="αγώνες" />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 
 import { LastUpdated } from "@/components/LastUpdated";
@@ -35,13 +36,12 @@ export default async function SuspensionsPage({
 
   return (
     <div className={pageStyles.page}>
-      <div className={pageStyles.titleBlock}>
-        <h1>Ποινές</h1>
-        <LastUpdated
-          timestamp={meta.last_scraped_at}
-          sourceUrl={meta.source_url}
-        />
-      </div>
+      <PageHeader title="Ποινές" />
+
+      <LastUpdated
+        timestamp={meta.last_scraped_at}
+        sourceUrl={meta.source_url}
+      />
 
       <div className={pageStyles.pickers}>
         <SeasonPicker seasons={seasons} active={season} />
