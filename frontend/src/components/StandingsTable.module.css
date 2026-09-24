@@ -65,8 +65,21 @@
   text-align: left;
 }
 
+/* Wins, draws, losses and goals. Hidden on a phone, where the handoff's six
+   columns are #, ΟΜΑΔΑ, ΑΓ, ΔΤ, ΦΟΡΜΑ and Β.
+
+   Hidden rather than pushed off the side into a horizontal scroll: a gesture
+   that reveals four columns is one most readers never discover, and the same
+   numbers are one tap away on the club's own page. */
 .wide {
+  display: none;
   width: 34px;
+}
+
+@media (min-width: 860px) {
+  .wide {
+    display: table-cell;
+  }
 }
 
 .formCol {

@@ -56,12 +56,9 @@ function FormPills({ form }: { form: string }) {
 export function StandingsTable({
   standings,
   league,
-  compact = false,
 }: {
   standings: Standing[];
   league: Pick<League, "zones">;
-  /** Home-page preview: fewer columns, no sorting, no legend. */
-  compact?: boolean;
 }) {
   const [sort, setSort] = useState<SortKey>("position");
 
@@ -93,26 +90,16 @@ export function StandingsTable({
               <th scope="col" className={styles.teamCol}>
                 ΟΜΑΔΑ
               </th>
-              {/* Compact drops "αγώνες" for "διαφορά τερμάτων": on a 360px row
-                  there is space for one number beside the form, and the design
-                  spends it on the one that separates two clubs on equal points.
-                  How many they have played is answered by the full table. */}
               <th scope="col" className={styles.num}>
-                {compact ? (
-                  "ΔΤ"
-                ) : (
-                  <SortButton
-                    active={sort === "played"}
-                    onClick={() => toggle("played")}
-                    title={SORTABLE.played}
-                  >
-                    ΑΓ.
-                  </SortButton>
-                )}
+                <SortButton
+                  active={sort === "played"}
+                  onClick={() => toggle("played")}
+                  title={SORTABLE.played}
+                >
+                  ΑΓ.
+                </SortButton>
               </th>
-              {!compact && (
-                <>
-                  <th scope="col" className={`${styles.num} ${styles.wide}`}>
+                                <th scope="col" className={`${styles.num} ${styles.wide}`}>
                     Ν
                   </th>
                   <th scope="col" className={`${styles.num} ${styles.wide}`}>
@@ -124,10 +111,7 @@ export function StandingsTable({
                   <th scope="col" className={`${styles.num} ${styles.wide}`}>
                     ΓΚΟΛ
                   </th>
-                </>
-              )}
-              {!compact && (
-                <th scope="col" className={styles.num}>
+              <th scope="col" className={styles.num}>
                   <SortButton
                     active={sort === "goal_difference"}
                     onClick={() => toggle("goal_difference")}
@@ -136,22 +120,17 @@ export function StandingsTable({
                     ΔΤ
                   </SortButton>
                 </th>
-              )}
               <th scope="col" className={`${styles.num} ${styles.formCol}`}>
                 ΦΟΡΜΑ
               </th>
               <th scope="col" className={`${styles.num} ${styles.pointsCol}`}>
-                {compact ? (
-                  "Β"
-                ) : (
-                  <SortButton
-                    active={sort === "points"}
-                    onClick={() => toggle("points")}
-                    title={SORTABLE.points}
-                  >
-                    ΒΑΘ.
-                  </SortButton>
-                )}
+                <SortButton
+                  active={sort === "points"}
+                  onClick={() => toggle("points")}
+                  title={SORTABLE.points}
+                >
+                  Β
+                </SortButton>
               </th>
             </tr>
           </thead>
@@ -171,14 +150,8 @@ export function StandingsTable({
                     <span className={styles.teamName}>{listName(row.team)}</span>
                   </Link>
                 </td>
-                <td className={styles.num}>
-                  {compact
-                    ? formatGoalDifference(row.goal_difference)
-                    : row.played}
-                </td>
-                {!compact && (
-                  <>
-                    <td className={`${styles.num} ${styles.wide}`}>{row.won}</td>
+                <td className={styles.num}>{row.played}</td>
+                                    <td className={`${styles.num} ${styles.wide}`}>{row.won}</td>
                     <td className={`${styles.num} ${styles.wide}`}>
                       {row.drawn}
                     </td>
@@ -188,13 +161,9 @@ export function StandingsTable({
                     <td className={`${styles.num} ${styles.wide}`}>
                       {row.goals_for}:{row.goals_against}
                     </td>
-                  </>
-                )}
-                {!compact && (
-                  <td className={styles.num}>
+                <td className={styles.num}>
                     {formatGoalDifference(row.goal_difference)}
                   </td>
-                )}
                 <td className={`${styles.num} ${styles.formCol}`}>
                   {row.form ? <FormPills form={row.form} /> : "—"}
                 </td>
@@ -207,7 +176,7 @@ export function StandingsTable({
         </table>
       </div>
 
-      {!compact && activeZones.length > 0 && (
+      {activeZones.length > 0 && (
         <ul className={styles.legend}>
           {activeZones.map((zone) => (
             <li key={zone} className={styles.legendItem}>

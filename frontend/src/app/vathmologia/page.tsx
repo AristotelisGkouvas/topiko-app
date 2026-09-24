@@ -1,80 +1,157 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { LastUpdated } from "@/components/LastUpdated";
-import { LeagueTabs } from "@/components/LeagueTabs";
+import { LeagueChips } from "@/components/LeagueChips";
 import { LiveStandings } from "@/components/LiveStandings";
+import { MatchRow } from "@/components/MatchRow";
+import { PageHeader } from "@/components/PageHeader";
+import { ScorerRail } from "@/components/ScorerRail";
+import { SectionHeader } from "@/components/SectionHeader";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { StandingsTable } from "@/components/StandingsTable";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
 import { leagueLabel, resolveLeague, type SearchParams } from "@/lib/leagues";
-import styles from "../page.module.css";
+import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Βαθμολογίες" };
+export const metadata: Metadata = {
+  title: "Βαθμολογία",
+  description: "Η βαθμολογία κάθε κατηγορίας της ΕΠΣ Ηπείρου.",
+};
 
+/** Screens 04 and D04.
+ *
+ *  On a wide screen the table keeps the left and a rail on the right carries
+ *  the scorers and the round's fixtures — the two things a reader looks at
+ *  immediately after a table, and which otherwise cost a navigation each.
+ */
 export default async function StandingsPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const [{ seasons, season, leagues, league }, meta] = await Promise.all([
-    resolveLeague(params),
-    api.getMeta(),
-  ]);
+  const { seasons, season, leagues, league } = await resolveLeague(params);
 
   if (!league) {
     return (
-      <div className={styles.page}>
-        <h1>Βαθμολογίες</h1>
-        <Empty title="Καμία διοργάνωση ακόμη" />
-      </div>
+      <>
+        <PageHeader title="Βαθμολογία" />
+        <Empty
+          title="Καμία διοργάνωση"
+          body="Δεν έχει δημοσιευτεί πρωτάθλημα για αυτή την περίοδο."
+        />
+      </>
     );
   }
 
-  const standings = await api.getStandings(league.slug, season);
-  const played = league.current_matchday
-    ? `μετά την ${matchdayLabel(league.current_matchday)}`
-    : undefined;
+  const round = league.current_matchday;
+  const [standings, scorers, fixtures] = await Promise.all([
+    api.getStandings(league.slug, season),
+    api.listScorers(league.slug, { season, limit: 6 }).catch(() => []),
+    round
+      ? api.listMatches(league.slug, { matchday: round, season }).catch(() => [])
+      : Promise.resolve([]),
+  ]);
 
   return (
-    <div className={styles.page}>
-      <div className={styles.titleBlock}>
-        <h1>Βαθμολογία {leagueLabel(league)}</h1>
-        <LastUpdated
-          timestamp={meta.last_scraped_at}
-          suffix={played}
-          sourceUrl={meta.source_url}
-        />
+    <>
+      <PageHeader
+        title="Βαθμολογία"
+        aside={round ? `μετά την ${matchdayLabel(round)}` : undefined}
+      />
+
+      <div className={styles.page}>
+        <div className={styles.main}>
+          <div className={styles.controls}>
+            <LeagueChips
+              leagues={leagues}
+              active={league.slug}
+              basePath="/vathmologia"
+            />
+            <SeasonPicker seasons={seasons} active={season} />
+          </div>
+
+          <LiveStandings leagueSlug={league.slug} />
+
+          {standings.length > 0 ? (
+            <StandingsTable standings={standings} league={league} />
+          ) : (
+            <Empty
+              title="Χωρίς βαθμολογία"
+              body="Η βαθμολογία εμφανίζεται μόλις παιχτεί η πρώτη αγωνιστική."
+            />
+          )}
+
+          {/* Phone only: on a wide screen these sit in the rail beside the
+              table rather than a screen below it. */}
+          <div className={styles.narrowOnly}>
+            <Rail
+              scorers={scorers}
+              fixtures={fixtures}
+              leagueSlug={league.slug}
+              round={round}
+            />
+          </div>
+        </div>
+
+        <aside className={styles.side} aria-label={`Σκόρερ ${leagueLabel(league)}`}>
+          <Rail
+            scorers={scorers}
+            fixtures={fixtures}
+            leagueSlug={league.slug}
+            round={round}
+          />
+        </aside>
       </div>
+    </>
+  );
+}
 
-      <div className={styles.pickers}>
-        <SeasonPicker seasons={seasons} active={season} />
-        <LeagueTabs leagues={leagues} active={league.slug} />
-      </div>
-
-      <LiveStandings leagueSlug={league.slug} />
-
-      {/* The only route to the scorers on a phone: the tab bar is five slots
-          and this is the table people arrive at first. */}
-      <p className={styles.crossLink}>
-        <Link href={`/skorer?liga=${league.slug}${season ? `&periodos=${season}` : ""}`}>
-          Σκόρερ {leagueLabel(league)} →
-        </Link>
-      </p>
-
-      {standings.length > 0 ? (
-        <StandingsTable standings={standings} league={league} />
-      ) : (
-        <Empty
-          title="Χωρίς βαθμολογία"
-          body="Η βαθμολογία εμφανίζεται μόλις παιχτεί η πρώτη αγωνιστική."
-        />
+/** The same two blocks in both layouts, so the phone and the desktop cannot
+ *  drift apart. */
+function Rail({
+  scorers,
+  fixtures,
+  leagueSlug,
+  round,
+}: {
+  scorers: Awaited<ReturnType<typeof api.listScorers>>;
+  fixtures: Awaited<ReturnType<typeof api.listMatches>>;
+  leagueSlug: string;
+  round: number | null;
+}) {
+  return (
+    <>
+      {scorers.length > 0 && (
+        <section className={styles.block}>
+          <SectionHeader title="ΣΚΟΡΕΡ" />
+          <ScorerRail scorers={scorers} leagueSlug={leagueSlug} />
+        </section>
       )}
-    </div>
+
+      {fixtures.length > 0 && round !== null && (
+        <section className={styles.block}>
+          <SectionHeader
+            title={`${round}η ΑΓΩΝΙΣΤΙΚΗ`}
+            action={{
+              href: `/agones?liga=${leagueSlug}&agonistiki=${round}`,
+              label: "Όλοι ›",
+            }}
+          />
+          <div className={styles.card}>
+            {fixtures.slice(0, 5).map((match, i, shown) => (
+              <MatchRow
+                key={match.id}
+                match={match}
+                last={i === shown.length - 1}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+    </>
   );
 }
