@@ -9,37 +9,75 @@ export const OG_CONTENT_TYPE = "image/png";
 const fontFile = (name: string) =>
   readFile(join(process.cwd(), "assets", name));
 
-let cached: Promise<[Buffer, Buffer]> | null = null;
+let cached: Promise<Buffer[]> | null = null;
 
-/** Noto Sans, regular and bold.
+/** The two families the brand uses, in the weights the cards need.
  *
  *  Satori ships no font of its own and falls back to nothing, so every Greek
  *  letter renders as an empty box without this — a failure that is invisible
  *  in the page and only shows up once somebody pastes the link into Viber.
+ *
+ *  Fira Sans Condensed carries the headings, names and numbers, as it does
+ *  everywhere else; Noto Sans carries the prose. Both are vendored as TTF
+ *  rather than pulled through `next/font`, which caches woff2 that Satori
+ *  cannot read.
  */
 export async function ogFonts() {
   cached ??= Promise.all([
     fontFile("NotoSans-Regular.ttf"),
     fontFile("NotoSans-Bold.ttf"),
-  ]) as Promise<[Buffer, Buffer]>;
+    fontFile("FiraSansCondensed-SemiBold.ttf"),
+    fontFile("FiraSansCondensed-Bold.ttf"),
+    fontFile("FiraSansCondensed-ExtraBold.ttf"),
+  ]);
 
-  const [regular, bold] = await cached;
+  const [noto, notoBold, fira600, fira700, fira800] = await cached;
+  const normal = "normal" as const;
   return [
-    { name: "Noto Sans", data: regular, weight: 400 as const, style: "normal" as const },
-    { name: "Noto Sans", data: bold, weight: 700 as const, style: "normal" as const },
+    { name: "Noto Sans", data: noto, weight: 400 as const, style: normal },
+    { name: "Noto Sans", data: notoBold, weight: 700 as const, style: normal },
+    { name: DISPLAY, data: fira600, weight: 600 as const, style: normal },
+    { name: DISPLAY, data: fira700, weight: 700 as const, style: normal },
+    { name: DISPLAY, data: fira800, weight: 800 as const, style: normal },
   ];
 }
 
+/** The display family's name, as Satori will know it. */
+export const DISPLAY = "Fira Sans Condensed";
+
 export const COLORS = {
   navy: "#003c71",
+  navyLine: "#0a4f8c",
   green: "#128c40",
   //: The darker stripe of the mown-grass mark, used only beside `green`.
   grassDark: "#0f7e39",
+  greenLight: "#4fd07c",
   ink: "#3a3a3a",
   muted: "#6c6f72",
+  onNavy: "#f5f5f5",
+  onNavyMuted: "#9cb6ce",
   surface: "#ffffff",
-  canvas: "#ecedee",
+  canvas: "#f4f5f6",
 };
+
+/** The grass band the social cards use as a header, as a CSS value.
+ *
+ *  Satori has no `repeating-linear-gradient`, so the stripes are a plain
+ *  `linear-gradient` with hard stops repeated by hand. Wider stripes than the
+ *  app's mark because the card is 1200px across and the mark is 32.
+ */
+export function grass(stripe = 60): string {
+  const stops: string[] = [];
+  for (let x = 0; x < 1200; x += stripe * 2) {
+    stops.push(
+      `${COLORS.green} ${x}px`,
+      `${COLORS.green} ${x + stripe}px`,
+      `${COLORS.grassDark} ${x + stripe}px`,
+      `${COLORS.grassDark} ${x + stripe * 2}px`,
+    );
+  }
+  return `linear-gradient(90deg, ${stops.join(", ")})`;
+}
 
 /** The frame every card shares: navy ground, the wordmark, and a strip of
  *  colour along the bottom so a thumbnail is recognisable at any size. */

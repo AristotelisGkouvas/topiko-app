@@ -8,6 +8,7 @@ import { MatchRow } from "@/components/MatchRow";
 import { Empty } from "@/components/States";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CalendarLink } from "@/components/CalendarLink";
+import { ShareButton } from "@/components/ShareButton";
 import { ApiError, api } from "@/lib/api";
 import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
@@ -161,6 +162,13 @@ export default async function TeamPage({
         <div className={styles.actions}>
           <FollowButton slug={team.slug} name={team.name} />
           <CalendarLink slug={team.slug} name={team.name} />
+          {/* The card this shares is the club's own OG image, which already
+              carries the crest and the standing — so the link arrives in a
+              group chat looking like something rather than like a URL. */}
+          <ShareButton
+            title={team.short_name ?? team.name}
+            className={styles.share}
+          />
         </div>
 
         {standing?.form && (

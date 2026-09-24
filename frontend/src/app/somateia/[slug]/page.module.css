@@ -106,6 +106,23 @@
 
 /* --- form ------------------------------------------------------------ */
 
+.share {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-navy-900);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.share:hover {
+  background: var(--color-grey-100);
+}
+
 .formRow {
   display: flex;
   align-items: center;
@@ -313,7 +330,24 @@
     flex: 0 1 200px;
   }
 
-  .formRow {
+  .share {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-navy-900);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.share:hover {
+  background: var(--color-grey-100);
+}
+
+.formRow {
     grid-area: form;
     justify-self: end;
   }
