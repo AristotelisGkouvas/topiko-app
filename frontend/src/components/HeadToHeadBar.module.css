@@ -1,0 +1,67 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.side {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The away side reads right-to-left so its number sits against the end of the
+   bar it belongs to. */
+.legend > .side:last-child {
+  text-align: right;
+}
+
+.side strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--color-heading);
+}
+
+.draws {
+  flex: none;
+  white-space: nowrap;
+}
+
+.bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-grey-200);
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+}
+
+/* Navy and grey-blue, not two brand colours: neither club is "the good one",
+   and green here would read as one of them being the right answer. */
+.barHome {
+  background: var(--color-navy-900);
+}
+
+.barDraw {
+  background: var(--color-grey-400);
+}
+
+.barAway {
+  background: var(--color-navy-700);
+}

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
+import { HeadToHeadBar, tally } from "@/components/HeadToHeadBar";
+import { ShareButton } from "@/components/ShareButton";
 import { MatchTicker } from "@/components/MatchTicker";
 import { Prediction } from "@/components/Prediction";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -14,7 +16,6 @@ import {
 } from "@/lib/format";
 import { leagueLabel } from "@/lib/leagues";
 import type { Match, MatchDetail, Standing } from "@/lib/types";
-import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -61,16 +62,29 @@ export default async function MatchPage({
   const played = match.home_score !== null && match.away_score !== null;
   const live = match.status === "live" || match.status === "halftime";
 
-  return (
-    <div className={pageStyles.page}>
-      <nav className={styles.breadcrumb} aria-label="Διαδρομή">
-        <Link href={`/vathmologia?liga=${league.slug}`}>
-          {leagueLabel(league)}
-        </Link>
-        {match.matchday && <span> · {match.matchday}η αγωνιστική</span>}
-      </nav>
+  const directions = match.field
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        [match.field.name, match.field.city].filter(Boolean).join(", "),
+      )}`
+    : null;
+  const record = tally(head_to_head, match.home_team.id);
 
-      <section className={styles.scoreboard}>
+  return (
+    <div className={styles.page}>
+      {/* The navy band runs the full width and carries the crumb, the crests
+          and the score. Screens 03 and D03 spend the page's whole block of
+          brand colour here — it is the one thing the reader came for. */}
+      <div className={styles.hero}>
+        <nav className={styles.breadcrumb} aria-label="Διαδρομή">
+          <Link href={`/agones?liga=${league.slug}`}>‹ Αγώνες</Link>
+          <span>
+            {leagueLabel(league)}
+            {match.matchday ? ` · ${match.matchday}η αγωνιστική` : ""}
+            {match.kickoff_at ? ` · ${formatDayDate(match.kickoff_at)}` : ""}
+          </span>
+        </nav>
+
+        <section className={styles.scoreboard}>
         <TeamSide team={match.home_team} standing={home_standing} />
 
         <div className={styles.middle}>
@@ -97,10 +111,14 @@ export default async function MatchPage({
           )}
         </div>
 
-        <TeamSide team={match.away_team} standing={away_standing} />
-      </section>
+          <TeamSide team={match.away_team} standing={away_standing} />
+        </section>
+      </div>
 
-      <dl className={styles.facts}>
+      <div className={styles.body}>
+        <div className={styles.info}>
+          <SectionHeader title="ΠΛΗΡΟΦΟΡΙΕΣ" />
+          <dl className={styles.facts}>
         <Fact label="Ημερομηνία" value={formatDayDate(match.kickoff_at)} />
         <Fact label="Ώρα" value={formatTime(match.kickoff_at)} />
         <Fact
@@ -113,51 +131,119 @@ export default async function MatchPage({
             ) : null
           }
         />
-        <Fact label="Διαιτητής" value={match.referee} />
-      </dl>
+            {/* Only when one has been appointed. A row reading "Διαιτητής —"
+                on every fixture is a column of nothing. */}
+            <Fact label="Διαιτητής" value={match.referee} />
+          </dl>
 
-      {match.note && <p className={styles.note}>{match.note}</p>}
+          <div className={styles.actions}>
+            {directions && (
+              <a
+                className={styles.primary}
+                href={directions}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Οδηγίες προς το γήπεδο
+              </a>
+            )}
+            <ShareButton
+              title={`${match.home_team.name} – ${match.away_team.name}`}
+              className={styles.secondary}
+            />
+          </div>
 
-      {/* Where the number came from. A score an editor typed during the match
-          is a different claim from one lifted off the federation's own page,
-          and this is the one screen with room to say so. */}
-      {played && match.data_source !== "scraper" && (
-        <p className={styles.provenance}>
-          {match.data_source === "manual_live"
-            ? "Καταχωρήθηκε από συντάκτη κατά τη διάρκεια του αγώνα· εκκρεμεί η επιβεβαίωση από την ένωση."
-            : "Καταχωρήθηκε από συντάκτη και επιβεβαιώθηκε."}
-        </p>
-      )}
+          {match.note && <p className={styles.note}>{match.note}</p>}
 
-      <MatchTicker matchId={match.id} />
+          {/* Where the number came from. A score an editor typed during the
+              match is a different claim from one lifted off the federation's
+              own page, and this is the one screen with room to say so. */}
+          {played && match.data_source !== "scraper" && (
+            <p className={styles.provenance}>
+              {match.data_source === "manual_live"
+                ? "Καταχωρήθηκε από συντάκτη κατά τη διάρκεια του αγώνα· εκκρεμεί η επιβεβαίωση από την ένωση."
+                : "Καταχωρήθηκε από συντάκτη και επιβεβαιώθηκε."}
+            </p>
+          )}
+        </div>
 
-      <Prediction
-        matchId={match.id}
-        homeName={match.home_team.short_name ?? match.home_team.name}
-        awayName={match.away_team.short_name ?? match.away_team.name}
-      />
+        <div className={styles.centre}>
+          <MatchTicker matchId={match.id} />
 
-      {head_to_head.length > 0 && (
-        <section className={styles.history}>
-          <SectionHeader title="Προηγούμενες συναντήσεις" />
-          <p className={styles.allMeetings}>
-            <Link
-              href={`/kontra/${match.home_team.slug}/${match.away_team.slug}`}
-            >
-              Όλο το ιστορικό των δύο σωματείων →
-            </Link>
-          </p>
-          <ul className={styles.historyList}>
-            {head_to_head.map((previous) => (
-              <HistoryRow
-                key={previous.id}
-                match={previous}
-                homeTeamId={match.home_team.id}
+          <Prediction
+            matchId={match.id}
+            homeName={match.home_team.short_name ?? match.home_team.name}
+            awayName={match.away_team.short_name ?? match.away_team.name}
+          />
+
+          {head_to_head.length > 0 && (
+            <section className={styles.history}>
+              <SectionHeader
+                title="ΠΡΟΗΓΟΥΜΕΝΕΣ ΣΥΝΑΝΤΗΣΕΙΣ"
+                action={{
+                  href: `/kontra/${match.home_team.slug}/${match.away_team.slug}`,
+                  label: "Κόντρα ›",
+                }}
               />
-            ))}
-          </ul>
-        </section>
-      )}
+              <div className={styles.historyCard}>
+                <div className={styles.barWrap}>
+                  <HeadToHeadBar
+                    home={match.home_team}
+                    away={match.away_team}
+                    record={record}
+                  />
+                </div>
+                <ul className={styles.historyList}>
+                  {head_to_head.map((previous) => (
+                    <HistoryRow
+                      key={previous.id}
+                      match={previous}
+                      homeTeamId={match.home_team.id}
+                    />
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
+        </div>
+
+        {(home_standing || away_standing) && (
+          <aside className={styles.standings} aria-label="Θέσεις στη βαθμολογία">
+            <SectionHeader
+              title="ΣΤΗ ΒΑΘΜΟΛΟΓΙΑ"
+              action={{
+                href: `/vathmologia?liga=${league.slug}`,
+                label: "Πλήρης ›",
+              }}
+            />
+            <div className={styles.standingsCard}>
+              {[
+                { team: match.home_team, standing: home_standing },
+                { team: match.away_team, standing: away_standing },
+              ]
+                .filter((row) => row.standing !== null)
+                .map(({ team, standing }) => (
+                  <Link
+                    key={team.slug}
+                    href={`/somateia/${team.slug}`}
+                    className={styles.standingRow}
+                  >
+                    <span className={styles.standingPos}>
+                      {standing!.position}
+                    </span>
+                    <Crest team={team} size="sm" />
+                    <span className={styles.standingName}>
+                      {team.short_name ?? team.name}
+                    </span>
+                    <span className={styles.standingPoints}>
+                      {standing!.points}
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          </aside>
+        )}
+      </div>
     </div>
   );
 }
