@@ -19,6 +19,7 @@ const BACKEND: SheetBackend = {
   feed: async (matchId) => (await volunteerApi.feed(matchId))!,
   undo: async (matchId, eventId) => (await volunteerApi.undo(matchId, eventId))!,
   via: "ethelontis",
+  roster: async () => (await volunteerApi.roster()) ?? [],
   empty: {
     title: "Κανένας αγώνας",
     body: "Δεν βρέθηκε αγώνας του σωματείου σου για τη φετινή σεζόν.",

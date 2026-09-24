@@ -18,6 +18,8 @@ export type EventKind =
   | "halftime"
   | "second_half"
   | "fulltime"
+  | "postponed"
+  | "abandoned"
   | "note";
 
 export interface FeedEvent {
@@ -56,6 +58,8 @@ export const EVENT_LABELS: Record<EventKind, { glyph: string; label: string }> =
   halftime: { glyph: "⏸", label: "Ημίχρονο" },
   second_half: { glyph: "▶", label: "Β΄ ημίχρονο" },
   fulltime: { glyph: "⏹", label: "Τελικό" },
+  postponed: { glyph: "⌛", label: "Αναβολή" },
+  abandoned: { glyph: "⛔", label: "Διακοπή" },
   note: { glyph: "✎", label: "Σημείωση" },
 };
 

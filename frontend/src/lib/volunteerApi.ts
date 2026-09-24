@@ -4,6 +4,7 @@
 // second declaration of it here would be a second thing to keep in step.
 import type { MatchFeed } from "@/components/MatchTicker";
 import { API_URL, ASSOCIATION } from "./api";
+import type { RosterPlayer } from "@/components/GoalSheet";
 import type { Match } from "./types";
 
 /** The club representative's half of the API.
@@ -66,6 +67,9 @@ export const volunteerApi = {
   me: () => call<Volunteer>("/me"),
 
   matches: () => call<Match[]>("/matches"),
+
+  /** The club's players, ordered by goals — the scorer sheet's list. */
+  roster: () => call<RosterPlayer[]>("/roster"),
 
   feed: (matchId: number) => call<MatchFeed>(`/matches/${matchId}/feed`),
 

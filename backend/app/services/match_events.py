@@ -21,6 +21,12 @@ _STATUS_MARKERS = {
     MatchEventKind.HALFTIME: MatchStatus.HALFTIME,
     MatchEventKind.SECOND_HALF: MatchStatus.LIVE,
     MatchEventKind.FULLTIME: MatchStatus.FINISHED,
+    # A match that was called off is not a match with no score — the
+    # difference is the whole reason somebody walked to the ground.
+    MatchEventKind.POSTPONED: MatchStatus.POSTPONED,
+    # Abandoned mid-play. The federation decides afterwards whether it is
+    # replayed or awarded; until then it is not finished.
+    MatchEventKind.ABANDONED: MatchStatus.POSTPONED,
 }
 
 

@@ -33,6 +33,7 @@ GROUPS: dict[str, tuple[MatchEventKind, ...]] = {
         MatchEventKind.SECOND_YELLOW,
         MatchEventKind.RED,
     ),
+    "postponed": (MatchEventKind.POSTPONED, MatchEventKind.ABANDONED),
 }
 
 #: What a browser gets when it has said nothing. Goals and the final whistle
@@ -42,6 +43,9 @@ DEFAULTS: dict[str, bool] = {
     "status": True,
     "penalty": True,
     "cards": False,
+    # On by default, and the one switch nobody should have to find: an
+    # abandoned match is what somebody needs told *before* they drive to it.
+    "postponed": True,
 }
 
 _GROUP_OF: dict[MatchEventKind, str] = {

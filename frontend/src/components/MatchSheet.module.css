@@ -272,3 +272,24 @@
   font-size: 11.5px;
   opacity: 0.85;
 }
+
+
+/* The call-off pair: same shape as the markers, quieter colour. They end the
+   match rather than move it along, and a volunteer should not reach for one by
+   accident while looking for half time. */
+.markerOff {
+  color: var(--color-loss);
+  border-color: var(--color-loss);
+}
+
+.markerOff:hover:not(:disabled) {
+  background: var(--color-loss-surface);
+  color: var(--color-loss-ink);
+}
+
+
+.minuteAuto {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--color-green-600);
+}

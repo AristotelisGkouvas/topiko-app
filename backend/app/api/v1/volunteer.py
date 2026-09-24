@@ -24,7 +24,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import CurrentAssociation, CurrentSeason, DbSession
 from app.core.config import settings
 from app.core.security import create_access_token, decode_access_token
-from app.models import ClubAccessCode, League, Match
+from app.models import ClubAccessCode, League, Match, Player, PlayerStat
 from app.api.v1.events import (
     EventIn,
     MatchFeedOut,
@@ -318,6 +318,59 @@ async def undo_report(
     return await remove_event(
         match, event_id, association=association, request=request, db=db, code=code
     )
+
+
+class RosterPlayerOut(BaseModel):
+    slug: str
+    name: str
+    goals: int = 0
+
+
+@router.get(
+    "/{association_slug}/ethelontis/roster", response_model=list[RosterPlayerOut]
+)
+async def roster(
+    association: CurrentAssociation,
+    code: CurrentCode,
+    season: CurrentSeason,
+    db: DbSession,
+) -> list[RosterPlayerOut]:
+    """This club's players, for the scorer picker.
+
+    Built from the stat rows rather than from a squad list, because there is no
+    squad list — the federation publishes appearances, not registrations. So
+    "the roster" here means "everybody who has played for this club this
+    season", which is the set a scorer is overwhelmingly likely to come from.
+
+    Ordered by goals: the person tapping this is standing up, and the three
+    names at the top are the ones they need nine times out of ten.
+    """
+    rows = (
+        await db.execute(
+            select(Player, PlayerStat.goals)
+            .join(PlayerStat, PlayerStat.player_id == Player.id)
+            .join(League, PlayerStat.league_id == League.id)
+            .where(
+                League.association_id == association.id,
+                League.season_id == season.id,
+                PlayerStat.team_id == code.team_id,
+            )
+            .order_by(PlayerStat.goals.desc().nulls_last(), Player.name)
+        )
+    ).all()
+
+    seen: set[str] = set()
+    out: list[RosterPlayerOut] = []
+    for player, goals in rows:
+        # A player with rows in two divisions appears twice; the first is the
+        # one with more goals, which is the one worth showing.
+        if player.slug in seen:
+            continue
+        seen.add(player.slug)
+        out.append(
+            RosterPlayerOut(slug=player.slug, name=player.name, goals=goals or 0)
+        )
+    return out
 
 
 __all__ = ["router", "CurrentCode", "get_current_code", "COOKIE", "SCOPE"]

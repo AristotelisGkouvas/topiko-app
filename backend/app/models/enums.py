@@ -90,4 +90,8 @@ class MatchEventKind(str, enum.Enum):
     HALFTIME = "halftime"            # ΗΜΙΧΡΟΝΟ
     SECOND_HALF = "second_half"      # Β ΗΜΙΧΡΟΝΟ
     FULLTIME = "fulltime"            # ΤΕΛΙΚΟ
+    #: Ο αγώνας δεν έγινε, ή σταμάτησε και δεν συνεχίστηκε. Χωριστά από τη
+    #: σημείωση, γιατί αλλάζουν την κατάσταση του αγώνα και όχι μόνο το log.
+    POSTPONED = "postponed"          # ΑΝΑΒΟΛΗ
+    ABANDONED = "abandoned"          # ΔΙΑΚΟΠΗ
     NOTE = "note"                    # ΣΗΜΕΙΩΣΗ

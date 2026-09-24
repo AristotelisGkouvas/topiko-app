@@ -24,6 +24,12 @@ export interface QueuedEvent {
   kind: string;
   team_id?: number;
   minute?: number;
+  /** Who scored, when the volunteer stopped to say. Optional on purpose:
+   *  a goal without a name is still a goal, and asking first is how the
+   *  goal itself goes unrecorded. */
+  player_name?: string;
+  /** Why a match was called off. */
+  note?: string;
   queued_at: number;
   /** Which door this goes through — an editor's account or a club's code.
    *
@@ -87,6 +93,8 @@ async function send(event: QueuedEvent): Promise<Response> {
         kind: event.kind,
         team_id: event.team_id,
         minute: event.minute,
+        player_name: event.player_name,
+        note: event.note,
       }),
     },
   );

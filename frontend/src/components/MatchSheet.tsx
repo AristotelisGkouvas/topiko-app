@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 
 import { EVENT_LABELS, type EventKind, type MatchFeed } from "@/components/MatchTicker";
+import { GoalSheet, type GoalChoice, type RosterPlayer } from "@/components/GoalSheet";
 import { Empty } from "@/components/States";
 import { EditorError, editorApi } from "@/lib/editorApi";
 import {
@@ -16,6 +17,57 @@ import {
 import { formatTime } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchSheet.module.css";
+
+/** How long an entry can be taken back.
+ *
+ *  A minute, as the handoff asks. Long enough to catch the tap that went to
+ *  the wrong club, short enough that the log stops being editable while the
+ *  match is still running — an undo an hour later is a correction, and
+ *  corrections belong to the federation's own editors.
+ */
+const UNDO_WINDOW_MS = 60_000;
+
+function undoable(event: { created_at: string }): boolean {
+  return Date.now() - new Date(event.created_at).getTime() < UNDO_WINDOW_MS;
+}
+
+/** The match minute, counted from the kickoff entry.
+ *
+ *  Nobody standing at a village ground is going to type a number before every
+ *  goal. The log already knows when the whistle went, so the clock is derived
+ *  from it — and stops at half time, because the interval is not football.
+ *
+ *  Returns null until there is a kickoff to count from. A clock that starts at
+ *  zero the moment the screen opens is worse than no clock: it looks right.
+ */
+function useMatchClock(feed: MatchFeed | null): number | null {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    // Ticked rather than read during render, which would be impure and would
+    // disagree between two renders of the same data.
+    const timer = window.setInterval(() => setNow(Date.now()), 20_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  if (!feed) return null;
+
+  const kickoff = feed.events.find((e) => e.kind === "kickoff");
+  if (!kickoff) return null;
+
+  const stopped = feed.events.some(
+    (e) => e.kind === "halftime" || e.kind === "fulltime",
+  );
+  const last = feed.events.at(-1);
+  if (stopped && last) {
+    // Frozen at whatever the last entry said, so the number on screen matches
+    // the one in the log rather than drifting through the interval.
+    return last.minute ?? null;
+  }
+
+  const elapsed = (now - new Date(kickoff.created_at).getTime()) / 60_000;
+  return Math.max(1, Math.round(elapsed));
+}
 
 /** Where the sheet gets its data and where it sends it.
  *
@@ -31,6 +83,9 @@ export interface SheetBackend {
   undo: (matchId: number, eventId: number) => Promise<MatchFeed>;
   /** Which endpoint a queued event is eventually posted to. */
   via: "editor" | "ethelontis";
+  /** The club's own players, for the scorer sheet. Absent for the editor's
+   *  dashboard, which covers every club and has no single squad to offer. */
+  roster?: () => Promise<RosterPlayer[]>;
   empty: { title: string; body: string };
 }
 
@@ -118,8 +173,18 @@ function Sheet({
   const [minute, setMinute] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  //: Which side's goal is being named, or null when the sheet is closed.
+  const [scoring, setScoring] = useState<Match["home_team"] | null>(null);
   const queued = useOutboxSize();
   const online = useOnline();
+  const clock = useMatchClock(feed);
+
+  // Only the volunteer's own backend has a roster; the editor's dashboard
+  // covers every club in the federation and has no single squad to offer.
+  const { data: roster, isLoading: rosterLoading } = useSWR<RosterPlayer[]>(
+    backend.roster ? [`${backend.key}:roster`] : null,
+    () => backend.roster!(),
+  );
 
   useEffect(() => {
     // Subscribes to two external systems and does nothing else: the queue
@@ -151,11 +216,18 @@ function Sheet({
     },
   );
 
-  async function send(kind: EventKind, teamId?: number) {
+  async function send(
+    kind: EventKind,
+    teamId?: number,
+    extra?: { playerName?: string | null; note?: string | null },
+  ) {
     if (busy) return;
     setBusy(true);
     setError(null);
+    // The typed minute wins over the clock: somebody correcting an entry from
+    // five minutes ago is telling us something the clock cannot know.
     const parsed = Number.parseInt(minute, 10);
+    const at = Number.isInteger(parsed) ? parsed : (clock ?? undefined);
 
     // Written down before it is sent. If the phone is behind the goal with no
     // reception, the afternoon is still recorded — which is the whole point.
@@ -164,7 +236,9 @@ function Sheet({
       match_id: match.id,
       kind,
       team_id: teamId,
-      minute: Number.isInteger(parsed) ? parsed : undefined,
+      minute: at,
+      player_name: extra?.playerName ?? undefined,
+      note: extra?.note ?? undefined,
       // Tagged now, not at flush time: the queue can outlive this session.
       via: backend.via,
     });
@@ -182,7 +256,7 @@ function Sheet({
 
   async function undo() {
     const last = feed?.events.at(-1);
-    if (!last || busy) return;
+    if (!last || busy || !undoable(last)) return;
     setBusy(true);
     setError(null);
     try {
@@ -196,6 +270,31 @@ function Sheet({
 
   const home = match.home_team;
   const away = match.away_team;
+
+  /** Record a goal for `team`, with whatever the sheet came back with.
+   *
+   *  An own goal is filed against the side that put it in, and the server
+   *  credits the other — the same rule the scoreboard already uses, so the
+   *  volunteer taps the team they were watching rather than doing the
+   *  arithmetic themselves. */
+  function scored(team: Match["home_team"], choice: GoalChoice) {
+    setScoring(null);
+    void send(choice.ownGoal ? "own_goal" : "goal", team.id, {
+      playerName: choice.playerName,
+    });
+  }
+
+  /** Call the match off. The reason is the point: "ΑΝΑΒΟΛΗ" alone sends
+   *  everybody to ask the same question in the same group chat. */
+  function callOff(kind: "postponed" | "abandoned") {
+    const reason = window.prompt(
+      kind === "postponed"
+        ? "Γιατί αναβλήθηκε; (π.χ. καιρός, γήπεδο)"
+        : "Γιατί διακόπηκε;",
+    );
+    if (reason === null) return;
+    void send(kind, undefined, { note: reason.trim() || null });
+  }
 
   return (
     <div className={styles.sheet}>
@@ -221,6 +320,9 @@ function Sheet({
         </p>
       )}
 
+      {/* The clock runs itself from the kickoff entry; the field is an
+          override for somebody correcting something from five minutes ago,
+          which is a thing the clock cannot know. */}
       <label className={styles.minuteField}>
         Λεπτό
         <input
@@ -228,9 +330,12 @@ function Sheet({
           inputMode="numeric"
           value={minute}
           onChange={(e) => setMinute(e.target.value.replace(/\D/g, "").slice(0, 3))}
-          placeholder="—"
+          placeholder={clock === null ? "—" : String(clock)}
           aria-label="Λεπτό αγώνα"
         />
+        {clock !== null && minute === "" && (
+          <span className={styles.minuteAuto}>αυτόματα</span>
+        )}
       </label>
 
       <div className={styles.goals}>
@@ -238,7 +343,7 @@ function Sheet({
           type="button"
           className={styles.goal}
           disabled={busy}
-          onClick={() => send("goal", home.id)}
+          onClick={() => (backend.roster ? setScoring(home) : send("goal", home.id))}
         >
           +1 ΓΚΟΛ
           <span className={styles.goalTeam}>{home.short_name ?? home.name}</span>
@@ -247,7 +352,7 @@ function Sheet({
           type="button"
           className={styles.goal}
           disabled={busy}
-          onClick={() => send("goal", away.id)}
+          onClick={() => (backend.roster ? setScoring(away) : send("goal", away.id))}
         >
           +1 ΓΚΟΛ
           <span className={styles.goalTeam}>{away.short_name ?? away.name}</span>
@@ -275,6 +380,37 @@ function Sheet({
           ⏹ Τελικό
         </button>
       </div>
+
+      {/* Below the ordinary markers and set apart, because they end the match
+          rather than move it along. */}
+      <div className={styles.markers}>
+        <button
+          type="button"
+          className={`${styles.marker} ${styles.markerOff}`}
+          disabled={busy}
+          onClick={() => callOff("postponed")}
+        >
+          Αναβολή
+        </button>
+        <button
+          type="button"
+          className={`${styles.marker} ${styles.markerOff}`}
+          disabled={busy}
+          onClick={() => callOff("abandoned")}
+        >
+          Διακοπή
+        </button>
+      </div>
+
+      {scoring && (
+        <GoalSheet
+          team={scoring.short_name ?? scoring.name}
+          roster={roster ?? []}
+          loading={rosterLoading}
+          onPick={(choice) => scored(scoring, choice)}
+          onClose={() => setScoring(null)}
+        />
+      )}
 
       <button
         type="button"

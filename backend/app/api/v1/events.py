@@ -98,6 +98,8 @@ _MATCH_WIDE = (
     MatchEventKind.HALFTIME,
     MatchEventKind.SECOND_HALF,
     MatchEventKind.FULLTIME,
+    MatchEventKind.POSTPONED,
+    MatchEventKind.ABANDONED,
     MatchEventKind.NOTE,
 )
 
@@ -390,6 +392,10 @@ async def _announce(match: Match, event: MatchEvent, db: DbSession) -> None:
 
     if event.kind is MatchEventKind.FULLTIME:
         title = "Τελικό"
+    elif event.kind is MatchEventKind.POSTPONED:
+        title = "Αναβολή"
+    elif event.kind is MatchEventKind.ABANDONED:
+        title = "Διακοπή"
     else:
         title = "ΓΚΟΛ"
 
