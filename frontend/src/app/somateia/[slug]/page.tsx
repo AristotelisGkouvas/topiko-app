@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
 import { FollowButton } from "@/components/FollowButton";
-import { MatchGrid } from "@/components/MatchGrid";
+import { MatchRow } from "@/components/MatchRow";
+import { Empty } from "@/components/States";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CalendarLink } from "@/components/CalendarLink";
 import { ApiError, api } from "@/lib/api";
@@ -12,7 +13,6 @@ import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
 import type { FieldRef, League, Match, Standing, TeamDetail } from "@/lib/types";
-import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -118,116 +118,165 @@ export default async function TeamPage({
   const upcoming = stillToCome(matches);
 
   return (
-    <div className={pageStyles.page}>
-      <header className={styles.header}>
-        <Crest team={team} size="lg" />
-        {/* The ☆ from the kit's team profile header. */}
-        <FollowButton slug={team.slug} name={team.name} />
+    <div className={styles.page}>
+      {/* Screen 06's hero: the crest, who they are, where they stand, and the
+          two things a supporter does here — follow, and subscribe. */}
+      <header className={styles.hero}>
         <div className={styles.identity}>
-          <h1 className={styles.name}>{team.name}</h1>
-          <p className={styles.meta}>
-            {[
-              team.founded_year ? `Ιδρ. ${team.founded_year}` : null,
-              team.city,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          <Crest team={team} size="lg" />
+          <div className={styles.names}>
+            <h1 className={styles.name}>{team.short_name ?? team.name}</h1>
+            <p className={styles.meta}>
+              {[
+                placement ? leagueLabel(placement.league) : null,
+                team.home_field ? `Έδρα: ${team.home_field.name}` : null,
+                team.founded_year ? `Ιδρ. ${team.founded_year}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+            {/* The official name, once, where there is room for it. Every list
+                on the site shows the short one. */}
+            {team.short_name && team.short_name !== team.name && (
+              <p className={styles.official}>{team.name}</p>
+            )}
+          </div>
+        </div>
+
+        {standing && (
+          <dl className={styles.stats}>
+            <Stat value={`${standing.position}η`} label="Θέση" />
+            <Stat value={standing.points} label="Βαθμοί" />
+            <Stat
+              value={`${standing.goals_for}:${standing.goals_against}`}
+              label="Γκολ"
+            />
+            <Stat
+              value={formatGoalDifference(standing.goal_difference)}
+              label="Διαφορά"
+            />
+          </dl>
+        )}
+
+        <div className={styles.actions}>
+          <FollowButton slug={team.slug} name={team.name} />
+          <CalendarLink slug={team.slug} name={team.name} />
+        </div>
+
+        {standing?.form && (
+          <div className={styles.formRow}>
+            <span className={styles.formLabel}>ΦΟΡΜΑ</span>
+            <FormPills form={standing.form} />
+          </div>
+        )}
+      </header>
+
+      <div className={styles.body}>
+        {team.seasons.length > 1 && (
+          <div className={styles.seasons}>
+            <SeasonPicker
+              seasons={team.seasons.map((slug) => ({
+                slug,
+                name: slug,
+                // The club's own seasons, so "current" here means the latest
+                // it played rather than the one the federation is running.
+                is_current: slug === team.seasons[0],
+              }))}
+              active={season}
+              markerLabel="τελευταία"
+            />
+          </div>
+        )}
+
+        <section className={styles.column} aria-labelledby="upcoming">
+          <SectionHeader id="upcoming" title="ΕΠΟΜΕΝΟΙ ΑΓΩΝΕΣ" />
+          {upcoming.length > 0 ? (
+            <div className={styles.card}>
+              {upcoming.slice(0, 5).map((match, i, shown) => (
+                <MatchRow
+                  key={match.id}
+                  match={match}
+                  last={i === shown.length - 1}
+                />
+              ))}
+            </div>
+          ) : (
+            <Empty title="Κανένας προγραμματισμένος αγώνας" />
+          )}
+        </section>
+
+        <section className={styles.column} aria-labelledby="results">
+          <SectionHeader id="results" title="ΠΡΟΣΦΑΤΑ ΑΠΟΤΕΛΕΣΜΑΤΑ" />
+          {played.length > 0 ? (
+            <div className={styles.card}>
+              {played
+                .slice(-6)
+                .reverse()
+                .map((match, i, shown) => (
+                  <MatchRow
+                    key={match.id}
+                    match={match}
+                    last={i === shown.length - 1}
+                  />
+                ))}
+            </div>
+          ) : (
+            <Empty
+              title="Κανένα αποτέλεσμα"
+              body={
+                season
+                  ? `Δεν υπάρχουν καταχωρημένα αποτελέσματα για την περίοδο ${season}.`
+                  : undefined
+              }
+            />
+          )}
+        </section>
+
+        <aside className={styles.column} aria-label="Έδρα και ιστορικό">
+          {team.home_field && (
+            <>
+              <SectionHeader title="ΕΔΡΑ" />
+              <Link
+                href={`/gipeda/${team.home_field.slug}`}
+                className={styles.venue}
+              >
+                <span className={styles.venueGlyph} aria-hidden="true">
+                  ⌖
+                </span>
+                <span className={styles.venueText}>
+                  <span className={styles.venueName}>
+                    {team.home_field.name}
+                  </span>
+                  <span className={styles.venueMeta}>
+                    {venueLine(team.home_field)}
+                  </span>
+                </span>
+                <span className={styles.chevron} aria-hidden="true">
+                  ›
+                </span>
+              </Link>
+            </>
+          )}
+
           {placement && (
-            <p className={styles.chips}>
-              <span className={styles.chip}>
-                {placement.standing.position}η θέση
-              </span>
+            <>
+              <SectionHeader
+                title="ΣΤΗ ΒΑΘΜΟΛΟΓΙΑ"
+                action={{
+                  href: `/vathmologia?liga=${placement.league.slug}`,
+                  label: "Πλήρης ›",
+                }}
+              />
               <Link
                 href={`/vathmologia?liga=${placement.league.slug}`}
-                className={styles.chipLink}
+                className={styles.leagueLink}
               >
                 {leagueLabel(placement.league)}
               </Link>
-            </p>
+            </>
           )}
-        </div>
-      </header>
-
-      {standing && (
-        <div className={styles.stats}>
-          <Stat value={standing.points} label="Βαθμοί" />
-          <Stat
-            value={`${standing.won}-${standing.drawn}-${standing.lost}`}
-            label="Ν-Ι-Η"
-          />
-          <Stat
-            value={`${standing.goals_for}:${standing.goals_against}`}
-            label="Γκολ"
-          />
-          <Stat
-            value={formatGoalDifference(standing.goal_difference)}
-            label="Διαφορά"
-          />
-        </div>
-      )}
-
-      {standing?.form && (
-        <div className={styles.formRow}>
-          <span className={styles.formLabel}>Φόρμα</span>
-          <FormPills form={standing.form} />
-        </div>
-      )}
-
-      {team.home_field && (
-        <Link
-          href={`/gipeda`}
-          className={styles.venue}
-          aria-label={`Έδρα: ${team.home_field.name}`}
-        >
-          <span className={styles.venueGlyph} aria-hidden="true">
-            ⌖
-          </span>
-          <span>
-            <span className={styles.venueName}>{team.home_field.name}</span>
-            <span className={styles.venueMeta}>
-              {venueLine(team.home_field)}
-            </span>
-          </span>
-        </Link>
-      )}
-
-      <CalendarLink slug={team.slug} name={team.name} />
-
-      {team.seasons.length > 1 && (
-        <SeasonPicker
-          seasons={team.seasons.map((slug) => ({
-            slug,
-            name: slug,
-            // The club's own seasons, so "current" here means the latest it
-            // played rather than the one the federation is running.
-            is_current: slug === team.seasons[0],
-          }))}
-          active={season}
-          markerLabel="τελευταία"
-        />
-      )}
-
-      <section aria-labelledby="upcoming">
-        <SectionHeader id="upcoming" title="Επόμενοι αγώνες" />
-        <MatchGrid
-          matches={upcoming.slice(0, 4)}
-          empty={{ title: "Κανένας προγραμματισμένος αγώνας" }}
-        />
-      </section>
-
-      <section aria-labelledby="results">
-        <SectionHeader id="results" title="Τελευταία αποτελέσματα" />
-        <MatchGrid
-          matches={played.slice(-6).reverse()}
-          empty={{
-            title: "Κανένα αποτέλεσμα",
-            body: season
-              ? `Δεν υπάρχουν καταχωρημένα αποτελέσματα για την περίοδο ${season}.`
-              : undefined,
-          }}
-        />
-      </section>
+        </aside>
+      </div>
 
       {/* The one place a club official would look. The tool is not in the nav
           — it is not for readers — but a door nobody can find is not a door. */}

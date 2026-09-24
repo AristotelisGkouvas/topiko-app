@@ -1,61 +1,65 @@
-.header {
+/* Screens 06 and D06. Hero at the top — crest, identity, standing, the two
+   things a supporter does here — then the lists: fixtures, results, ground.
+   One column on a phone, three above 1040px. */
+
+.page {
+  /* Full bleed so the hero reaches both edges. */
+  margin: -18px -16px 0;
+}
+
+.hero {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 18px 16px;
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .identity {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.names {
   min-width: 0;
 }
 
 .name {
-  font-size: 22px;
-  line-height: 1.15;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1.05;
+  color: var(--color-heading);
 }
 
 .meta {
+  margin: 4px 0 0;
+  font-family: var(--font-body);
   font-size: 12px;
+  line-height: 1.45;
   color: var(--color-text-muted);
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 3px;
+/* The registered name, shown once and quietly. Every list on the site shows
+   the short one; this is the page where the official one belongs. */
+.official {
+  margin: 3px 0 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--color-grey-400);
 }
 
-.chip,
-.chipLink {
-  font-family: var(--font-display);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-
-.chip {
-  background: var(--color-navy-900);
-  color: var(--color-grey-50);
-}
-
-.chipLink {
-  background: var(--color-grey-100);
-  color: var(--color-grey-600);
-}
-
-.chipLink:hover {
-  color: var(--color-navy-900);
-}
+/* --- the stats strip ------------------------------------------------ */
 
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
+  margin: 0;
   background: var(--color-border);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -64,27 +68,43 @@
 
 .stat {
   background: var(--color-surface);
-  padding: 11px 8px;
-  display: grid;
-  gap: 1px;
-  justify-items: center;
+  padding: 10px 6px;
   text-align: center;
 }
 
 .statValue {
+  display: block;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--color-heading);
+  font-weight: 800;
+  font-size: 20px;
   line-height: 1.1;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
 }
 
 .statLabel {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: 10px;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions > * {
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+/* --- form ------------------------------------------------------------ */
 
 .formRow {
   display: flex;
@@ -94,93 +114,218 @@
 
 .formLabel {
   font-family: var(--font-display);
-  font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 11px;
   letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }
 
 .form {
-  display: inline-flex;
+  display: flex;
   gap: 4px;
 }
 
 .pill {
-  display: grid;
-  place-items: center;
   width: 20px;
   height: 20px;
-  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
   font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 10px;
+  color: #fff;
 }
 
 .win {
-  background: var(--color-win-surface);
-  color: var(--color-win-ink);
+  background: var(--color-green-600);
 }
+
 .draw {
-  background: var(--color-draw-surface);
-  color: var(--color-draw-ink);
+  background: var(--color-draw-dot);
+  color: var(--color-grey-800);
 }
+
 .loss {
-  background: var(--color-loss-surface);
-  color: var(--color-loss-ink);
+  background: var(--color-loss);
 }
+
+/* --- body ------------------------------------------------------------ */
+
+.body {
+  padding: 14px 14px 0;
+  display: grid;
+  gap: 22px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.body > * {
+  min-width: 0;
+}
+
+.column {
+  display: grid;
+  gap: 0;
+  align-items: start;
+  min-width: 0;
+}
+
+.seasons {
+  grid-column: 1 / -1;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* --- ground ---------------------------------------------------------- */
 
 .venue {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
+  padding: 12px 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 11px 13px;
-  color: var(--color-heading);
+  color: var(--color-text);
+  text-decoration: none;
 }
 
 .venue:hover {
-  border-color: var(--color-green-300);
-  color: var(--color-heading);
+  background: var(--color-grey-100);
 }
 
 .venueGlyph {
-  display: grid;
-  place-items: center;
+  flex: none;
   width: 30px;
   height: 30px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--color-green-100);
+  border-radius: 8px;
+  background: var(--color-badge-surface);
+  display: grid;
+  place-items: center;
   color: var(--color-navy-900);
   font-size: 14px;
 }
 
+.venueText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .venueName {
-  display: block;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
+  color: var(--color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .venueMeta {
-  display: block;
-  font-size: 11px;
+  font-family: var(--font-body);
+  font-size: 11.5px;
   color: var(--color-text-muted);
 }
 
+.chevron {
+  flex: none;
+  color: var(--color-grey-400);
+  font-size: 18px;
+}
+
+.leagueLink {
+  display: block;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.leagueLink:hover {
+  background: var(--color-grey-100);
+}
+
+/* --- the volunteer door ---------------------------------------------- */
+
 .volunteer {
-  margin: 28px 2px 0;
+  margin: 28px 14px 0;
   padding-top: 14px;
   border-top: 1px solid var(--color-border);
-  font-size: 0.8125rem;
+  font-family: var(--font-body);
+  font-size: 12px;
   color: var(--color-text-muted);
+  max-width: 1200px;
 }
 
 .volunteer a {
-  color: var(--color-link);
+  color: var(--color-green-600);
   font-weight: 600;
+  text-decoration: none;
+}
+
+.volunteer a:hover {
+  text-decoration: underline;
+}
+
+/* --- wide ------------------------------------------------------------ */
+
+@media (min-width: 1040px) {
+  .hero {
+    padding: 24px 26px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "identity stats"
+      "actions  form";
+    align-items: center;
+    gap: 16px 26px;
+  }
+
+  .identity {
+    grid-area: identity;
+  }
+
+  .stats {
+    grid-area: stats;
+    grid-template-columns: repeat(4, 92px);
+  }
+
+  .actions {
+    grid-area: actions;
+  }
+
+  .actions > * {
+    flex: 0 1 200px;
+  }
+
+  .formRow {
+    grid-area: form;
+    justify-self: end;
+  }
+
+  .body {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 22px 26px 0;
+  }
+
+  .volunteer {
+    margin: 28px auto 0;
+    padding-left: 26px;
+    padding-right: 26px;
+  }
 }
