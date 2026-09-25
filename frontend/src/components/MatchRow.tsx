@@ -39,9 +39,12 @@ export function MatchRow({
   const mine =
     hydrated && (following(match.home_team.slug) || following(match.away_team.slug));
 
-  const played = isDecided(match);
-  const homeWon = played && match.home_score! > match.away_score!;
-  const awayWon = played && match.away_score! > match.home_score!;
+  const played = match.home_score !== null && match.away_score !== null;
+  // Winner and loser styling waits for the final whistle: a live 1–0 is a
+  // score, not a result.
+  const decided = isDecided(match);
+  const homeWon = decided && match.home_score! > match.away_score!;
+  const awayWon = decided && match.away_score! > match.home_score!;
 
   return (
     <Link
@@ -52,13 +55,13 @@ export function MatchRow({
         team={match.home_team}
         score={match.home_score}
         won={homeWon}
-        lost={played && awayWon}
+        lost={awayWon}
       />
       <Side
         team={match.away_team}
         score={match.away_score}
         won={awayWon}
-        lost={played && homeWon}
+        lost={homeWon}
       />
 
       {/* Kickoff time for a fixture, status for anything that is not simply

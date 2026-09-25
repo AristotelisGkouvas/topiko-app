@@ -118,6 +118,24 @@
     gap: 14px;
   }
 
+  /* Same box as the column below it — max width, centring and the 14px
+     inset of primitives .page — so the title and the first card share one
+     left edge. */
+  .wide .inner,
+  .narrow .inner {
+    margin: 0 auto;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .wide .inner {
+    max-width: 1200px;
+  }
+
+  .narrow .inner {
+    max-width: 720px;
+  }
+
   .title {
     font-size: 1.875rem;
     color: var(--color-heading);

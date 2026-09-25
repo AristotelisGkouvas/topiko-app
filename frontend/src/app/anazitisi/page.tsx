@@ -176,7 +176,7 @@ export default async function SearchPage({
 
   return (
     <>
-      <PageHeader title="Αναζήτηση" />
+      <PageHeader column="narrow" title="Αναζήτηση" />
 
       <div className={styles.page}>
         <SearchBox

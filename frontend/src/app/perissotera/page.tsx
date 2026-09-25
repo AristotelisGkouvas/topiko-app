@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function MorePage() {
   return (
     <>
-      <PageHeader title="Περισσότερα" />
+      <PageHeader column="narrow" title="Περισσότερα" />
 
       <div className={styles.page}>
         <nav className={styles.card} aria-label="Περισσότερες σελίδες">

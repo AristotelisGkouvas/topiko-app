@@ -20,7 +20,7 @@ const CONTACT = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
 export default function AboutPage() {
   return (
     <>
-      <PageHeader title="Σχετικά" />
+      <PageHeader column="narrow" title="Σχετικά" />
 
       <div className={styles.page}>
         <section className={styles.card} aria-labelledby="what">

@@ -42,7 +42,7 @@ export default async function StandingsPage({
   if (!league) {
     return (
       <>
-        <PageHeader title="Βαθμολογία" />
+        <PageHeader column="wide" title="Βαθμολογία" />
         <Empty
           title="Καμία διοργάνωση"
           body="Δεν έχει δημοσιευτεί πρωτάθλημα για αυτή την περίοδο."
@@ -85,6 +85,7 @@ export default async function StandingsPage({
   return (
     <>
       <PageHeader
+        column="wide"
         title="Βαθμολογία"
         aside={round ? `μετά την ${matchdayLabel(round)}` : undefined}
       />

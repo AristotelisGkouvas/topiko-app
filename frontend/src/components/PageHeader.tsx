@@ -17,15 +17,22 @@ export function PageHeader({
   title,
   aside,
   controls,
+  column,
 }: {
   title: string;
+  /** On a wide screen, line the title up with the column it heads: the
+   *  primitives' `.pageWide` (1200px) or `.page` (720px). Leave it out when
+   *  the header already sits inside that column. */
+  column?: "wide" | "narrow";
   /** Top right — the season, a count, a status. Never a control. */
   aside?: React.ReactNode;
   /** The second row. Use `PageHeaderStepper` for the ‹ · › shape. */
   controls?: React.ReactNode;
 }) {
   return (
-    <header className={styles.header}>
+    <header
+      className={`${styles.header} ${column ? styles[column] : ""}`}
+    >
       <div className={styles.inner}>
         <div className={styles.top}>
           <h1 className={styles.title}>{title}</h1>

@@ -8,19 +8,32 @@
 }
 
 .hero {
+  position: relative;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
   /* Full bleed past <main>'s 1180px: the band's colour runs to both edges
      of the window, so there is no seam where it meets the app bar. The
      content stays in the column. */
-  box-shadow:
-    0 0 0 100vmax var(--color-surface),
-    0 1px 0 100vmax var(--color-border);
+  box-shadow: 0 0 0 100vmax var(--color-surface);
   clip-path: inset(0 -100vmax -1px);
   padding: 18px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* The band's bottom rule, as wide as the band. Widened with a shadow and
+   not with left/right offsets: a shadow paints past the column without
+   adding to the page's scroll width. */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--color-border);
+  box-shadow: 0 0 0 100vmax var(--color-border);
+  clip-path: inset(0 -100vmax);
 }
 
 .identity {

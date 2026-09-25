@@ -49,7 +49,7 @@ export default async function MatchesPage({
   if (readParam(params, "liga") === "oles" && leagues.length > 1) {
     return (
       <>
-        <PageHeader title="Αγώνες" aside="Όλες οι κατηγορίες · Σαββατοκύριακο" />
+        <PageHeader column="wide" title="Αγώνες" aside="Όλες οι κατηγορίες · Σαββατοκύριακο" />
         <div className={styles.page}>
           <LeagueChips leagues={leagues} active="oles" basePath="/agones" withAll />
           <AllLeagues leagues={leagues} />
@@ -61,7 +61,7 @@ export default async function MatchesPage({
   if (!league) {
     return (
       <>
-        <PageHeader title="Αγώνες" />
+        <PageHeader column="wide" title="Αγώνες" />
         <Empty
           title="Καμία διοργάνωση"
           body="Δεν έχει δημοσιευτεί πρωτάθλημα για αυτή την περίοδο."
@@ -84,6 +84,7 @@ export default async function MatchesPage({
   return (
     <>
       <PageHeader
+        column="wide"
         title="Αγώνες"
         aside={span}
         controls={
