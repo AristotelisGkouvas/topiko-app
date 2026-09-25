@@ -1,0 +1,182 @@
+/* Timings are the design file's own (duration 2.8 s, fade-out in the last
+   0.4 s). Colours stay fixed in both themes: the intro is the grass mark,
+   not a surface. */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  /* Above the header, the tab bar and every sheet. */
+  z-index: 1000;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--color-green-600);
+  color: #fff;
+  font-family: var(--font-display);
+  animation: out 0.4s ease-in 2.4s both;
+}
+
+/* A tap or a key: leave now rather than at 2.4 s. */
+.leaving {
+  animation: out 0.25s ease-in both;
+}
+
+:global(html[data-intro="seen"]) .intro {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+  }
+}
+
+.stripe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10vw;
+  background: var(--color-green-700);
+  animation: mow 0.55s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 6vw;
+}
+
+/* Every size below is a fraction of this one font size. */
+.mark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  font-size: clamp(72px, 17vw, 170px);
+}
+
+.pame {
+  font: 700 0.29em/1 var(--font-display);
+  letter-spacing: 0.13em;
+  text-align: center;
+  padding-left: 0.13em;
+  margin-bottom: 0.06em;
+  animation: track 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 1s both;
+}
+
+.sentra {
+  font: 800 1em/0.86 var(--font-display);
+  letter-spacing: -0.008em;
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.85s both;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0.06em;
+  margin-top: 0.07em;
+}
+
+.rule {
+  flex: 1;
+  height: max(2px, 0.032em);
+  background: #fff;
+  animation: draw 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 0.72s both;
+}
+
+.ruleLeft {
+  transform-origin: right;
+}
+
+.ruleRight {
+  transform-origin: left;
+}
+
+/* The image is a ball on a wide transparent square; the offsets crop it to
+   the ball itself, as the design file does. */
+.ball {
+  flex: none;
+  width: 0.24em;
+  height: 0.24em;
+  border-radius: 50%;
+  background: url("/brand/ball.webp") -0.082em -0.066em / 0.404em 0.404em
+    no-repeat;
+  box-shadow: 0 0.02em 0.05em rgb(0 0 0 / 0.3);
+  animation: roll 0.75s cubic-bezier(0.15, 0.7, 0.25, 1) 0.05s both;
+}
+
+.tagline {
+  font: 700 0.12em/1 var(--font-display);
+  letter-spacing: 0.3em;
+  text-align: center;
+  padding-left: 0.3em;
+  margin-top: 0.28em;
+  animation: fade 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 1.3s both;
+}
+
+@keyframes mow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes roll {
+  from {
+    transform: translateX(-70vw) rotate(-900deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.25em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes track {
+  from {
+    opacity: 0;
+    letter-spacing: 0.6em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.13em;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ends hidden, so a page whose JavaScript never ran is still usable. */
+@keyframes out {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+    visibility: hidden;
+  }
+}

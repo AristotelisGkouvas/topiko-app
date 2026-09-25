@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { Logo, Wordmark } from "@/components/Logo";
 import { ApiError } from "@/lib/api";
 import { volunteerApi, type Volunteer } from "@/lib/volunteerApi";
 import { CodeInput } from "./CodeInput";
@@ -40,8 +39,15 @@ export function CodeForm({ onIn }: { onIn: (who: Volunteer) => void }) {
   return (
     <form className={styles.login} onSubmit={submit}>
       <div className={styles.loginBrand}>
-        <Logo size={40} />
-        <Wordmark size={40} on="light" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- an SVG
+            gains nothing from the image optimiser. */}
+        <img
+          src="/logo/header-on-light.svg"
+          alt="Πάμε Σέντρα"
+          width={256}
+          height={120}
+          style={{ height: 48, width: "auto" }}
+        />
       </div>
 
       <h1 className={styles.loginTitle}>

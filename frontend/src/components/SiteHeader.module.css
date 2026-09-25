@@ -17,14 +17,19 @@
   padding: 14px 16px;
 }
 
-/* Drives every size inside the lockup; see Logo.tsx. */
 .brand {
-  --logo-size: 34px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   text-decoration: none;
   flex: none;
+}
+
+/* The handoff: 40–48px tall in a header. */
+.logo {
+  display: block;
+  height: 40px;
+  width: auto;
 }
 
 .association {
@@ -237,8 +242,8 @@
     margin: 0 auto;
   }
 
-  .brand {
-    --logo-size: 36px;
+  .logo {
+    height: 44px;
   }
 
   .nav {

@@ -15,6 +15,7 @@ import { headers } from "next/headers";
 import { DEFAULT_ASSOCIATION, TENANT_HEADER, isAssociationSlug } from "@/lib/tenant";
 import { Providers } from "@/components/Providers";
 import { READABILITY_BOOT } from "@/lib/readabilityBoot";
+import { INTRO_BOOT } from "@/lib/introBoot";
 
 /* Both faces are loaded with the Greek subset explicitly — the Latin subset
    alone renders Greek text from a fallback and the page ends up in two
@@ -130,7 +131,9 @@ export default async function RootLayout({
               "if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}" +
               // Large text and high contrast, for the same reason: a page
               // that jumps size a frame after loading is worse than either.
-              READABILITY_BOOT,
+              READABILITY_BOOT +
+              // The home-page intro, once per session; see lib/introBoot.ts.
+              INTRO_BOOT,
           }}
         />
       </head>

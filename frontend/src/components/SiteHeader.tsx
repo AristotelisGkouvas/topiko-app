@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import useSWR from "swr";
 
-import { Wordmark } from "./Logo";
 import { LeaguePicker, type PickerLeague } from "./LeaguePicker";
 import { NavIcon } from "./NavIcon";
 import { ThemeToggle } from "./ThemeToggle";
@@ -77,7 +76,18 @@ export function SiteHeader({
             association ? `Πάμε Σέντρα · ${association.name}` : "Πάμε Σέντρα"
           }
         >
-          <Wordmark />
+          {/* The handoff's header lockup (logo 3b, the ball on the halfway
+              line), drawn as outlines so it needs no font. The bar is navy in
+              both themes, so the on-navy file is the only one used here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- an SVG
+              gains nothing from the image optimiser. */}
+          <img
+            src="/logo/header-on-navy.svg"
+            alt=""
+            width={256}
+            height={120}
+            className={styles.logo}
+          />
           {association && (
             <span className={styles.association} aria-hidden="true">
               {association.short_name ?? association.name}
