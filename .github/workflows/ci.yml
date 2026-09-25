@@ -119,8 +119,6 @@ jobs:
         working-directory: backend
       - run: alembic upgrade head && python -m scripts.seed
         working-directory: backend
-      - run: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
-        working-directory: backend
       - run: npm ci && npm run build
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
@@ -130,7 +128,10 @@ jobs:
           # files beside it (next start does not serve a standalone build).
           cp -r .next/static .next/standalone/.next/static
           cp -r public .next/standalone/public
-          PORT=3000 HOSTNAME=127.0.0.1 node .next/standalone/server.js &
-          npx wait-on -t 60000 http://127.0.0.1:3000 http://127.0.0.1:8000/health
+          PORT=3000 HOSTNAME=127.0.0.1 nohup node .next/standalone/server.js > web.log 2>&1 &
+          # Started here rather than in its own step, so both servers live as
+          # long as the tests that need them.
+          (cd ../backend && nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > ../frontend/api.log 2>&1 &)
+          npx wait-on -t 60000 http://127.0.0.1:8000/health http://127.0.0.1:3000             || { echo "--- api.log"; cat api.log; echo "--- web.log"; cat web.log; exit 1; }
           npm run e2e
         working-directory: frontend
