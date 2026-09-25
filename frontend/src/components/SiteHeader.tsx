@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import useSWR from "swr";
 
 import { Wordmark } from "./Logo";
@@ -160,9 +161,40 @@ function Menu({
   children?: React.ReactNode;
 }) {
   const here = items.some((item) => isActive(item, pathname));
+  const menu = useRef<HTMLDetailsElement>(null);
+
+  // A <details> stays open until toggled, and the header outlives every
+  // navigation — so a picked item left the panel hanging over the new page.
+  // It closes on a pick, on a click anywhere else (which is also how opening
+  // the other menu closes this one), and on Escape.
+  useEffect(() => {
+    const close = (event: Event) => {
+      const el = menu.current;
+      if (el?.open && !el.contains(event.target as Node)) el.open = false;
+    };
+    const onKey = (event: KeyboardEvent) => {
+      const el = menu.current;
+      if (event.key === "Escape" && el?.open) {
+        el.open = false;
+        el.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("focusin", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("focusin", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  const shut = () => {
+    if (menu.current) menu.current.open = false;
+  };
 
   return (
-    <details className={styles.menu}>
+    <details ref={menu} className={styles.menu}>
       <summary className={`${styles.pill} ${here ? styles.pillActive : ""}`}>
         {label}
         <span className={styles.caret} aria-hidden="true">
@@ -176,6 +208,7 @@ function Menu({
             href={item.href}
             className={styles.menuItem}
             aria-current={isActive(item, pathname) ? "page" : undefined}
+            onClick={shut}
           >
             <span className={styles.menuIcon}>
               <NavIcon item={item} size={17} />
