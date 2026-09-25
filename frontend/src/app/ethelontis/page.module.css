@@ -49,7 +49,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -57,7 +57,7 @@
 .loginNote {
   margin: auto 0 0;
   font-family: var(--font-body);
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -73,7 +73,7 @@
 .codeLabel {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -90,7 +90,7 @@
   flex: 1;
   min-width: 0;
   height: 52px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   /* 1.5px, as the design draws it — 1px reads as a disabled field at this size
      and 2px as an error. */
@@ -149,7 +149,7 @@
 @media (max-width: 400px) {
   .codeBox {
     height: 46px;
-    font-size: 1.125rem;
+    font-size: var(--text-xl);
   }
 }
 
@@ -163,12 +163,12 @@
   padding: 0 16px;
   box-sizing: border-box;
   border: 1px solid var(--color-green-600);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--color-action);
   color: var(--color-action-ink);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   cursor: pointer;
 }
 
@@ -184,11 +184,11 @@
 .error {
   margin: 0;
   padding: 9px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--color-loss-surface);
   color: var(--color-loss-ink);
   font-family: var(--font-body);
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
 }
 
 /* --- V2: signed in -------------------------------------------------- */
@@ -214,7 +214,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--color-on-navy-muted);
 }
@@ -234,7 +234,7 @@
 .whoWho {
   margin: 3px 0 0;
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-on-navy-muted);
 }
 
@@ -243,12 +243,12 @@
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid rgb(255 255 255 / 0.28);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: none;
   color: var(--color-on-navy-idle);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   cursor: pointer;
 }
 
@@ -272,7 +272,7 @@
   max-width: 720px;
   padding: 0 14px;
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--color-text-muted);
 }

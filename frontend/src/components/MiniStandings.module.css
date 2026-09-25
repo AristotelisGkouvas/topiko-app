@@ -18,7 +18,7 @@
   border-bottom: 1px solid var(--color-hairline);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--color-text-muted);
 }
@@ -48,7 +48,7 @@
   border-bottom: 1px solid var(--color-hairline);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text);
   text-decoration: none;
   /* The rail slot is reserved on every row, so the reader's own row does not
@@ -131,7 +131,7 @@
   border-bottom: 1px solid var(--color-hairline);
   text-align: center;
   color: var(--color-nav-idle);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1;
 }
 
@@ -144,7 +144,7 @@
   text-align: center;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-accent-ink);
   text-decoration: none;
 }

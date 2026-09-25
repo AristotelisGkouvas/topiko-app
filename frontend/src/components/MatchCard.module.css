@@ -24,12 +24,12 @@
   align-items: center;
   gap: 6px;
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 /* terra-700, not the brighter terra-500: white on terra-500 is 3.9:1 and
@@ -63,7 +63,7 @@
 }
 
 .matchday {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -89,7 +89,7 @@
 .teamName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
   min-width: 0;
   overflow: hidden;
@@ -130,7 +130,7 @@
 }
 
 .fixtureTeam .teamName {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 }
 
 .kickoff {
@@ -149,7 +149,7 @@
 
 .kickoffDay {
   display: block;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -164,12 +164,12 @@
 .postponedTeams {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.9062rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
 }
 
 .postponedNote {
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -177,7 +177,7 @@
   margin-top: 10px;
   padding-top: 9px;
   border-top: 1px solid var(--color-border);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   display: flex;
   align-items: baseline;
@@ -198,7 +198,7 @@
   align-items: center;
   min-height: 44px;
   margin: -12px 0;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-link);
   text-decoration: none;
   font-weight: 600;
@@ -231,12 +231,12 @@ li:last-child > .fixtureRow {
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-heading);
 }
 
 .fixtureRowTime {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -244,7 +244,7 @@ li:last-child > .fixtureRow {
 .fixtureRowScore {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -257,6 +257,6 @@ li:last-child > .fixtureRow {
   color: var(--color-live-ink);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
 }

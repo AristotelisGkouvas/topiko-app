@@ -108,7 +108,7 @@
 .dot {
   width: 7px;
   height: 7px;
-  border-radius: 4px;
+  border-radius: var(--radius-tag);
   background: var(--color-grey-400);
   opacity: 0.55;
   transition: width 0.18s ease;
@@ -143,14 +143,14 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
 
 .small {
   margin: 0;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -185,7 +185,7 @@
   width: 100%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 12px 4px 10px;
   display: flex;
   flex-direction: column;
@@ -219,7 +219,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-action-ink);
 }
 
@@ -232,7 +232,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   line-height: 1;
   color: #fff;
   flex: none;
@@ -242,7 +242,7 @@
 .tileName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.15;
   color: var(--color-heading);
   text-align: center;
@@ -270,10 +270,10 @@
   height: 50px;
   padding: 0 16px;
   box-sizing: border-box;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -306,7 +306,7 @@
   color: var(--color-text);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--text-lg);
   text-decoration: none;
 }
 
@@ -318,7 +318,7 @@
 .back {
   margin: 0;
   padding: 8px 20px 24px;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
 }
 
 .back a {

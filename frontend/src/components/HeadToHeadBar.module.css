@@ -11,7 +11,7 @@
   justify-content: space-between;
   gap: 10px;
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -29,7 +29,7 @@
 .side strong {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-heading);
 }
 
@@ -40,7 +40,7 @@
 .bar {
   display: flex;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
   background: var(--color-grey-200);
 }

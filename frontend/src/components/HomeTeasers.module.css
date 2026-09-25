@@ -24,7 +24,7 @@
 .kicker {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
 }
@@ -32,12 +32,12 @@
 .title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
 }
 
 .meta {
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-accent-ink);
   font-weight: 600;
 }

@@ -28,7 +28,7 @@
 .sideName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8438rem;
+  font-size: var(--text-base);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -54,7 +54,7 @@
 }
 
 .playedLabel {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -64,7 +64,7 @@
 .bar {
   display: flex;
   height: 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
   margin-top: 18px;
   background: var(--color-grey-200);
@@ -89,7 +89,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 7px;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -104,7 +104,7 @@
 .goals {
   margin: 12px 0 0;
   text-align: center;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -126,7 +126,7 @@
   gap: 10px;
   padding: 11px 14px;
   border-bottom: 1px solid var(--color-grey-100);
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
 }
 
 .row:last-child {
@@ -135,11 +135,11 @@
 
 .date {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
 }
 
 .venue {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--color-grey-600);
@@ -150,7 +150,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .win {
@@ -169,7 +169,7 @@
 }
 
 .link {
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-link);
   text-decoration: none;
 }
@@ -179,7 +179,7 @@
 }
 
 .note {
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 

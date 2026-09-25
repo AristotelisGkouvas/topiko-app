@@ -20,7 +20,7 @@
 }
 
 .map :global(.leaflet-control-attribution) {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
 }
 
 /* The marker: a navy teardrop with a white core, tip on the point. */
@@ -58,7 +58,7 @@
   color: var(--color-heading);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 

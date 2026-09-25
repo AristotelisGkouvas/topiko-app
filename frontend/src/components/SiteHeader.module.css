@@ -30,7 +30,7 @@
 .association {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.6px;
   color: var(--color-on-navy-muted);
   white-space: nowrap;
@@ -49,10 +49,10 @@
   padding: 8px 14px;
   min-height: 44px;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   line-height: 1;
   color: var(--color-on-navy-idle);
   text-decoration: none;
@@ -81,7 +81,7 @@
 }
 
 .caret {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   opacity: 0.8;
 }
 
@@ -95,7 +95,7 @@
   left: 0;
   min-width: 210px;
   padding: 6px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: 0 24px 60px rgb(0 30 60 / 0.3);
@@ -110,10 +110,10 @@
   align-items: center;
   gap: 10px;
   padding: 9px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-heading);
   text-decoration: none;
 }
@@ -143,7 +143,7 @@
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-text-muted);
 }
 
@@ -154,10 +154,10 @@
   display: grid;
   place-items: center;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: none;
   color: var(--color-text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 
@@ -179,7 +179,7 @@
   align-items: center;
   gap: 8px;
   height: 44px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--color-on-navy-fill);
   color: var(--color-on-navy-muted);
   text-decoration: none;
@@ -252,7 +252,7 @@
     padding: 0 12px;
     font-family: var(--font-body);
     font-weight: 400;
-    font-size: 0.8125rem;
+    font-size: var(--text-md);
   }
 
   .searchIcon {
@@ -272,12 +272,12 @@
     margin-left: auto;
     width: 18px;
     height: 18px;
-    border-radius: 4px;
+    border-radius: var(--radius-tag);
     background: rgb(255 255 255 / 0.14);
     color: var(--color-on-navy-idle);
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.6875rem;
+    font-size: var(--text-xs);
     line-height: 1;
   }
 }
@@ -299,12 +299,12 @@
   gap: 6px;
   max-width: 46vw;
   padding: 6px 10px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: var(--color-on-navy-fill);
   color: var(--color-on-navy);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -351,7 +351,7 @@
   color: var(--color-text);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8438rem;
+  font-size: var(--text-base);
   text-align: left;
   cursor: pointer;
   min-height: 40px;
@@ -378,6 +378,6 @@
 .menuNote {
   display: block;
   padding: 8px 12px 4px;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }

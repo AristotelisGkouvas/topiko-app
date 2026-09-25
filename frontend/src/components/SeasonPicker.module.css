@@ -11,7 +11,7 @@
 .label {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-grey-600);
@@ -20,12 +20,12 @@
 .select {
   appearance: none;
   padding: 6px 30px 6px 13px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-heading);
   cursor: pointer;
 }
@@ -45,7 +45,7 @@
   position: absolute;
   right: 12px;
   pointer-events: none;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   line-height: 1;
   color: var(--color-grey-600);
 }

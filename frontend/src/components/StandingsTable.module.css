@@ -5,7 +5,7 @@
 .wrap {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -19,7 +19,7 @@
   border-collapse: collapse;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text);
 }
 
@@ -27,7 +27,7 @@
   padding: 8px 12px;
   border-bottom: 1px solid var(--color-hairline);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--color-text-muted);
   text-align: left;
@@ -243,7 +243,7 @@
   padding: 8px 12px 10px;
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -256,7 +256,7 @@
   padding: 10px 12px;
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 

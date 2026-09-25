@@ -177,6 +177,24 @@
      λίστες, ώστε να ξεχωρίζει η μία κάρτα που δεν είναι λίστα. */
   --radius-xl: 14px;
   --radius-sheet: 20px;
+  /* Status tags: LIVE, ΑΝΑΒΟΛΗ, the kickoff time in a list. */
+  --radius-tag: 4px;
+  /* Chips, segmented tabs, round buttons. */
+  --radius-pill: 999px;
+
+  /* --- Type scale ----------------------------------------------------
+     Eight steps for everything below a heading. The modules had drifted to
+     32 distinct sizes, several half a pixel apart (11.5, 12.5, 13.5px);
+     at that distance a difference reads as a mistake, not as hierarchy.
+     rem throughout, so "Μεγάλα γράμματα" still scales all of it. */
+  --text-2xs: 0.625rem; /* 10px — tags, form letters */
+  --text-xs: 0.6875rem; /* 11px — section labels, captions */
+  --text-sm: 0.75rem; /* 12px — meta: venue, referee, time */
+  --text-md: 0.8125rem; /* 13px — secondary lines, links in rows */
+  --text-base: 0.875rem; /* 14px — team names, buttons */
+  --text-body: 0.9375rem; /* 15px — running text */
+  --text-lg: 1rem; /* 16px — card headings */
+  --text-xl: 1.125rem; /* 18px — emphasised numbers */
 
   --shadow-card: 0 1px 2px rgba(0, 60, 113, 0.07),
     0 4px 14px rgba(0, 60, 113, 0.06);
