@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "types": "cd ../backend && python -m scripts.openapi > ../frontend/openapi.json && cd ../frontend && openapi-typescript openapi.json -o src/lib/api-schema.ts",
+    "types": "node scripts/types.mjs",
     "e2e": "playwright test"
   },
   "dependencies": {
