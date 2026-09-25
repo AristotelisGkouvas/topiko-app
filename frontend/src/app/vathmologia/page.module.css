@@ -70,3 +70,30 @@
   font-size: 0.875rem;
   text-decoration: none;
 }
+
+.venueTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.venueTab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-chip-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.venueTabOn {
+  background: var(--color-navy-900);
+  border-color: var(--color-navy-900);
+  color: var(--color-on-navy);
+}

@@ -9,11 +9,13 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { CopyText } from "@/components/CopyText";
 import { StandingsTable } from "@/components/StandingsTable";
+import { VenueTable } from "@/components/VenueTable";
+import Link from "next/link";
 import { tableText } from "@/lib/shareText";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
-import { leagueLabel, resolveLeague, type SearchParams } from "@/lib/leagues";
+import { leagueLabel, readParam, resolveLeague, type SearchParams } from "@/lib/leagues";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +52,28 @@ export default async function StandingsPage({
   }
 
   const round = league.current_matchday;
+  // "Εντός" / "Εκτός": the same season counted from one venue only.
+  const asked = readParam(params, "pinakas");
+  const venue = asked === "entos" ? "home" : asked === "ektos" ? "away" : null;
+  const venueMatches = venue
+    ? await api.listMatches(league.slug, { season }).catch(() => [])
+    : [];
+  const tab = (key: string | null, label: string) => {
+    const q = new URLSearchParams({ liga: league.slug });
+    if (season) q.set("periodos", season);
+    if (key) q.set("pinakas", key);
+    const on = (key ?? null) === (asked === "entos" || asked === "ektos" ? asked : null);
+    return (
+      <Link
+        key={label}
+        href={`/vathmologia?${q}`}
+        className={`${styles.venueTab} ${on ? styles.venueTabOn : ""}`}
+        aria-current={on ? "page" : undefined}
+      >
+        {label}
+      </Link>
+    );
+  };
   const [standings, scorers, fixtures] = await Promise.all([
     api.getStandings(league.slug, season),
     api.listScorers(league.slug, { season, limit: 6 }).catch(() => []),
@@ -78,7 +102,15 @@ export default async function StandingsPage({
 
           <LiveStandings leagueSlug={league.slug} />
 
-          {standings.length > 0 ? (
+          <nav className={styles.venueTabs} aria-label="Είδος βαθμολογίας">
+            {tab(null, "Γενική")}
+            {tab("entos", "Εντός έδρας")}
+            {tab("ektos", "Εκτός έδρας")}
+          </nav>
+
+          {venue ? (
+            <VenueTable matches={venueMatches} side={venue} />
+          ) : standings.length > 0 ? (
             <>
               <StandingsTable standings={standings} league={league} />
               <div>

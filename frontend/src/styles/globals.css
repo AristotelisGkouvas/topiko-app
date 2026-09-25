@@ -164,3 +164,53 @@ main:has([data-offline]) > *:not([data-offline]) {
     break-inside: avoid;
   }
 }
+
+/* "Μεγάλα γράμματα": every size is in rem, so one root change scales the
+   whole site — the same thing the phone's own text-size setting does. */
+html[data-text="large"] {
+  font-size: 125%;
+}
+
+/* "Υψηλή αντίθεση": black ground, white and yellow ink, white outlines —
+   for a screen read in full sun at the ground, or by weaker eyes. Declared
+   with html:root so it outranks both the light and the dark palettes. */
+html:root[data-contrast="high"] {
+  color-scheme: dark;
+  --color-canvas: #000;
+  --color-surface: #000;
+  --color-surface-raised: #111;
+  --color-grey-50: #fff;
+  --color-grey-100: #1c1c1c;
+  --color-grey-200: #fff;
+  --color-text: #fff;
+  --color-text-muted: #f0f0f0;
+  --color-heading: #ffe600;
+  --color-link: #ffe600;
+  --color-link-hover: #fff;
+  --color-accent-ink: #ffe600;
+  --color-border: #fff;
+  --color-chip-border: #fff;
+  --color-hairline: #777;
+  --color-badge-surface: #000;
+  --color-soft: #1c1c1c;
+  --color-navy-900: #000;
+  --color-navy-700: #000;
+  --color-on-navy: #fff;
+  --color-on-navy-muted: #f0f0f0;
+  --color-on-navy-idle: #fff;
+  --color-on-navy-fill: #1c1c1c;
+  --color-on-navy-accent: #ffe600;
+  --color-nav-idle: #f0f0f0;
+  --color-live-surface: #ffe600;
+  --color-live-ink: #000;
+  --color-win-surface: #fff;
+  --color-win-ink: #000;
+  --color-loss-text: #ff8a80;
+  --color-highlight-surface: #ffe600;
+  --color-highlight-ink: #000;
+  --focus-ring: #ffe600;
+}
+
+html:root[data-contrast="high"] a {
+  text-decoration: underline;
+}

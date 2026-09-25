@@ -14,6 +14,8 @@ import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
 import type { FieldRef, Match, TeamDetail } from "@/lib/types";
+import { HomeAway, splitRecord } from "@/components/HomeAway";
+import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -39,95 +41,6 @@ export async function generateMetadata({
   } catch {
     return { title: "Σωματείο" };
   }
-}
-
-interface Split {
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  scored: number;
-  conceded: number;
-}
-
-/** Home and away, and when the goals come — what a coach reads before
- *  playing them. From the season's results, so it needs nothing the page does
- *  not already have. */
-function splitRecord(team: { id: number }, played: Match[]) {
-  const empty = (): Split => ({ played: 0, won: 0, drawn: 0, lost: 0, scored: 0, conceded: 0 });
-  const home = empty();
-  const away = empty();
-  let halvesKnown = 0;
-  const firstHalf = { scored: 0, conceded: 0 };
-  const secondHalf = { scored: 0, conceded: 0 };
-
-  for (const m of played) {
-    const atHome = m.home_team.id === team.id;
-    const side = atHome ? home : away;
-    const us = (atHome ? m.home_score : m.away_score) ?? 0;
-    const them = (atHome ? m.away_score : m.home_score) ?? 0;
-    side.played += 1;
-    side.scored += us;
-    side.conceded += them;
-    if (us > them) side.won += 1;
-    else if (us === them) side.drawn += 1;
-    else side.lost += 1;
-
-    if (m.home_score_ht !== null && m.away_score_ht !== null) {
-      const usHt = atHome ? m.home_score_ht : m.away_score_ht;
-      const themHt = atHome ? m.away_score_ht : m.home_score_ht;
-      halvesKnown += 1;
-      firstHalf.scored += usHt;
-      firstHalf.conceded += themHt;
-      secondHalf.scored += us - usHt;
-      secondHalf.conceded += them - themHt;
-    }
-  }
-  return { home, away, halvesKnown, firstHalf, secondHalf };
-}
-
-function HomeAway({ record }: { record: ReturnType<typeof splitRecord> }) {
-  const row = (label: string, s: Split) => (
-    <tr>
-      <th scope="row">{label}</th>
-      <td>{s.played}</td>
-      <td>{s.won}</td>
-      <td>{s.drawn}</td>
-      <td>{s.lost}</td>
-      <td>
-        {s.scored}:{s.conceded}
-      </td>
-    </tr>
-  );
-  return (
-    <div className={styles.card}>
-      <table className={styles.split}>
-        <caption className="srOnly">Απόδοση εντός και εκτός έδρας</caption>
-        <thead>
-          <tr>
-            <th scope="col" />
-            <th scope="col"><abbr title="Αγώνες">ΑΓ</abbr></th>
-            <th scope="col"><abbr title="Νίκες">Ν</abbr></th>
-            <th scope="col"><abbr title="Ισοπαλίες">Ι</abbr></th>
-            <th scope="col"><abbr title="Ήττες">Η</abbr></th>
-            <th scope="col">ΓΚΟΛ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {row("Εντός", record.home)}
-          {row("Εκτός", record.away)}
-        </tbody>
-      </table>
-      {record.halvesKnown > 0 && (
-        <p className={styles.halves}>
-          Γκολ ανά ημίχρονο ({record.halvesKnown}{" "}
-          {record.halvesKnown === 1 ? "αγώνας" : "αγώνες"} με σκορ ημιχρόνου):
-          α΄ {record.firstHalf.scored}:{record.firstHalf.conceded} · β΄{" "}
-          {record.secondHalf.scored}:{record.secondHalf.conceded}
-        </p>
-      )}
-    </div>
-  );
 }
 
 function FormPills({ form }: { form: string }) {
@@ -218,9 +131,11 @@ export default async function TeamPage({
           <dl className={styles.stats}>
             <Stat value={`${standing.position}η`} label="Θέση" />
             <Stat value={standing.points} label="Βαθμοί" />
+            {/* Words, not "32:28": a ratio has to be decoded, and read out
+                it is "thirty-two colon twenty-eight". */}
             <Stat
-              value={`${standing.goals_for}:${standing.goals_against}`}
-              label="Γκολ"
+              value={`${standing.goals_for} – ${standing.goals_against}`}
+              label="Γκολ υπέρ – κατά"
             />
             <Stat
               value={formatGoalDifference(standing.goal_difference)}
@@ -298,6 +213,18 @@ export default async function TeamPage({
               ›
             </Link>
           )}
+          {upcoming[0] && (
+            <Link
+              className={styles.nextH2h}
+              href={`/somateia/${
+                upcoming[0].home_team.id === team.id
+                  ? upcoming[0].away_team.slug
+                  : upcoming[0].home_team.slug
+              }/analysi?me=${team.slug}`}
+            >
+              Ανάλυση αντιπάλου ›
+            </Link>
+          )}
         </section>
 
         {pending.length > 0 && (
@@ -350,6 +277,7 @@ export default async function TeamPage({
               <HomeAway record={splitRecord(team, played)} />
             </>
           )}
+          <GoalMinutes slug={team.slug} title="ΓΚΟΛ ΑΝΑ 15ΛΕΠΤΟ" />
 
           <SectionHeader
             title="ΡΟΣΤΕΡ"

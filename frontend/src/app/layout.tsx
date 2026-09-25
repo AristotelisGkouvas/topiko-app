@@ -14,6 +14,7 @@ import styles from "./layout.module.css";
 import { headers } from "next/headers";
 import { DEFAULT_ASSOCIATION, TENANT_HEADER, isAssociationSlug } from "@/lib/tenant";
 import { Providers } from "@/components/Providers";
+import { READABILITY_BOOT } from "@/lib/readabilityBoot";
 
 /* Both faces are loaded with the Greek subset explicitly — the Latin subset
    alone renders Greek text from a fallback and the page ends up in two
@@ -100,6 +101,10 @@ export default async function RootLayout({
       // Read by apiUrl() in the browser: the one place client code learns
       // which ΕΠΣ it is serving. See lib/tenant.ts.
       data-association={association}
+      // The pre-paint script below sets data-theme, data-text and
+      // data-contrast before React loads, so <html> differs from the server
+      // render by design. This silences that one element only, not its tree.
+      suppressHydrationWarning
     >
       <head>
         {/* Runs before the first paint. A reader who chose dark and is served
@@ -111,7 +116,10 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html:
               "try{var t=localStorage.getItem('pamesentra:theme');" +
-              "if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}",
+              "if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}" +
+              // Large text and high contrast, for the same reason: a page
+              // that jumps size a frame after loading is worse than either.
+              READABILITY_BOOT,
           }}
         />
       </head>

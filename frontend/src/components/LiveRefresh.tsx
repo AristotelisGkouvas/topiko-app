@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { pollEvery } from "@/lib/network";
 
 /** Re-renders a server page on a timer while its match is being played.
  *
@@ -13,7 +14,7 @@ export function LiveRefresh({ every = 20_000 }: { every?: number }) {
     const timer = window.setInterval(() => {
       // Not while hidden: a phone in a pocket should not be fetching.
       if (document.visibilityState === "visible") router.refresh();
-    }, every);
+    }, pollEvery(every));
     return () => window.clearInterval(timer);
   }, [router, every]);
   return null;

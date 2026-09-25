@@ -1260,6 +1260,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/teams/{team_slug}/goal-minutes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Team Goal Minutes
+         * @description When they score and when they concede — the coach's question.
+         */
+        get: operations["team_goal_minutes_api_v1__association_slug__teams__team_slug__goal_minutes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/teams/{team_slug}/imerologio.ics": {
         parameters: {
             query?: never;
@@ -1708,6 +1728,21 @@ export interface components {
          * @enum {string}
          */
         FieldSurface: "grass" | "artificial" | "dirt";
+        /**
+         * GoalMinutesOut
+         * @description When a club scores and concedes, in six 15-minute bands.
+         *
+         *     From the goals logged at the ground, so it covers only matches somebody
+         *     kept a sheet for — `matches` says how many that is.
+         */
+        GoalMinutesOut: {
+            /** Conceded */
+            conceded: number[];
+            /** Matches */
+            matches: number;
+            /** Scored */
+            scored: number[];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -4911,6 +4946,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TeamDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_goal_minutes_api_v1__association_slug__teams__team_slug__goal_minutes_get: {
+        parameters: {
+            query?: {
+                /** @description Slug περιόδου, π.χ. 2025-2026. Default: τρέχουσα. */
+                season?: string | null;
+            };
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalMinutesOut"];
                 };
             };
             /** @description Validation Error */

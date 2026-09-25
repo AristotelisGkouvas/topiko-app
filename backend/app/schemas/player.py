@@ -50,6 +50,19 @@ class RosterRowOut(ORMModel):
     banned_after_matchday: int | None = None
 
 
+class GoalMinutesOut(ORMModel):
+    """When a club scores and concedes, in six 15-minute bands.
+
+    From the goals logged at the ground, so it covers only matches somebody
+    kept a sheet for — `matches` says how many that is.
+    """
+
+    #: 1–15, 16–30, 31–45+, 46–60, 61–75, 76–90+.
+    scored: list[int]
+    conceded: list[int]
+    matches: int
+
+
 class LiveScorerOut(ORMModel):
     """A scorer counted from the goals logged at the ground.
 

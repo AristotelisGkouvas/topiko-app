@@ -7,6 +7,7 @@ import { apiUrl, jsonFetcher } from "@/lib/api";
 import type { Match } from "@/lib/types";
 import styles from "./LiveMatches.module.css";
 import { plural } from "@/lib/format";
+import { pollEvery } from "@/lib/network";
 
 /**
  * Polling, not websockets.
@@ -20,7 +21,7 @@ const POLL_MS = 20_000;
 
 export function LiveMatches({ initial }: { initial: Match[] }) {
   const { data, error } = useSWR<Match[]>(apiUrl("/matches/live"), jsonFetcher<Match[]>, {
-    refreshInterval: POLL_MS,
+    refreshInterval: () => pollEvery(POLL_MS),
     fallbackData: initial,
     // Coming back to the tab should show current scores immediately.
     revalidateOnFocus: true,

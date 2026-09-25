@@ -9,6 +9,7 @@ import { apiUrl, jsonFetcher } from "@/lib/api";
 import { roundText } from "@/lib/shareText";
 import type { League, Match } from "@/lib/types";
 import styles from "./page.module.css";
+import { pollEvery } from "@/lib/network";
 
 // lib/leagues reads cookies on the server and cannot come into the browser.
 const leagueLabel = (league: League) => league.short_name ?? league.name;
@@ -20,7 +21,7 @@ const leagueLabel = (league: League) => league.short_name ?? league.name;
  *  it open. */
 export function AllLeagues({ leagues }: { leagues: League[] }) {
   const { data, isLoading } = useSWR<Match[]>(apiUrl("/matches/weekend"), jsonFetcher, {
-    refreshInterval: (latest) => (latest?.some((m) => m.is_live) ? 20_000 : 0),
+    refreshInterval: (latest) => (latest?.some((m) => m.is_live) ? pollEvery(20_000) : 0),
   });
 
   if (isLoading && !data) return <p className={styles.note}>Φόρτωση…</p>;

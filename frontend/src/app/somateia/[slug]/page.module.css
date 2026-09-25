@@ -209,50 +209,6 @@
   composes: card from "../../../styles/primitives.module.css";
 }
 
-.split {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.split th,
-.split td {
-  padding: 8px 10px;
-  text-align: right;
-  border-bottom: 1px solid var(--color-hairline);
-}
-
-.split thead th {
-  font-size: 0.6875rem;
-  letter-spacing: 1px;
-  color: var(--color-text-muted);
-  font-weight: 600;
-}
-
-.split tbody th {
-  text-align: left;
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.split tbody tr:last-child > * {
-  border-bottom: none;
-}
-
-.split abbr {
-  text-decoration: none;
-}
-
-.halves {
-  margin: 0;
-  padding: 8px 10px 10px;
-  border-top: 1px solid var(--color-hairline);
-  font-size: 0.7812rem;
-  color: var(--color-text-muted);
-}
-
 /* --- ground ---------------------------------------------------------- */
 
 .venue {

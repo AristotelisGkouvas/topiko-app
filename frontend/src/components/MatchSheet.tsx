@@ -250,6 +250,18 @@ function Sheet({
   // through — a double yellow from one tap. A ref is read at the moment.
   const sending = useRef(false);
   const [refused, setRefused] = useState(() => rejected());
+  // A green flash on the scoreboard, and a buzz, when an entry is taken —
+  // the volunteer is watching the pitch, not the screen.
+  const [flash, setFlash] = useState(0);
+
+  // Where the match is, from its markers: not started, running, or at the
+  // interval. Drives the one big ⏸/▶ button beside the clock.
+  const markers = (feed?.events ?? []).filter((e) =>
+    ["kickoff", "halftime", "second_half", "fulltime"].includes(e.kind),
+  );
+  const phase = markers.length
+    ? markers.reduce((a, b) => (b.id > a.id ? b : a)).kind
+    : null;
   const waiting = typeof window === "undefined" ? [] : pending().filter((e) => e.match_id === match.id);
   void queued; // re-render on queue changes so `waiting` stays current
   const [expiredId, setExpiredId] = useState<number | null>(null);
@@ -353,7 +365,11 @@ function Sheet({
     try {
       const result = await flush();
       if (result.blocked) setError(result.blocked);
-      if (result.sent > 0) setFeed(await backend.feed(match.id));
+      if (result.sent > 0) {
+        setFeed(await backend.feed(match.id));
+        setFlash((n) => n + 1);
+        navigator.vibrate?.(40);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Παραμένει σε αναμονή.");
     } finally {
@@ -440,12 +456,53 @@ function Sheet({
         ← Άλλος αγώνας
       </button>
 
-      <div className={styles.board}>
+      <div
+        // Remounted on every accepted entry, which replays the flash.
+        key={flash}
+        className={`${styles.board} ${flash > 0 ? styles.boardFlash : ""}`}
+      >
         <span className={styles.boardTeam}>{home.short_name ?? home.name}</span>
         <span className={styles.boardScore}>
           {feed?.home_score ?? 0}–{feed?.away_score ?? 0}
         </span>
         <span className={styles.boardTeam}>{away.short_name ?? away.name}</span>
+
+        {/* The clock, big, and the one control that moves it on. */}
+        <div className={styles.clockRow}>
+          <span className={styles.clock} aria-label="Λεπτό αγώνα">
+            {phase === "halftime"
+              ? "ΗΜΙΧΡΟΝΟ"
+              : phase === "fulltime"
+                ? "ΤΕΛΙΚΟ"
+                : clock !== null
+                  ? `${clock}′`
+                  : "—"}
+          </span>
+          {phase !== "fulltime" && (
+            <button
+              type="button"
+              className={styles.clockButton}
+              disabled={busy}
+              onClick={() =>
+                phase === null
+                  ? kickOff()
+                  : phase === "halftime"
+                    ? send("second_half")
+                    : phase === "kickoff" || phase === "second_half"
+                      ? send(phase === "kickoff" ? "halftime" : "fulltime")
+                      : undefined
+              }
+            >
+              {phase === null
+                ? "▶ Σέντρα"
+                : phase === "halftime"
+                  ? "▶ Β΄ μέρος"
+                  : phase === "kickoff"
+                    ? "⏸ Ημίχρονο"
+                    : "⏹ Τελικό"}
+            </button>
+          )}
+        </div>
       </div>
 
       {(!online || queued > 0) && (

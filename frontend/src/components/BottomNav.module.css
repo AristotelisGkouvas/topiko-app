@@ -7,7 +7,7 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding: 8px 2px 14px;
@@ -17,6 +17,7 @@
 }
 
 .tab {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,6 +44,13 @@
 
 .label {
   text-align: center;
+  /* At 200% text the five labels no longer fit a phone; each one stays in
+     its own fifth of the bar instead of pushing "Περισσότερα" off-screen. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: min(1em, 3.1vw);
 }
 
 .tab:hover {

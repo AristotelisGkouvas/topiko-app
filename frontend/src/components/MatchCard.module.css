@@ -98,7 +98,7 @@
 }
 
 .teamName:hover {
-  color: var(--color-terra-500);
+  color: var(--color-terra-700);
 }
 
 .score {

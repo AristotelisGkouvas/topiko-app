@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { apiUrl, jsonFetcher } from "@/lib/api";
 import type { LiveTable } from "@/lib/types";
 import styles from "./LiveStandings.module.css";
+import { pollEvery } from "@/lib/network";
 
 /** "Αν τελείωνε τώρα" — the table with every match in progress counted.
  *
@@ -24,7 +25,7 @@ export function LiveStandings({ leagueSlug }: { leagueSlug: string }) {
     // Only while something is being played: with nothing live this renders
     // nothing, and polling it anyway cost a 3G reader 0.7 MB an hour.
     {
-      refreshInterval: (latest) => (latest?.live_matches ? 20_000 : 0),
+      refreshInterval: (latest) => (latest?.live_matches ? pollEvery(20_000) : 0),
       revalidateOnFocus: true,
     },
   );

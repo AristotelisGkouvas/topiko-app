@@ -6,6 +6,7 @@ import { apiUrl, jsonFetcher } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 import type { EventKind, MatchFeed } from "@/lib/types";
 import styles from "./MatchTicker.module.css";
+import { pollEvery } from "@/lib/network";
 
 /** Glyph and wording per kind. A single map, because the ticker, the
  *  secretary's screen and the share card all have to call the same thing the
@@ -53,7 +54,7 @@ export function MatchTicker({
     // Only while it is running. Polling a finished match forever costs the
     // reader's battery to re-read a log that cannot change.
     {
-      refreshInterval: (latest) => (latest?.is_live ? 15_000 : 0),
+      refreshInterval: (latest) => (latest?.is_live ? pollEvery(15_000) : 0),
       revalidateOnFocus: true,
     },
   );

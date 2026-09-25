@@ -48,7 +48,7 @@
   font-size: 0.7812rem;
   border-radius: var(--radius-md, 8px);
   padding: 9px 14px;
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   cursor: pointer;

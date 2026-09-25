@@ -40,3 +40,24 @@ async def test_roster_orders_by_goals_and_flags_a_running_ban(client, db, world:
     assert by["giannis"]["banned_matches"] is None
 
     assert (await client.get("/api/v1/beta/teams/home-alpha/roster")).status_code == 404
+
+
+async def test_goal_minutes_credit_own_goals_to_the_other_side(client, db, world: World) -> None:
+    from app.models import MatchEvent
+    from app.models.enums import MatchEventKind
+
+    a = world.a
+    db.add_all(
+        [
+            MatchEvent(match_id=a.match.id, kind=MatchEventKind.GOAL, team_id=a.home.id, minute=10),
+            MatchEvent(match_id=a.match.id, kind=MatchEventKind.GOAL, team_id=a.away.id, minute=80),
+            # Away put it in their own net: a home goal.
+            MatchEvent(match_id=a.match.id, kind=MatchEventKind.OWN_GOAL, team_id=a.away.id, minute=50),
+        ]
+    )
+    await db.commit()
+
+    body = (await client.get("/api/v1/alpha/teams/home-alpha/goal-minutes")).json()
+    assert body["scored"] == [1, 0, 0, 1, 0, 0]
+    assert body["conceded"] == [0, 0, 0, 0, 0, 1]
+    assert body["matches"] == 1

@@ -26,6 +26,7 @@ from app.schemas.player import (
     ScorerOut,
     LiveScorerOut,
     RosterRowOut,
+    GoalMinutesOut,
     SuspensionOut,
 )
 from app.schemas.search import SearchHitOut, SearchOut
@@ -68,6 +69,7 @@ __all__ = [
     "ScorerOut",
     "LiveScorerOut",
     "RosterRowOut",
+    "GoalMinutesOut",
     "SearchHitOut",
     "SearchOut",
     "SeasonOut",

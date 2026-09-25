@@ -339,3 +339,58 @@
   font: inherit;
   cursor: pointer;
 }
+
+.clockRow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+}
+
+.clock {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-navy);
+}
+
+.clockButton {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 2px solid var(--color-on-navy-accent);
+  border-radius: 999px;
+  background: none;
+  color: var(--color-on-navy);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.clockButton:disabled {
+  opacity: 0.5;
+}
+
+.boardFlash {
+  animation: boardFlash 700ms ease-out;
+}
+
+@keyframes boardFlash {
+  0% {
+    box-shadow: 0 0 0 4px var(--color-green-400);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boardFlash {
+    animation: none;
+  }
+}

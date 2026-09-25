@@ -4,6 +4,7 @@ import Link from "next/link";
 import { NavIcon } from "@/components/NavIcon";
 import { PageHeader } from "@/components/PageHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ReadabilitySettings } from "./ReadabilitySettings";
 import { SECONDARY_NAV_ITEMS } from "@/lib/nav";
 import styles from "./page.module.css";
 
@@ -67,6 +68,7 @@ export default function MorePage() {
             <span className={styles.label}>Θέμα εμφάνισης</span>
             <ThemeToggle className={styles.theme} />
           </div>
+          <ReadabilitySettings />
         </div>
 
         <p className={styles.sectionLabel}>ΣΩΜΑΤΕΙΑ</p>

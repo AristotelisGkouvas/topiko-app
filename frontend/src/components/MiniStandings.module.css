@@ -151,7 +151,10 @@
 }
 
 .all {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 10px 12px;
   text-align: center;
   font-family: var(--font-body);

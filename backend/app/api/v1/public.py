@@ -52,6 +52,7 @@ from app.schemas import (
     Meta,
     LiveScorerOut,
     RosterRowOut,
+    GoalMinutesOut,
     ScorerOut,
     SearchHitOut,
     SearchOut,
@@ -343,6 +344,52 @@ async def team_roster(
             row.banned_matches = ban.matches
             row.banned_after_matchday = ban.matchday
     return list(out.values())
+
+
+def minute_band(minute: int) -> int:
+    """0–5: which 15-minute band a goal falls in. Stoppage time stays in the
+    half it belongs to (45+ is band 2, 90+ band 5); a second-half goal is
+    never logged below 46, so anything over 45 is second half."""
+    if minute <= 45:
+        return min(max(minute - 1, 0) // 15, 2)
+    return min(3 + (minute - 46) // 15, 5)
+
+
+@router.get(
+    "/{association_slug}/teams/{team_slug}/goal-minutes", response_model=GoalMinutesOut
+)
+async def team_goal_minutes(
+    association: CurrentAssociation,
+    season: CurrentSeason,
+    team_slug: str,
+    db: DbSession,
+) -> GoalMinutesOut:
+    """When they score and when they concede — the coach's question."""
+    team = await team_in(db, association.id, team_slug)
+    rows = (
+        await db.execute(
+            select(MatchEvent.match_id, MatchEvent.kind, MatchEvent.team_id, MatchEvent.minute)
+            .join(Match, MatchEvent.match_id == Match.id)
+            .join(League, Match.league_id == League.id)
+            .where(
+                League.season_id == season.id,
+                (Match.home_team_id == team.id) | (Match.away_team_id == team.id),
+                MatchEvent.kind.in_(
+                    (MatchEventKind.GOAL, MatchEventKind.PENALTY_GOAL, MatchEventKind.OWN_GOAL)
+                ),
+                MatchEvent.minute.is_not(None),
+            )
+        )
+    ).all()
+    scored = [0] * 6
+    conceded = [0] * 6
+    for _match_id, kind, team_id, minute in rows:
+        # An own goal is filed against the side that put it in.
+        ours = (team_id == team.id) != (kind is MatchEventKind.OWN_GOAL)
+        (scored if ours else conceded)[minute_band(minute)] += 1
+    return GoalMinutesOut(
+        scored=scored, conceded=conceded, matches=len({r[0] for r in rows})
+    )
 
 
 @router.get("/{association_slug}/teams", response_model=list[TeamOut])

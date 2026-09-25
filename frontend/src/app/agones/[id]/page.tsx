@@ -357,7 +357,7 @@ function TeamSide({
       </Link>
       {standing && (
         <span className={styles.position}>
-          {standing.position}η θέση · {standing.points}β
+          {standing.position}η θέση · {standing.points} βαθμοί
         </span>
       )}
     </div>

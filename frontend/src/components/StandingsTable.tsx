@@ -188,7 +188,8 @@ export function StandingsTable({
                       {row.lost}
                     </td>
                     <td className={`${styles.num} ${styles.wide}`}>
-                      {row.goals_for}:{row.goals_against}
+                      {row.goals_for}–{row.goals_against}
+                      <span className="srOnly"> γκολ υπέρ – κατά</span>
                     </td>
                 <td className={styles.num}>
                     {formatGoalDifference(row.goal_difference)}

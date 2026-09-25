@@ -48,7 +48,9 @@
   --color-hairline: #eeeff0;
   /* Περίγραμμα ανενεργού chip. Πιο σκούρο από το border, γιατί ένα chip
      πρέπει να διαβάζεται ως πάτημα πάνω στον καμβά. */
-  --color-chip-border: #d2d3d5;
+  /* The outline that says "this is a button": 3.3:1, the non-text
+     contrast minimum. A paler one left chips looking like plain text. */
+  --color-chip-border: #8a8e92;
 
   --color-canvas: #f4f5f6;
 
@@ -232,7 +234,7 @@
     --color-grey-100: #1a2e47;
     --color-grey-200: #1f3550;
     --color-hairline: #1a2e47;
-    --color-chip-border: #2a4566;
+    --color-chip-border: #5a7697;
     --color-badge-surface: #1f3550;
     --color-soft: #123d2a;
     /* grey-100 goes dark here, so text on the navy bar needs its own value. */
@@ -274,7 +276,7 @@
   --color-grey-100: #1a2e47;
   --color-grey-200: #1f3550;
   --color-hairline: #1a2e47;
-  --color-chip-border: #2a4566;
+  --color-chip-border: #5a7697;
   --color-badge-surface: #1f3550;
   --color-soft: #123d2a;
   --color-on-navy: #f5f5f5;

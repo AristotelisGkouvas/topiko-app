@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useRef, useState } from "react";
 import useSWR from "swr";
 
 import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { useWelcomed } from "@/lib/onboarding";
 import { formatDayDate, formatTime } from "@/lib/format";
-import type { Match } from "@/lib/types";
+import type { Match, TeamStanding } from "@/lib/types";
 import { Crest } from "./Crest";
 import styles from "./MyClub.module.css";
+import { pollEvery } from "@/lib/network";
 
 interface ClubForm {
   live?: Match;
@@ -64,10 +66,34 @@ export function MyClub() {
   // While the club plays, poll the small live list (one or two matches), not
   // the club's whole season — 13 KB every 20 seconds on a 3G allowance.
   // Same key as the home page's live strip, so it is one request for both.
+  // A goal for the reader's club is announced out loud (assertive), and only
+  // theirs: the rest of the league's goals would be noise. Compared in the
+  // fetch callback, not in an effect, so it fires once per new score.
+  const lastScore = useRef<Record<number, number>>({});
+  const [goalNews, setGoalNews] = useState("");
   const { data: liveList } = useSWR<Match[]>(
     data?.live ? apiUrl("/matches/live") : null,
     jsonFetcher,
-    { refreshInterval: 20_000 },
+    {
+      refreshInterval: () => pollEvery(20_000),
+      onSuccess: (list) => {
+        const mine = list.find((m) => m.id === data?.live?.id);
+        if (!mine || !favourite) return;
+        const ours = mine.home_team.slug === favourite.slug ? mine.home_score : mine.away_score;
+        const before = lastScore.current[mine.id];
+        lastScore.current[mine.id] = ours ?? 0;
+        if (before !== undefined && (ours ?? 0) > before) {
+          setGoalNews(
+            `Γκολ για ${favourite.name}! ${mine.home_team.name} ${mine.home_score}, ${mine.away_team.name} ${mine.away_score}.`,
+          );
+        }
+      },
+    },
+  );
+  const { data: placement } = useSWR<TeamStanding | null>(
+    favourite ? apiUrl(`/teams/${favourite.slug}/standing`) : null,
+    jsonFetcher,
+    { revalidateOnFocus: false },
   );
 
   // Nothing at all until the browser has been read. Rendering the invitation
@@ -105,8 +131,32 @@ export function MyClub() {
   // fixture, the last result takes the slot rather than leaving a hole.
   const shown = live ?? next ?? last;
 
+  // The whole card as one sentence, for TalkBack and VoiceOver: position,
+  // what is happening now, the last result and the next match — read in one
+  // go instead of crest, name, "vs", crest, name.
+  const vs = (m: Match) => `${m.home_team.name} – ${m.away_team.name}`;
+  const summary = [
+    `Η ομάδα σου, ${favourite.name}`,
+    placement ? `${placement.standing.position}η θέση με ${placement.standing.points} βαθμούς` : null,
+    live
+      ? `Παίζει τώρα: ${live.home_team.name} ${live.home_score ?? 0}, ${live.away_team.name} ${live.away_score ?? 0}${live.minute ? `, ${live.minute}ο λεπτό` : ""}`
+      : null,
+    last && last !== live
+      ? `Τελευταίο αποτέλεσμα: ${last.home_team.name} ${last.home_score}, ${last.away_team.name} ${last.away_score}`
+      : null,
+    next && !live
+      ? `Επόμενος αγώνας: ${vs(next)}, ${formatDayDate(next.kickoff_at)} ${formatTime(next.kickoff_at)}${next.field ? `, ${next.field.name}` : ""}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(". ");
+
   return (
     <section className={styles.wrap}>
+      <p className="srOnly">{summary}.</p>
+      <p className="srOnly" role="alert" aria-live="assertive">
+        {goalNews}
+      </p>
       <div className={styles.head}>
         <span className={styles.label}>Η ΟΜΑΔΑ ΜΟΥ</span>
         <Link href={`/somateia/${favourite.slug}`} className={styles.more}>
