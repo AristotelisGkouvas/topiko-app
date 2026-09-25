@@ -99,6 +99,69 @@ class Team(Base, TimestampMixin):
     league_entries: Mapped[list[LeagueTeam]] = relationship(
         back_populates="team", cascade="all, delete-orphan", passive_deletes=True
     )
+    photos: Mapped[list[TeamPhoto]] = relationship(
+        back_populates="team",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="(TeamPhoto.position, TeamPhoto.id.desc())",
+    )
+    sponsors: Mapped[list[Sponsor]] = relationship(
+        back_populates="team",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="(Sponsor.position, Sponsor.id)",
+    )
 
     def __repr__(self) -> str:
         return f"<Team {self.slug}>"
+
+
+class TeamPhoto(Base, TimestampMixin):
+    """One picture in a club's gallery.
+
+    Two files: the full image and a thumbnail for the grid, both WebPs written
+    by app.services.media. Width and height are kept so the page can reserve
+    the space before the image arrives, instead of jumping as it loads.
+    """
+
+    __tablename__ = "team_photos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    url: Mapped[str] = mapped_column(String(255), nullable=False)
+    thumb_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    caption: Mapped[str | None] = mapped_column(String(200))
+    #: Lower first. New photos go in at 0, so the newest leads until someone
+    #: puts another first on purpose.
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    team: Mapped[Team] = relationship(back_populates="photos")
+
+
+class Sponsor(Base, TimestampMixin):
+    """A club's sponsor, shown on the club's page and on its matches.
+
+    Per club, not per federation: in the regional divisions a sponsor is the
+    bakery on the square, and it pays one club, not the league.
+    """
+
+    __tablename__ = "sponsors"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    website_url: Mapped[str | None] = mapped_column(String(255))
+    logo_url: Mapped[str | None] = mapped_column(String(255))
+    #: Lower first — the main sponsor at the top.
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    #: Off rather than deleted when a deal lapses, so it can come back next
+    #: season without the logo being found and uploaded again.
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    team: Mapped[Team] = relationship(back_populates="sponsors")

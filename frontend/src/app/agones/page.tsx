@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { AllLeagues } from "./AllLeagues";
 import { ApiLink } from "@/components/ApiLink";
-import { CopyText } from "@/components/CopyText";
 import { LeagueChips } from "@/components/LeagueChips";
 import { MatchRow } from "@/components/MatchRow";
 import { MatchdayStrip } from "@/components/MatchdayStrip";
@@ -12,13 +11,12 @@ import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { formatDayDate, upper } from "@/lib/format";
 import {
-  leagueLabel,
   readParam,
   resolveLeague,
   resolveMatchday,
   type SearchParams,
+  leagueLabel,
 } from "@/lib/leagues";
-import { roundText } from "@/lib/shareText";
 import type { Match } from "@/lib/types";
 import styles from "./page.module.css";
 
@@ -147,25 +145,21 @@ export default async function MatchesPage({
           </div>
         )}
 
-        {matches.length > 0 && (
-          <div>
-            <CopyText
-              text={roundText(
-                `${leagueLabel(league)} · ${matchday}η αγωνιστική`,
-                matches,
-              )}
-            />
-          </div>
-        )}
-
-        <p className={styles.note}>
-          Οι διαιτητές φαίνονται στη σελίδα του κάθε αγώνα.{" "}
-          <Link href={`/vathmologia?liga=${league.slug}`}>Βαθμολογία ›</Link>{" "}
-          ·{" "}
-          <ApiLink path={`/leagues/${league.slug}/imerologio.ics`}>
-            Όλη η κατηγορία στο ημερολόγιό σου (.ics)
+        {/* Two onward links, as rows: a sentence of footnote with "›", "·"
+            and "(.ics)" strung together read as a typo. */}
+        <nav className={styles.links} aria-label="Σχετικά">
+          <Link href={`/vathmologia?liga=${league.slug}`} className={styles.linkRow}>
+            <span>Βαθμολογία {leagueLabel(league)}</span>
+            <span className={styles.chevron} aria-hidden="true">›</span>
+          </Link>
+          <ApiLink
+            path={`/leagues/${league.slug}/imerologio.ics`}
+            className={styles.linkRow}
+          >
+            <span>Όλο το πρόγραμμα στο ημερολόγιό σου</span>
+            <span className={styles.chevron} aria-hidden="true">›</span>
           </ApiLink>
-        </p>
+        </nav>
       </div>
     </>
   );

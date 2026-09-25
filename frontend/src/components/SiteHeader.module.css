@@ -303,8 +303,12 @@
   align-items: center;
   gap: 6px;
   max-width: 46vw;
-  padding: 6px 10px;
-  border-radius: var(--radius-xl);
+  /* The search button's height and corners, so the two controls on the
+     right of the bar read as a pair. */
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
   background: var(--color-on-navy-fill);
   color: var(--color-on-navy);
   font-family: var(--font-display);
@@ -316,9 +320,6 @@
   text-overflow: ellipsis;
   cursor: pointer;
   list-style: none;
-  /* 44px of target around a 26px chip. */
-  min-height: 34px;
-  box-sizing: border-box;
 }
 
 .leagueChip::-webkit-details-marker {

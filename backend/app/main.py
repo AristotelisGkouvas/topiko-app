@@ -1,4 +1,6 @@
 import logging
+import mimetypes
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -7,9 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.openapi.utils import get_openapi
+from starlette.responses import Response
+from starlette.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from app.api.v1.archive import router as archive_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.club_admin import router as club_admin_router
 from app.api.v1.editor import router as editor_router
 from app.api.v1.events import router as events_router
 from app.api.v1.predictions import router as predictions_router
@@ -70,12 +76,34 @@ app.add_middleware(RequestContext)
 
 app.include_router(auth_router)
 app.include_router(editor_router)
+app.include_router(club_admin_router)
 app.include_router(events_router)
 app.include_router(predictions_router)
 app.include_router(push_router)
 app.include_router(mvp_router)
 app.include_router(volunteer_router)
 app.include_router(public_router)
+
+
+class _Media(StaticFiles):
+    """Uploaded images. Every file has a name that is never reused (see
+    app.services.media), so each can be cached for a year without a way for
+    it to go stale."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+# The type comes from the platform's MIME table, and not every one knows WebP
+# (Windows' registry often does not). Served as text/plain with nosniff, the
+# browser refuses to draw it.
+mimetypes.add_type("image/webp", ".webp")
+Path(settings.media_dir).mkdir(parents=True, exist_ok=True)
+app.mount(settings.media_url, _Media(directory=settings.media_dir), name="media")
+
 # After the public router: its /{association_slug}/{...} routes are more
 # specific, and a catch-all here would shadow them.
 app.include_router(archive_router)

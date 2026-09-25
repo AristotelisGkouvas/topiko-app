@@ -52,7 +52,7 @@ export default async function ScorersPage({
       />
 
       <div className={pageStyles.pickers}>
-        <SeasonPicker seasons={seasons} active={season} />
+        <SeasonPicker seasons={seasons} active={season} league={leagueLabel(league)} />
         <LeagueTabs leagues={leagues} active={league.slug} />
       </div>
 
@@ -120,10 +120,6 @@ export default async function ScorersPage({
               </tbody>
             </table>
           </div>
-          <p className={styles.note}>
-            Η ένωση δημοσιεύει την κορυφή της λίστας. Μια παύλα σημαίνει ότι η
-            στήλη δεν δημοσιεύτηκε για αυτή τη διοργάνωση — όχι μηδέν.
-          </p>
         </>
       ) : (
         <Empty

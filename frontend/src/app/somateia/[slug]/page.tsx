@@ -19,6 +19,8 @@ import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
 import { Icon } from "@/components/Icon";
 import { FormGuide } from "@/components/FormGuide";
+import { Gallery } from "@/components/Gallery";
+import { Sponsors } from "@/components/Sponsors";
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +88,19 @@ export default async function TeamPage({
     <div className={styles.page}>
       {/* Screen 06's hero: the crest, who they are, where they stand, and the
           two things a supporter does here — follow, and subscribe. */}
-      <header className={styles.hero}>
+      <header
+        className={`${styles.hero} ${team.primary_color ? styles.coloured : ""}`}
+        // The club's colours as a thin band across the top: enough to say
+        // whose page this is, not so much that the page stops being the site's.
+        style={
+          team.primary_color
+            ? ({
+                "--club-1": team.primary_color,
+                "--club-2": team.secondary_color ?? team.primary_color,
+              } as React.CSSProperties)
+            : undefined
+        }
+      >
         <div className={styles.identity}>
           <Crest team={team} size="lg" />
           <div className={styles.names}>
@@ -252,6 +266,13 @@ export default async function TeamPage({
           )}
         </section>
 
+        {team.photos.length > 0 && (
+          <section className={styles.column} aria-labelledby="photos">
+            <SectionHeader id="photos" title="ΦΩΤΟΓΡΑΦΙΕΣ" />
+            <Gallery photos={team.photos} name={team.name} />
+          </section>
+        )}
+
         {/* Each block owns its label, so the column can space the blocks
             without also pushing every label away from its own card. */}
         <aside className={styles.aside} aria-label="Έδρα και ιστορικό">
@@ -276,6 +297,13 @@ export default async function TeamPage({
               </Link>
             </nav>
           </div>
+
+          {team.sponsors.length > 0 && (
+            <div>
+              <SectionHeader title="ΧΟΡΗΓΟΙ" />
+              <Sponsors sponsors={team.sponsors} />
+            </div>
+          )}
 
           {team.home_field && (
             <div>

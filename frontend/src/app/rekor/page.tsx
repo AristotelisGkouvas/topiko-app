@@ -66,10 +66,6 @@ export default async function RecordsPage() {
             </li>
           ))}
         </ul>
-        <p className={styles.note}>
-          Αθροισμένα από τις λίστες σκόρερ της ένωσης, άρα κατώτατο όριο: μια
-          περίοδος χωρίς δημοσιευμένη λίστα δεν μετράει καθόλου.
-        </p>
       </section>
     </div>
   );

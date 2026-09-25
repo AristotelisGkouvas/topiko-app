@@ -180,17 +180,11 @@ export function StandingsTable({
         </table>
       </div>
 
-      {/* The abbreviations spelled out once. A title attribute helps a mouse;
-          a phone has no hover, and this is where most tables are read. */}
+      {/* One line: the only abbreviation a reader might not know, and the
+          three form marks. The rest of the header explains itself. */}
       <p className={styles.key}>
-        ΑΓ. αγώνες · ΔΤ διαφορά τερμάτων · Β βαθμοί · ΦΟΡΜΑ οι τελευταίοι
-        αγώνες (<FormGuide form="Ν" /> νίκη,{" "}
-        <FormGuide form="Ι" /> ισοπαλία, <FormGuide form="Η" /> ήττα)
-        <br />
-        {/* Mirrors backend/app/services/standings.py — change both together. */}
-        Σε ισοβαθμία: πρώτα οι βαθμοί στα μεταξύ τους παιχνίδια, μετά η
-        διαφορά τερμάτων, μετά τα γκολ υπέρ. Οι βαθμοί είναι μετά από τυχόν
-        αφαίρεση.
+        ΔΤ διαφορά τερμάτων · <FormGuide form="Ν" /> νίκη{" "}
+        <FormGuide form="Ι" /> ισοπαλία <FormGuide form="Η" /> ήττα
       </p>
 
       {activeZones.length > 0 && (

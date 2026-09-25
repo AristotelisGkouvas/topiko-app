@@ -96,22 +96,28 @@
   overflow: hidden;
 }
 
+/* Match-stats layout: each side's number at its own edge, the label between
+   them, and underneath a bar that grows outwards from the centre — the
+   longer one always the better, whichever way "better" runs. */
 .statRow {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(48px, auto) 1fr minmax(48px, auto);
   align-items: center;
-  gap: 8px;
-  padding: 9px 14px;
-  border-top: 1px solid var(--color-grey-100);
+  gap: 6px 10px;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.statRow:first-child {
+  border-top: 0;
 }
 
 .statLabel {
-  font-size: var(--text-xs);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
   text-align: center;
-  white-space: nowrap;
 }
 
 .cell {
@@ -120,25 +126,60 @@
   font-weight: 600;
   font-size: var(--text-base);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text);
+  color: var(--color-text-muted);
 }
 
 .statRow .cell:first-of-type {
-  text-align: right;
-}
-
-.statRow .cell:last-of-type {
   text-align: left;
 }
 
-/* Weight and a tint, never colour alone: which side is ahead has to survive a
-   greyscale screen and a reader that ignores background. */
+.statRow .cell:last-of-type {
+  text-align: right;
+}
+
+/* The side ahead: its number in full ink and bold. The bar says it too, so
+   neither signal rests on colour alone. */
 .lead {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-heading);
-  background: var(--color-soft);
-  border-radius: var(--radius-pill);
-  padding: 1px 8px;
+}
+
+.bars {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.barHalf {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+
+/* The left half fills from the centre leftwards. */
+.barHalf:first-child {
+  justify-content: flex-end;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.barLeft {
+  background: var(--color-heading);
+}
+
+.barRight {
+  background: var(--color-action);
+}
+
+.barBehind {
+  opacity: 0.45;
 }
 
 .note {

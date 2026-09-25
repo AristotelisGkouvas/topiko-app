@@ -15,15 +15,20 @@ import { ScrapeRuns } from "./ScrapeRuns";
 import { MatchSheet } from "@/components/MatchSheet";
 import { VenueEditor } from "./VenueEditor";
 import { SESSION_LOST } from "./session";
+import { TeamsAdmin } from "./TeamsAdmin";
 import styles from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
-type Tab = "sheet" | "matches" | "codes" | "mvp" | "venues" | "audit" | "runs";
+type Tab = "sheet" | "matches" | "codes" | "look" | "mvp" | "venues" | "audit" | "runs";
 
-const TABS: { id: Tab; label: string }[] = [
+const TABS: { id: Tab; label: string; adminOnly?: boolean }[] = [
   // First, and the default: on a Sunday this is the only screen that matters.
   { id: "sheet", label: "Φύλλο αγώνα" },
   { id: "matches", label: "Αγώνες" },
   { id: "codes", label: "Σωματεία" },
+  // Logos, colours, photos and sponsors: what the public sees of a club is
+  // the federation's call, so editors do not get the tab at all.
+  { id: "look", label: "Ομάδες", adminOnly: true },
   { id: "mvp", label: "MVP" },
   { id: "venues", label: "Γήπεδα" },
   { id: "audit", label: "Ιστορικό" },
@@ -92,7 +97,7 @@ export function EditorDashboard() {
           className={styles.logout}
           onClick={async () => {
             // One click away from the tabs, on a Sunday, with scores typed.
-            if (!window.confirm("Αποσύνδεση από τη διαχείριση;")) return;
+            if (!(await confirm("Αποσύνδεση από τη διαχείριση;", { confirmLabel: "Αποσύνδεση" }))) return;
             await editorApi.logout();
             mutate(undefined, { revalidate: true });
           }}
@@ -117,7 +122,7 @@ export function EditorDashboard() {
       )}
 
       <nav className={styles.tabs} aria-label="Ενότητες διαχείρισης">
-        {TABS.map((t) => (
+        {TABS.filter((t) => !t.adminOnly || user.role === "admin").map((t) => (
           <button
             key={t.id}
             type="button"
@@ -133,6 +138,7 @@ export function EditorDashboard() {
       {tab === "sheet" && <MatchSheet />}
       {tab === "matches" && <MatchEditor />}
       {tab === "codes" && <CodesEditor />}
+      {tab === "look" && user.role === "admin" && <TeamsAdmin />}
       {tab === "mvp" && <MvpEditor />}
       {tab === "venues" && <VenueEditor />}
       {tab === "audit" && <AuditList />}

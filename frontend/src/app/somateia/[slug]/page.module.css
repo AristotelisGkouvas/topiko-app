@@ -360,3 +360,15 @@
 .nextCard {
   margin-top: 8px;
 }
+
+/* The club's two colours as a band along the top of the hero, full bleed
+   like the hero itself. Halves, not a gradient: kit colours are blocks. */
+.coloured::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100vmax;
+  right: -100vmax;
+  height: 6px;
+  background: linear-gradient(90deg, var(--club-1) 0 50%, var(--club-2) 50% 100%);
+}

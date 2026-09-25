@@ -21,7 +21,7 @@ from sqlalchemy import ColumnElement, case, extract, func, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, CurrentLeague, DbSession
-from app.api.lookups import MATCH_LOADS, team_in
+from app.api.lookups import MATCH_LOADS, recent_season_ids, team_in
 from app.core.config import settings
 from app.models.enums import LeagueKind, MatchEventKind, MatchStatus
 from app.models import (
@@ -129,6 +129,26 @@ async def search_players(
     for player_id, team, _slug in rows:
         latest.setdefault(player_id, team)
 
+    # The register holds everybody who ever played, and a name with 225 goals
+    # may have retired a decade ago. Stat lines are only the head of each
+    # leaderboard, so a player with none at all is unknown, not inactive.
+    recent = set(await recent_season_ids(db, association.id))
+    seasons_of: dict[int, set[int]] = {}
+    for player_id, season_id in (
+        await db.execute(
+            select(PlayerStat.player_id, League.season_id)
+            .join(League, PlayerStat.league_id == League.id)
+            .where(PlayerStat.player_id.in_(ids))
+            .distinct()
+        )
+    ).all():
+        seasons_of.setdefault(player_id, set()).add(season_id)
+
+    def active(player_id: int) -> bool | None:
+        if not recent or player_id not in seasons_of:
+            return None
+        return bool(seasons_of[player_id] & recent)
+
     return [
         PlayerSearchOut(
             id=player.id,
@@ -141,6 +161,7 @@ async def search_players(
                 else None
             ),
             total_goals=int(goals or 0),
+            active=active(player.id),
         )
         for player, goals in hits
     ]

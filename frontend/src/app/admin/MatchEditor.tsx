@@ -10,6 +10,7 @@ import { formatDayDate, formatTime, listName } from "@/lib/format";
 import type { Field, League, Match } from "@/lib/types";
 import { noteAuthError } from "./session";
 import styles from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 /** The weekend's matches, to type results into.
  *
@@ -168,12 +169,13 @@ function MatchRow({
     }
   }
 
-  function save(confirmed: boolean) {
+  async function save(confirmed: boolean) {
     if (
       confirmed &&
-      !window.confirm(
-        `Επιβεβαιώνεις ότι το ${home || "–"}-${away || "–"} στο ${label} ελέγχθηκε με το φύλλο αγώνα;`,
-      )
+      !(await confirm(`${label}: ${home || "–"}-${away || "–"}`, {
+        detail: "Επιβεβαιώνεις ότι το σκορ ελέγχθηκε με το φύλλο αγώνα;",
+        confirmLabel: "Επιβεβαίωση",
+      }))
     ) {
       return;
     }

@@ -7,6 +7,7 @@ import { useOutboxSize } from "@/lib/outbox";
 import { volunteerApi, type Volunteer } from "@/lib/volunteerApi";
 import { CodeForm } from "./CodeForm";
 import styles from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 /** The club's own matches, through the same sheet the dashboard uses.
  *
@@ -74,11 +75,15 @@ export function Desk() {
           onClick={async () => {
             // Events still waiting for a signal are sent with this session;
             // signing out first strands them on the phone.
-            const question =
-              queued > 0
-                ? `Υπάρχουν ${queued} γεγονότα που δεν έχουν σταλεί ακόμη. Αν αποσυνδεθείς, δεν θα σταλούν. Αποσύνδεση;`
-                : "Αποσύνδεση από το φύλλο αγώνα;";
-            if (!window.confirm(question)) return;
+            const ok = await confirm("Αποσύνδεση από το φύλλο αγώνα;", {
+              detail:
+                queued > 0
+                  ? `Υπάρχουν ${queued} γεγονότα που δεν έχουν σταλεί ακόμη. Αν αποσυνδεθείς, δεν θα σταλούν.`
+                  : undefined,
+              confirmLabel: "Αποσύνδεση",
+              danger: queued > 0,
+            });
+            if (!ok) return;
             await volunteerApi.logout().catch(() => undefined);
             setState({ status: "out" });
           }}

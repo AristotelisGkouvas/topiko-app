@@ -1,0 +1,377 @@
+.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.field {
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+/* --- the club list ---------------------------------------------------- */
+
+.teamList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teamPick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.teamPick:hover {
+  border-color: var(--color-link);
+}
+
+.teamName {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.swatches {
+  display: flex;
+  gap: 2px;
+}
+
+.swatches span {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
+
+/* --- one club --------------------------------------------------------- */
+
+.editor {
+  display: grid;
+  gap: 16px;
+  max-width: 900px;
+}
+
+.editorHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.back,
+.linkish {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.linkish {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.view {
+  color: var(--color-link);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.teamTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl, 1.375rem);
+  color: var(--color-heading);
+}
+
+.block {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--color-surface);
+}
+
+.blockTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-md, 1rem);
+  color: var(--color-heading);
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filePick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.filePick:focus-within {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Visually hidden, still reachable by keyboard through its label. */
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.danger {
+  padding: 7px 12px;
+  border: 1px solid var(--color-loss, #c0392b);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-loss-text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.danger:disabled,
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --- colours ---------------------------------------------------------- */
+
+.colours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.colour {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.colourLabel {
+  grid-column: 1 / -1;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.colourPick {
+  width: 44px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.hex {
+  width: 110px;
+  min-width: 0;
+  font-family: ui-monospace, monospace;
+}
+
+.hex[aria-invalid="true"] {
+  border-color: var(--color-loss, #c0392b);
+}
+
+.colour .linkish {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.colourPreview {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.band {
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+}
+
+/* --- gallery ---------------------------------------------------------- */
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photoCard {
+  display: grid;
+  gap: 6px;
+}
+
+.photoThumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--color-border);
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.iconButton {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* --- sponsors --------------------------------------------------------- */
+
+.sponsorRows {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sponsorRow {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.sponsorRow .cardActions {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 760px) {
+  .sponsorRow {
+    grid-template-columns: 96px 1fr auto;
+  }
+
+  .sponsorRow .cardActions {
+    grid-column: auto;
+  }
+}
+
+.inactive {
+  opacity: 0.55;
+}
+
+.sponsorLogo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 56px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: #555;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.sponsorLogo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.sponsorLogo:focus-within {
+  outline: 3px solid var(--color-link);
+}
+
+.sponsorFields {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+}
+
+.sponsorAdd {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.fileLine {
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

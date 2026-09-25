@@ -50,3 +50,24 @@
   background: var(--color-on-navy);
   color: var(--color-navy-900);
 }
+
+/* An uploaded logo. Logos are not circles, so they sit whole inside a light
+   disc instead of being cropped by one; the disc stays light in the dark
+   theme, because most crests are drawn for a white background. */
+.logo {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  overflow: hidden;
+}
+
+.logo img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+/* A club colour on the navy bar: a dark club colour would vanish into the
+   bar, so it gets a thin light ring. */
+.ringed {
+  box-shadow: 0 0 0 1.5px var(--color-on-navy);
+}

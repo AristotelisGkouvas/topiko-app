@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import { LEAGUE_COOKIE } from "@/lib/leagueCookie";
 import styles from "./SiteHeader.module.css";
@@ -45,10 +46,37 @@ export function LeaguePicker({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const picker = useRef<HTMLDetailsElement>(null);
+
+  // The header outlives every navigation, so a <details> left open after a
+  // pick stayed open over the next page. Same rules as the header's menus:
+  // closes on a pick, on a click or focus anywhere else, and on Escape.
+  useEffect(() => {
+    const close = (event: Event) => {
+      const el = picker.current;
+      if (el?.open && !el.contains(event.target as Node)) el.open = false;
+    };
+    const onKey = (event: KeyboardEvent) => {
+      const el = picker.current;
+      if (event.key === "Escape" && el?.open) {
+        el.open = false;
+        el.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("focusin", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("focusin", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   if (!active || leagues.length < 2) return null;
 
   function choose(slug: string) {
+    if (picker.current) picker.current.open = false;
     remember(slug);
     // Read at click time from the address bar rather than through
     // useSearchParams. That hook opts the whole tree out of prerendering
@@ -60,7 +88,7 @@ export function LeaguePicker({
   }
 
   return (
-    <details className={styles.league}>
+    <details ref={picker} className={styles.league}>
       <summary className={styles.leagueChip}>
         {active.label}
         <span className={styles.caret} aria-hidden="true">

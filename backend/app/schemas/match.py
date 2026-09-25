@@ -4,7 +4,7 @@ from pydantic import model_validator
 
 from app.models.enums import DataSource, MatchStatus, StandingZone
 from app.services.live import effective
-from app.schemas.catalog import FieldRef, LeagueOut, TeamRef
+from app.schemas.catalog import FieldRef, LeagueOut, SponsorOut, TeamRef
 from app.schemas.common import ORMModel
 
 
@@ -95,6 +95,9 @@ class MatchDetailOut(ORMModel):
     head_to_head: list[MatchOut] = []
     home_standing: StandingOut | None = None
     away_standing: StandingOut | None = None
+    #: Each club's active sponsors, main one first.
+    home_sponsors: list[SponsorOut] = []
+    away_sponsors: list[SponsorOut] = []
 
 
 class LiveStandingOut(StandingOut):

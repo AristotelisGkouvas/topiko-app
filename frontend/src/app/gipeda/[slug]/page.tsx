@@ -111,9 +111,6 @@ export default async function FieldPage({
         ) : (
           <div className={styles.hatch} aria-hidden="true" />
         )}
-        <Link href="/gipeda" className={styles.back}>
-          ‹ Γήπεδα
-        </Link>
       </div>
 
       <div className={styles.titleBlock}>
@@ -150,14 +147,6 @@ export default async function FieldPage({
           )}
           <ShareButton title={field.name} className={styles.secondary} />
         </div>
-
-        {!located && (
-          <p className={styles.noPin}>
-            Το γήπεδο δεν έχει ακόμη θέση στον χάρτη. Οι οδηγίες ψάχνουν το
-            όνομα — η θέση συμπληρώνεται από τη{" "}
-            <Link href="/diaxeirisi">διαχείριση</Link>.
-          </p>
-        )}
 
         {field.home_teams.length > 0 && (
           <section className={styles.group}>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 
+import { ActivityStatus } from "@/components/ActivityStatus";
 import { Crest } from "@/components/Crest";
 import { SearchBox } from "@/components/SearchBox";
 import { Empty } from "@/components/States";
@@ -46,13 +47,21 @@ export default async function PlayersPage({
         <ul className={styles.list}>
           {results.map((player) => (
             <li key={player.id}>
-              <Link href={`/paiktes/${player.slug}`} className={styles.row}>
+              <Link
+                href={`/paiktes/${player.slug}`}
+                className={
+                  player.active === false
+                    ? `${styles.row} ${styles.inactive}`
+                    : styles.row
+                }
+              >
                 {player.last_team && <Crest team={player.last_team} size="sm" />}
                 <span className={styles.names}>
                   <span className={styles.name}>{player.name}</span>
                   <span className={styles.club}>
                     {player.last_team?.name ?? "—"}
                   </span>
+                  <ActivityStatus active={player.active} masculine />
                 </span>
                 <span className={styles.goals}>
                   {player.total_goals}

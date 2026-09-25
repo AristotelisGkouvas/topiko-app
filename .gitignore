@@ -35,3 +35,6 @@ next-env.d.ts
 
 # Build artifacts
 *.tsbuildinfo
+
+# Uploaded images in local development (MEDIA_DIR defaults to ./media).
+backend/media/

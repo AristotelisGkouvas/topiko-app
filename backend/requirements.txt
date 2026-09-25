@@ -28,3 +28,9 @@ httpx==0.28.1
 # Kickoff times are Greek wall-clock, so the scraper needs Europe/Athens.
 # Linux carries the tz database; Windows does not, and zoneinfo raises there.
 tzdata==2024.2
+# Club logos, gallery photos and sponsor logos. Every upload is decoded and
+# re-encoded, never stored as sent: a file that only claims to be an image is
+# refused, and what is served is a WebP this process wrote itself.
+pillow==11.3.0
+# FastAPI needs it to read a multipart upload at all.
+python-multipart==0.0.20

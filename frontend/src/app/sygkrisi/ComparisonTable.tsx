@@ -6,48 +6,65 @@ import { formatGoalDifference } from "@/lib/format";
 import type { ComparedSide, Comparison } from "@/lib/types";
 import styles from "./page.module.css";
 
-/** Rows where a higher number is the better one.
+/** The rows, each with the number its bar is drawn from.
  *
- *  Goals conceded is the exception, and getting it backwards would quietly
- *  praise the worse defence — so the direction is stated per row rather than
- *  assumed from the shape of the data.
+ *  `better` says which way is good. Goals conceded and table position are the
+ *  exceptions, and getting them backwards would quietly praise the worse side
+ *  — so the direction is stated per row rather than assumed from the data.
+ *  Rows without a number (the record, the form) are shown without a bar.
  */
 const ROWS: {
   label: string;
   value: (side: ComparedSide) => string | number;
   better?: "high" | "low";
-  compare?: (side: ComparedSide) => number;
+  bar?: (side: ComparedSide) => number | null;
 }[] = [
   {
     label: "Θέση",
-    value: (s) => s.position ?? "—",
+    value: (s) => (s.position ? `${s.position}η` : "—"),
     better: "low",
-    // A club with no table row must not win the comparison by default.
-    compare: (s) => s.position ?? 999,
+    bar: (s) => s.position,
   },
-  { label: "Αγώνες", value: (s) => s.played },
-  { label: "Βαθμοί", value: (s) => s.points, better: "high", compare: (s) => s.points },
-  { label: "Ν-Ι-Η", value: (s) => `${s.won}-${s.drawn}-${s.lost}` },
-  {
-    label: "Γκολ υπέρ",
-    value: (s) => s.goals_for,
-    better: "high",
-    compare: (s) => s.goals_for,
-  },
+  { label: "Αγώνες", value: (s) => s.played, bar: (s) => s.played },
+  { label: "Βαθμοί", value: (s) => s.points, better: "high", bar: (s) => s.points },
+  { label: "Νίκες-Ισοπαλίες-Ήττες", value: (s) => `${s.won}-${s.drawn}-${s.lost}` },
+  { label: "Γκολ υπέρ", value: (s) => s.goals_for, better: "high", bar: (s) => s.goals_for },
   {
     label: "Γκολ κατά",
     value: (s) => s.goals_against,
     better: "low",
-    compare: (s) => s.goals_against,
+    bar: (s) => s.goals_against,
   },
   {
-    label: "Διαφορά",
+    label: "Διαφορά τερμάτων",
     value: (s) => formatGoalDifference(s.goal_difference),
     better: "high",
-    compare: (s) => s.goal_difference,
+    bar: (s) => s.goal_difference,
   },
   { label: "Φόρμα", value: (s) => s.form ?? "—" },
 ];
+
+/** How much of its half each side's bar fills, 0–1.
+ *
+ *  The larger value fills its half and the other is drawn in proportion, as
+ *  on the usual match-stats screens. Where lower is better (position, goals
+ *  against) the two are swapped first, so the longer bar is always the better
+ *  one. Negative values (a goal difference of −3) are shifted up to zero.
+ */
+function barWidths(
+  a: number | null,
+  b: number | null,
+  better: "high" | "low" | undefined,
+): [number, number] | null {
+  if (a === null || b === null) return null;
+  let [x, y] = better === "low" ? [b, a] : [a, b];
+  const floor = Math.min(x, y, 0);
+  x -= floor;
+  y -= floor;
+  const top = Math.max(x, y);
+  if (top === 0) return [0, 0];
+  return [x / top, y / top];
+}
 
 export function ComparisonTable({ comparison }: { comparison: Comparison }) {
   const { left, right, record } = comparison;
@@ -62,13 +79,10 @@ export function ComparisonTable({ comparison }: { comparison: Comparison }) {
 
       <dl className={styles.stats}>
         {ROWS.map((row) => {
+          const widths = row.bar ? barWidths(row.bar(left), row.bar(right), row.better) : null;
           let lead: "left" | "right" | null = null;
-          if (row.compare && row.better) {
-            const a = row.compare(left);
-            const b = row.compare(right);
-            if (a !== b) {
-              lead = (row.better === "high" ? a > b : a < b) ? "left" : "right";
-            }
+          if (widths && row.better && widths[0] !== widths[1]) {
+            lead = widths[0] > widths[1] ? "left" : "right";
           }
           return (
             <div key={row.label} className={styles.statRow}>
@@ -79,6 +93,26 @@ export function ComparisonTable({ comparison }: { comparison: Comparison }) {
               <dd className={`${styles.cell} ${lead === "right" ? styles.lead : ""}`}>
                 {row.value(right)}
               </dd>
+              {widths && (
+                <div className={styles.bars} aria-hidden="true">
+                  <span className={styles.barHalf}>
+                    <span
+                      className={`${styles.bar} ${styles.barLeft} ${
+                        lead === "right" ? styles.barBehind : ""
+                      }`}
+                      style={{ width: `${widths[0] * 100}%` }}
+                    />
+                  </span>
+                  <span className={styles.barHalf}>
+                    <span
+                      className={`${styles.bar} ${styles.barRight} ${
+                        lead === "left" ? styles.barBehind : ""
+                      }`}
+                      style={{ width: `${widths[1] * 100}%` }}
+                    />
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}

@@ -10,6 +10,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { MatchTicker } from "@/components/MatchTicker";
 import { Prediction } from "@/components/Prediction";
 import { SectionHeader } from "@/components/SectionHeader";
+import { Sponsors } from "@/components/Sponsors";
 import { ApiError, api } from "@/lib/api";
 import {
   formatDayDate,
@@ -88,8 +89,15 @@ export default async function MatchPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { match, league, head_to_head, home_standing, away_standing } =
-    await load(id);
+  const {
+    match,
+    league,
+    head_to_head,
+    home_standing,
+    away_standing,
+    home_sponsors,
+    away_sponsors,
+  } = await load(id);
 
   const played = match.home_score !== null && match.away_score !== null;
   const live = match.status === "live" || match.status === "halftime";
@@ -338,6 +346,29 @@ export default async function MatchPage({
           </aside>
         )}
       </div>
+
+      {/* Each club's sponsors, under its own name: a match page is shared
+          by both sides' supporters, and neither club's sponsors are the
+          other's. */}
+      {(home_sponsors.length > 0 || away_sponsors.length > 0) && (
+        <section className={styles.sponsors} aria-labelledby="sponsors">
+          <SectionHeader id="sponsors" title="ΧΟΡΗΓΟΙ" />
+          {[
+            { team: match.home_team, sponsors: home_sponsors },
+            { team: match.away_team, sponsors: away_sponsors },
+          ]
+            .filter((side) => side.sponsors.length > 0)
+            .map(({ team, sponsors }) => (
+              <div key={team.id} className={styles.sponsorSide}>
+                <p className={styles.sponsorTeam}>
+                  <Crest team={team} size="xs" />
+                  {team.short_name ?? team.name}
+                </p>
+                <Sponsors sponsors={sponsors} />
+              </div>
+            ))}
+        </section>
+      )}
     </div>
   );
 }

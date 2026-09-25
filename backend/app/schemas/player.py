@@ -88,6 +88,10 @@ class PlayerSearchOut(PlayerRef):
 
     last_team: TeamRef | None = None
     total_goals: int = 0
+    #: Has a stat line this season or last. Stat lines are the head of each
+    #: published leaderboard, not registrations, so a player with none at all
+    #: is null — unknown — rather than inactive.
+    active: bool | None = None
 
 
 class PlayerSeasonOut(ORMModel):

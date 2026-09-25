@@ -59,6 +59,10 @@ class TeamRef(ORMModel):
     short_name: str | None = None
     initials: str | None = None
     logo_url: str | None = None
+    #: The disc behind the initials when there is no logo. On every reference
+    #: rather than only the club page, because the crest is drawn in every
+    #: list and a club in its own colour there is the point of having one.
+    primary_color: str | None = None
 
 
 class FieldDetailOut(FieldOut):
@@ -73,12 +77,38 @@ class FieldDetailOut(FieldOut):
     home_teams: list[TeamRef] = []
 
 
+class TeamPhotoOut(ORMModel):
+    id: int
+    url: str
+    thumb_url: str
+    width: int
+    height: int
+    caption: str | None = None
+
+
+class SponsorOut(ORMModel):
+    id: int
+    name: str
+    website_url: str | None = None
+    logo_url: str | None = None
+
+
+class SponsorAdminOut(SponsorOut):
+    """What the dashboard sees: the inactive ones too, and in which order."""
+
+    position: int
+    is_active: bool
+
+
 class TeamOut(TeamRef):
     founded_year: int | None = None
     city: str | None = None
-    primary_color: str | None = None
     secondary_color: str | None = None
     home_field: FieldRef | None = None
+    #: Whether the club had a place in a competition this season or last.
+    #: Only the club list fills it — null elsewhere, and when no season is
+    #: marked current, rather than calling every club inactive.
+    active: bool | None = None
 
 
 class TeamDetailOut(TeamOut):
@@ -91,6 +121,9 @@ class TeamDetailOut(TeamOut):
     """
 
     seasons: list[str] = []
+    photos: list[TeamPhotoOut] = []
+    #: Active ones only, main sponsor first.
+    sponsors: list[SponsorOut] = []
 
 
 class LeagueOut(ORMModel):

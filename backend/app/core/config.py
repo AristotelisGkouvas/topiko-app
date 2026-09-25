@@ -102,6 +102,18 @@ class Settings(BaseSettings):
     # Ceiling for the exponential backoff applied after a failed run.
     scraper_max_backoff_seconds: int = 3600
 
+    # --- Uploaded images ----------------------------------------------------
+    #
+    # Where club logos, gallery photos and sponsor logos are written, and the
+    # URL prefix they are served under. A directory rather than object storage:
+    # one server, a few hundred small WebPs. In compose it is a named volume,
+    # so a rebuilt image does not take the photos with it.
+    media_dir: str = "media"
+    media_url: str = "/api/media"
+    #: Refused before decoding. A phone photo is 3–8 MB; the dashboard shrinks
+    #: it before sending, so this only stops something that is not a photo.
+    media_max_bytes: int = 12 * 1024 * 1024
+
     # NoDecode: without it pydantic-settings tries to JSON-parse the env var
     # before the validator below gets to split the comma-separated form.
     cors_origins: Annotated[list[str], NoDecode] = Field(

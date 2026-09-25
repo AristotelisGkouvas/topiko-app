@@ -30,29 +30,7 @@
   );
 }
 
-.back {
-  position: absolute;
-  top: 14px;
-  /* Right, not left: Leaflet's zoom buttons live top-left and sat on it. */
-  right: 14px;
-  z-index: 500; /* above Leaflet's own panes */
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 5px 10px;
-  border-radius: var(--radius-xl);
-  background: rgb(0 30 60 / 0.6);
-  color: #fff;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: var(--text-sm);
-  text-decoration: none;
-  backdrop-filter: blur(2px);
-}
 
-.back:hover {
-  background: rgb(0 30 60 / 0.78);
-}
 
 .titleBlock {
   background: var(--color-navy-900);
@@ -147,12 +125,6 @@
 
 
 
-.noPin {
-  margin: 0 2px;
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  color: var(--color-text-muted);
-}
 
 /* --- grouped lists -------------------------------------------------- */
 
@@ -263,8 +235,7 @@
     align-items: start;
   }
 
-  .group,
-  .noPin {
+  .group {
     grid-column: 2;
   }
 

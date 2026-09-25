@@ -10,6 +10,7 @@ import { formatRelative } from "@/lib/format";
 import type { Team } from "@/lib/types";
 import { noteAuthError } from "./session";
 import styles from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 type ClubCode = components["schemas"]["ClubCodeOut"];
 type IssuedCode = components["schemas"]["IssuedCodeOut"];
@@ -43,9 +44,10 @@ export function CodesEditor() {
     const existing = codes?.find((c) => c.team_slug === team && c.is_active);
     if (
       existing &&
-      !window.confirm(
-        `Το ${existing.team_name} έχει ήδη ενεργό κωδικό. Ο νέος θα ακυρώσει τον παλιό. Συνέχεια;`,
-      )
+      !(await confirm(`Το ${existing.team_name} έχει ήδη ενεργό κωδικό.`, {
+        detail: "Ο νέος θα ακυρώσει τον παλιό.",
+        confirmLabel: "Νέος κωδικός",
+      }))
     ) {
       return;
     }
@@ -69,7 +71,13 @@ export function CodesEditor() {
   }
 
   async function revoke(code: ClubCode) {
-    if (!window.confirm(`Ακύρωση του κωδικού ${code.prefix}-… για ${code.team_name};`)) return;
+    if (
+      !(await confirm(`Ακύρωση του κωδικού ${code.prefix}-… για ${code.team_name};`, {
+        confirmLabel: "Ακύρωση κωδικού",
+        danger: true,
+      }))
+    )
+      return;
     try {
       await apiFetch<void>(editor(`/club-codes/${code.id}`), {
         method: "DELETE",

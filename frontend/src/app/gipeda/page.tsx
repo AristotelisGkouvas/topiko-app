@@ -112,14 +112,6 @@ export default async function FieldsPage({
           would ask for) stays off the page until there is something to show. */}
       {located > 0 && <VenueMap fields={fields} />}
 
-      {located === 0 && (
-        <p className={styles.noPins}>
-          Κανένα γήπεδο δεν έχει ακόμη θέση στον χάρτη. Η ένωση δεν δημοσιεύει
-          συντεταγμένες — συμπληρώνονται από τη{" "}
-          <a href="/diaxeirisi">διαχείριση</a>.
-        </p>
-      )}
-
       {fields.length > 0 ? (
         <div className={styles.grid}>
           {fields.map((field) => (

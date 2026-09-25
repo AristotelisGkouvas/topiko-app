@@ -56,6 +56,39 @@ class FieldEdit(BaseModel):
     short_name: str | None = Field(default=None, max_length=60)
 
 
+#: #RRGGBB, as <input type="color"> sends it. Stored lower-case so the same
+#: colour is never two strings.
+HEX_COLOR = r"^#[0-9a-fA-F]{6}$"
+#: Only web links: a sponsor row is rendered as a link on a public page, and
+#: "javascript:" in an href is a script with the site's origin.
+WEB_URL = r"^https?://[^\s]+$"
+
+
+class TeamLookEdit(BaseModel):
+    """A club's colours. `None` clears one; a key not sent is left alone."""
+
+    primary_color: str | None = Field(default=None, pattern=HEX_COLOR)
+    secondary_color: str | None = Field(default=None, pattern=HEX_COLOR)
+
+
+class PhotoEdit(BaseModel):
+    caption: str | None = Field(default=None, max_length=200)
+
+
+class SponsorEdit(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    website_url: str | None = Field(default=None, max_length=255, pattern=WEB_URL)
+    is_active: bool | None = None
+
+
+class OrderIn(BaseModel):
+    """Every id of the list, in the new order. The whole list rather than one
+    move, so two tabs reordering at once end in one of their orders and not in
+    a mixture of both."""
+
+    ids: list[int] = Field(max_length=200)
+
+
 class AuditEntryOut(BaseModel):
     id: int
     user_email: str | None

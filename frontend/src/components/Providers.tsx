@@ -2,6 +2,7 @@
 
 import { SWRConfig } from "swr";
 
+import { ConfirmHost } from "@/components/ConfirmDialog";
 import { jsonFetcher } from "@/lib/api";
 
 /** One set of rules for every poll on the site.
@@ -29,6 +30,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+      <ConfirmHost />
     </SWRConfig>
   );
 }
