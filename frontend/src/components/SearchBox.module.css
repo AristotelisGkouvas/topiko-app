@@ -8,9 +8,7 @@
   position: absolute;
   left: 12px;
   pointer-events: none;
-  font-size: 0.9375rem;
-  line-height: 1;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }
 
 .input {

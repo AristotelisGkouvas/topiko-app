@@ -5,6 +5,7 @@ import { useState } from "react";
 import { calendarUrl } from "@/lib/api";
 import { NotifyButton } from "./NotifyButton";
 import styles from "./CalendarLink.module.css";
+import { Icon } from "@/components/Icon";
 
 /** Subscribe to a club's fixtures.
  *
@@ -23,7 +24,7 @@ export function CalendarLink({ slug, name }: { slug: string; name: string }) {
     <section className={styles.box}>
       <div className={styles.head}>
         <span className={styles.glyph} aria-hidden="true">
-          ⌚
+          <Icon name="calendar" size={20} />
         </span>
         <div>
           <p className={styles.title}>Στο ημερολόγιό σου</p>

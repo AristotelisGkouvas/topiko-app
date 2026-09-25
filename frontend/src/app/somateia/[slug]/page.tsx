@@ -17,6 +17,7 @@ import type { FieldRef, Match, TeamDetail } from "@/lib/types";
 import { HomeAway, splitRecord } from "@/components/HomeAway";
 import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -270,33 +271,40 @@ export default async function TeamPage({
           )}
         </section>
 
-        <aside className={styles.column} aria-label="Έδρα και ιστορικό">
+        {/* Each block owns its label, so the column can space the blocks
+            without also pushing every label away from its own card. */}
+        <aside className={styles.aside} aria-label="Έδρα και ιστορικό">
           {played.length > 0 && (
-            <>
+            <div>
               <SectionHeader title="ΕΝΤΟΣ / ΕΚΤΟΣ" />
               <HomeAway record={splitRecord(team, played)} />
-            </>
+            </div>
           )}
           <GoalMinutes slug={team.slug} title="ΓΚΟΛ ΑΝΑ 15ΛΕΠΤΟ" />
 
-          <SectionHeader
-            title="ΡΟΣΤΕΡ"
-            action={{ href: `/somateia/${team.slug}/roster`, label: "Δες ›" }}
-          />
-          <SectionHeader
-            title="ΠΟΙΝΕΣ"
-            action={{ href: `/poines?somateio=${team.slug}`, label: "Δες ›" }}
-          />
+          <div>
+            <SectionHeader title="ΣΩΜΑΤΕΙΟ" />
+            <nav className={styles.card} aria-label="Ρόστερ και ποινές">
+              <Link href={`/somateia/${team.slug}/roster`} className={styles.linkRow}>
+                <span>Ρόστερ</span>
+                <span className={styles.chevron} aria-hidden="true">›</span>
+              </Link>
+              <Link href={`/poines?somateio=${team.slug}`} className={styles.linkRow}>
+                <span>Ποινές</span>
+                <span className={styles.chevron} aria-hidden="true">›</span>
+              </Link>
+            </nav>
+          </div>
 
           {team.home_field && (
-            <>
+            <div>
               <SectionHeader title="ΕΔΡΑ" />
               <Link
                 href={`/gipeda/${team.home_field.slug}`}
                 className={styles.venue}
               >
                 <span className={styles.venueGlyph} aria-hidden="true">
-                  ⌖
+                  <Icon name="pin" size={18} />
                 </span>
                 <span className={styles.venueText}>
                   <span className={styles.venueName}>
@@ -310,11 +318,11 @@ export default async function TeamPage({
                   ›
                 </span>
               </Link>
-            </>
+            </div>
           )}
 
           {placement && (
-            <>
+            <div>
               <SectionHeader
                 title="ΣΤΗ ΒΑΘΜΟΛΟΓΙΑ"
                 action={{
@@ -326,9 +334,14 @@ export default async function TeamPage({
                 href={`/vathmologia?liga=${placement.league.slug}`}
                 className={styles.leagueLink}
               >
-                {leagueLabel(placement.league)}
+                <span>{leagueLabel(placement.league)}</span>
+                {standing && (
+                  <span className={styles.leagueMeta}>
+                    {standing.position}η θέση · {standing.points} βαθμοί
+                  </span>
+                )}
               </Link>
-            </>
+            </div>
           )}
         </aside>
       </div>
@@ -355,6 +368,9 @@ function stillToCome(matches: Match[]): Match[] {
     (m) =>
       m.home_score === null &&
       m.status !== "cancelled" &&
+      // A postponed match is listed under "Εκκρεμούν"; showing it here too
+      // put the same fixture on the page twice.
+      m.status !== "postponed" &&
       (m.kickoff_at === null || new Date(m.kickoff_at).getTime() >= now),
   );
 }

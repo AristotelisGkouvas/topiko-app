@@ -10,6 +10,13 @@
 .hero {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
+  /* Full bleed past <main>'s 1180px: the band's colour runs to both edges
+     of the window, so there is no seam where it meets the app bar. The
+     content stays in the column. */
+  box-shadow:
+    0 0 0 100vmax var(--color-surface),
+    0 1px 0 100vmax var(--color-border);
+  clip-path: inset(0 -100vmax -1px);
   padding: 18px 16px;
   display: flex;
   flex-direction: column;
@@ -206,6 +213,34 @@
   min-width: 0;
 }
 
+.aside {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+  min-width: 0;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.linkRow + .linkRow {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.linkRow:hover {
+  background: var(--color-grey-100);
+}
+
 .seasons {
   grid-column: 1 / -1;
 }
@@ -275,7 +310,10 @@
 }
 
 .leagueLink {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   padding: 12px 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -285,6 +323,13 @@
   font-size: 0.875rem;
   color: var(--color-heading);
   text-decoration: none;
+}
+
+.leagueMeta {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
 .leagueLink:hover {
@@ -344,9 +389,12 @@
     grid-area: actions;
   }
 
+  /* Tucked under the numbers it summarises. Centred in its row, it floated
+     halfway down the calendar card with nothing around it. */
   .formRow {
     grid-area: form;
     justify-self: end;
+    align-self: start;
   }
 
   .body {

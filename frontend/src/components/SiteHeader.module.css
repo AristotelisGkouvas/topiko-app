@@ -194,8 +194,10 @@
 }
 
 .searchIcon {
-  font-size: 1.0625rem;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  /* Full on-navy ink on the phone, where the icon is the whole control. */
+  color: var(--color-on-navy);
 }
 
 .searchText {
@@ -254,7 +256,7 @@
   }
 
   .searchIcon {
-    font-size: 0.9375rem;
+    color: inherit;
   }
 
   .searchText {

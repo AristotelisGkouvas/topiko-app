@@ -60,7 +60,7 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
  *  a wide screen from the header, where there is room for some of it. */
 export const SECONDARY_NAV_ITEMS: NavItem[] = [
   { href: "/mvp", label: "Παίκτης αγωνιστικής", description: "Ψήφισε τον καλύτερο της εβδομάδας", icon: "m12 4 2.4 5 5.6.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.6-.8z", secondary: true },
-  { href: "/skorer", label: "Σκόρερ", description: "Ποιος βάζει τα περισσότερα γκολ", icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8v4l3 2", secondary: true },
+  { href: "/skorer", label: "Σκόρερ", description: "Ποιος βάζει τα περισσότερα γκολ", icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8.5l3.3 2.4-1.3 3.9h-4l-1.3-3.9zM12 4v4.5M15.3 10.9l4.3-1.4M14 14.8l2.6 3.6M10 14.8l-2.6 3.6M8.7 10.9 4.4 9.5", secondary: true },
   { href: "/san-simera", label: "Σαν σήμερα", description: "Αγώνες αυτής της μέρας, άλλες χρονιές", icon: "M12 4a8 8 0 1 0 8 8M12 4v4M12 4h4M12 12l4 2", secondary: true },
   { href: "/rekor", label: "Ρεκόρ", description: "Οι μεγαλύτερες νίκες και οι πρώτοι σκόρερ όλων των εποχών", icon: "M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8", secondary: true },
   { href: "/sygkrisi", label: "Κόντρα / Σύγκριση", description: "Δύο ομάδες δίπλα-δίπλα και όλες οι μεταξύ τους", icon: "M4 8h11l-3-3M20 16H9l3 3", secondary: true },

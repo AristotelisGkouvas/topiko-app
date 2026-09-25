@@ -87,6 +87,9 @@ export default async function MatchesPage({
         title="Αγώνες"
         aside={span}
         controls={
+          // On a wide screen the strip below shows every round, so the
+          // stepper would be a second control for the same thing.
+          <div className={total !== null && total > 1 ? styles.phoneOnly : undefined}>
           <PageHeaderStepper
             label={`${matchday}η αγωνιστική`}
             previous={
@@ -100,6 +103,7 @@ export default async function MatchesPage({
                 : undefined
             }
           />
+          </div>
         }
       />
 

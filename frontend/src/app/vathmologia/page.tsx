@@ -113,10 +113,10 @@ export default async function StandingsPage({
           ) : standings.length > 0 ? (
             <>
               <StandingsTable standings={standings} league={league} />
-              <div>
+              <div className={styles.tools}>
                 <CopyText
                   text={tableText(`Βαθμολογία ${leagueLabel(league)}`, standings)}
-                />{" "}
+                />
                 {/* A picture for the group chat — read by all, where a link
                     is opened by few. */}
                 <a

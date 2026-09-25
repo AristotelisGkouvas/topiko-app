@@ -17,6 +17,7 @@ import {
   type NavItem,
 } from "@/lib/nav";
 import styles from "./SiteHeader.module.css";
+import { Icon } from "@/components/Icon";
 
 /** The design file's two headers, which are not the same header.
  *
@@ -126,7 +127,7 @@ export function SiteHeader({
             On a phone it collapses to the icon, where 240px will not fit. */}
         <Link href="/anazitisi" className={styles.search}>
           <span className={styles.searchIcon} aria-hidden="true">
-            ⌕
+            <Icon name="search" size={20} />
           </span>
           <span className={styles.searchText}>Αναζήτηση ομάδας, παίκτη…</span>
           {/* A shortcut nobody is told about is a shortcut nobody uses. */}

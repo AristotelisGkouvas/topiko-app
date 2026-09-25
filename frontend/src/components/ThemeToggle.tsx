@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { Icon, type IconName } from "@/components/Icon";
 
 export type Theme = "system" | "light" | "dark";
 
@@ -90,10 +91,10 @@ const NEXT: Record<Theme, Theme> = {
   light: "system",
 };
 
-const LABEL: Record<Theme, { glyph: string; text: string }> = {
-  system: { glyph: "◐", text: "Αυτόματο" },
-  dark: { glyph: "☾", text: "Σκούρο" },
-  light: { glyph: "☀", text: "Ανοιχτό" },
+const LABEL: Record<Theme, { glyph: IconName; text: string }> = {
+  system: { glyph: "auto", text: "Αυτόματο" },
+  dark: { glyph: "moon", text: "Σκούρο" },
+  light: { glyph: "sun", text: "Ανοιχτό" },
 };
 
 /** Three states, one button.
@@ -113,7 +114,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       title={`Θέμα: ${label.text}`}
       aria-label={`Θέμα: ${label.text}. Αλλαγή σε ${LABEL[NEXT[theme]].text}.`}
     >
-      <span aria-hidden="true">{label.glyph}</span>
+      <Icon name={label.glyph} size={18} />
     </button>
   );
 }

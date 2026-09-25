@@ -12,6 +12,7 @@ import type { Match, TeamStanding } from "@/lib/types";
 import { Crest } from "./Crest";
 import styles from "./MyClub.module.css";
 import { pollEvery } from "@/lib/network";
+import { Icon } from "@/components/Icon";
 
 interface ClubForm {
   live?: Match;
@@ -109,7 +110,11 @@ export function MyClub() {
     return (
       <section className={styles.invite}>
         <p className={styles.inviteText}>
-          Διάλεξε την ομάδα σου με το <span aria-hidden="true">☆</span> στη
+          Διάλεξε την ομάδα σου με το{" "}
+          <span className={styles.inlineIcon} aria-hidden="true">
+            <Icon name="star" size={14} />
+          </span>{" "}
+          στη
           σελίδα του σωματείου, και θα σε περιμένει εδώ.
         </p>
         <Link href="/somateia" className={styles.inviteLink}>

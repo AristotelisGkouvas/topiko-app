@@ -2,6 +2,7 @@
 
 import { useFavourite } from "@/lib/favourite";
 import styles from "./FollowButton.module.css";
+import { Icon } from "@/components/Icon";
 
 /** The ☆ from the team profile header in the kit.
  *
@@ -35,7 +36,7 @@ export function FollowButton({
       title={isFollowing ? "Η ομάδα σου" : "Όρισε ως ομάδα σου"}
     >
       <span className={styles.star} aria-hidden="true">
-        {isFollowing ? "★" : "☆"}
+        <Icon name="star" size={16} filled={isFollowing} />
       </span>
       {/* A word beside the star: on its own it read as decoration, and first
           visitors did not guess it was the way to pick their club. */}

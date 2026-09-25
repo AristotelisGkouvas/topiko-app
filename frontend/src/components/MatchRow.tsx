@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 
-import { formatDayDate, formatTime, listName, matchStatusLabel } from "@/lib/format";
+import { formatDayDate, formatTime, isDecided, listName, matchStatusLabel } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchRow.module.css";
 
@@ -39,7 +39,7 @@ export function MatchRow({
   const mine =
     hydrated && (following(match.home_team.slug) || following(match.away_team.slug));
 
-  const played = match.home_score !== null && match.away_score !== null;
+  const played = isDecided(match);
   const homeWon = played && match.home_score! > match.away_score!;
   const awayWon = played && match.away_score! > match.home_score!;
 

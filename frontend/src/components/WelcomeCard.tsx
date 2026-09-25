@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { markWelcomed, useWelcomed } from "@/lib/onboarding";
 import styles from "./WelcomeCard.module.css";
+import { Icon } from "@/components/Icon";
 
 /** The one invitation to the welcome, on the home page.
  *
@@ -43,7 +44,7 @@ export function WelcomeCard() {
           onClick={markWelcomed}
           aria-label="Απόρριψη καλωσορίσματος"
         >
-          ✕
+          <Icon name="close" size={16} />
         </button>
       </div>
     </aside>

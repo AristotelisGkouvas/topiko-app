@@ -6,6 +6,7 @@ import {
   formatShortKickoff,
   formatTime,
   formatWeekday,
+  isDecided,
   listName,
   matchStatusLabel,
 } from "@/lib/format";
@@ -67,10 +68,11 @@ function TeamRow({
 }
 
 export function MatchCard({ match }: { match: Match }) {
-  const played = isPlayed(match);
+  // Dim the loser only once the match is over: a live score is not a result.
+  const played = isDecided(match);
   const home = match.home_score;
   const away = match.away_score;
-  // A drawn or unplayed match dims neither side; only the loser recedes.
+  // A drawn, unplayed or still-running match dims neither side.
   const homeDim = played && home! < away!;
   const awayDim = played && away! < home!;
 

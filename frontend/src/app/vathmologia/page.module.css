@@ -51,9 +51,15 @@
 @media (min-width: 1040px) {
   .page {
     grid-template-columns: minmax(0, 1fr) 320px;
-    padding: 0 26px;
   }
 
+}
+
+/* The two export buttons: a real gap between them, not a text space. */
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .imageLink {
