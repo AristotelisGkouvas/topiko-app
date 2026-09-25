@@ -1,0 +1,67 @@
+.form {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- mark: dense rows ------------------------------------------------ */
+
+.mark {
+  gap: 3px;
+}
+
+.mark .item {
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+
+.mark .win {
+  border-radius: 50%;
+  background: var(--color-win);
+}
+
+/* A ring: the one result that is neither, drawn as the one hollow mark. */
+.mark .draw {
+  border-radius: 50%;
+  border: 2px solid var(--color-draw-dot);
+}
+
+/* A square, so a loss is told from a win by shape as well as colour. */
+.mark .loss {
+  border-radius: 1px;
+  background: var(--color-loss-mark);
+}
+
+/* --- letter: a club's own page --------------------------------------- */
+
+.letter {
+  gap: 4px;
+}
+
+.letter .item {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-2xs);
+  line-height: 1;
+}
+
+.letter .win {
+  background: var(--color-win-surface);
+  color: var(--color-win-ink);
+}
+
+.letter .draw {
+  background: var(--color-draw-surface);
+  color: var(--color-draw-ink);
+}
+
+.letter .loss {
+  background: var(--color-loss-surface);
+  color: var(--color-loss-ink);
+}

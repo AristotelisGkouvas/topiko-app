@@ -169,40 +169,10 @@
   color: var(--color-text-muted);
 }
 
-.form {
-  display: flex;
-  gap: 4px;
-}
 
-.pill {
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: var(--text-2xs);
-  color: #fff;
-}
 
-/* The lettered pills carry text at 10px, so each result uses its
-   surface/ink pair: white on green-600 was 4.3:1 and grey-800 on the draw
-   grey 3.3:1. The pairs also follow the dark theme. */
-.win {
-  background: var(--color-win-surface);
-  color: var(--color-win-ink);
-}
 
-.draw {
-  background: var(--color-draw-surface);
-  color: var(--color-draw-ink);
-}
 
-.loss {
-  background: var(--color-loss-surface);
-  color: var(--color-loss-ink);
-}
 
 /* --- body ------------------------------------------------------------ */
 

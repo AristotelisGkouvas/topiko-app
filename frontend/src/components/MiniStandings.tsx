@@ -7,6 +7,7 @@ import { useFavourite, useHydrated } from "@/lib/favourite";
 import { formatGoalDifference, listName } from "@/lib/format";
 import type { League, Standing } from "@/lib/types";
 import styles from "./MiniStandings.module.css";
+import { FormGuide } from "@/components/FormGuide";
 
 /** The home page's table preview.
  *
@@ -109,14 +110,7 @@ function Row({ row, mine }: { row: Standing; mine: boolean }) {
         {formatGoalDifference(row.goal_difference)}
       </span>
       <span className={styles.form}>
-        {form.map((r, i) => (
-          <span
-            key={i}
-            className={`${styles.dot} ${
-              r === "Ν" ? styles.win : r === "Ι" ? styles.draw : styles.loss
-            }`}
-          />
-        ))}
+        <FormGuide form={form} />
       </span>
       <span className={styles.points}>{row.points}</span>
     </Link>

@@ -38,7 +38,9 @@
 
   /* --- Neutrals: cool grey ------------------------------------------ */
   --color-grey-50: #ffffff;
-  --color-grey-100: #f5f5f5;
+  /* One value with the canvas: #f5f5f5 and #f4f5f6 were two names for a
+     difference no screen shows. */
+  --color-grey-100: #f4f5f6;
   --color-grey-200: #e2e3e4;
   --color-grey-400: #9ea1a4;
   --color-grey-600: #6c6f72;
@@ -52,14 +54,14 @@
      contrast minimum. A paler one left chips looking like plain text. */
   --color-chip-border: #8a8e92;
 
-  --color-canvas: #f4f5f6;
+  --color-canvas: var(--color-grey-100);
 
   /* --- Semantic ------------------------------------------------------ */
   --color-win: var(--color-green-600);
-  --color-draw: var(--color-amber-600);
-  /* Η κουκκίδα ισοπαλίας στη φόρμα. Ουδέτερο γκρι και όχι κεχριμπαρένιο:
-     σε μια σειρά από πράσινο/κόκκινο, το κεχριμπαρένιο διαβάζεται ως
-     προειδοποίηση — και η ισοπαλία δεν είναι. */
+  /* Ισοπαλία: ουδέτερο γκρι παντού — κουκκίδα, πλακέτα, chip. Σε μια σειρά
+     από πράσινο/κόκκινο το κεχριμπαρένιο διαβάζεται ως προειδοποίηση, και η
+     ισοπαλία δεν είναι. Το κεχριμπαρένιο μένει για ό,τι όντως προειδοποιεί. */
+  --color-draw: var(--color-draw-dot);
   /* 3.3:1 on white — a lighter grey vanished beside the green and red. */
   --color-draw-dot: #8a8e92;
   --color-loss: #c0392b; /* dark brick, not alarm red */
@@ -71,7 +73,7 @@
      the one solid fill (loss) is dark enough for white. */
   --color-win-surface: var(--color-green-300);
   --color-win-ink: var(--color-grey-800);
-  --color-draw-surface: var(--color-amber-600);
+  --color-draw-surface: var(--color-grey-200);
   --color-draw-ink: var(--color-grey-800);
   /* Green as *text* — links like "Όλα ›", the active tab. green-600 is 4.3:1
      on white and 3.6:1 on the dark surface, short of AA at the 10–12px these
@@ -139,6 +141,10 @@
   --color-on-navy: var(--color-grey-100);
   --color-on-navy-idle: #c9d6e3;
   --color-on-navy-fill: var(--color-navy-700);
+  /* The app bar, the page-title band and the match hero. Navy in light;
+     in dark a deeper #0e1d30 (the kit's dark header), because full navy-900
+     above a near-black page is the brightest thing on the screen. */
+  --color-bar: var(--color-navy-900);
   /* Πλακέτα κατηγορίας μέσα σε λίστα αποτελεσμάτων. */
   --color-badge-surface: #eef1f4;
   /* Απαλό highlight γραμμής: ζώνη ανόδου, «η ομάδα μου», επιλεγμένο
@@ -270,8 +276,9 @@
     --color-loss-ink: #f5d5d0;
     --color-win-surface: #123d2a;
     --color-win-ink: #9fe0b8;
-    --color-draw-surface: #3a3117;
-    --color-draw-ink: #f2d88f;
+    --color-draw-surface: #2a3c55;
+    --color-draw-ink: #d5dde6;
+    --color-bar: #0e1d30;
     --color-live-surface: #4a2414;
     --color-live-ink: #f5b79a;
 
@@ -320,8 +327,9 @@
   --color-loss-ink: #f5d5d0;
   --color-win-surface: #123d2a;
   --color-win-ink: #9fe0b8;
-  --color-draw-surface: #3a3117;
-  --color-draw-ink: #f2d88f;
+  --color-draw-surface: #2a3c55;
+  --color-draw-ink: #d5dde6;
+  --color-bar: #0e1d30;
   --color-live-surface: #4a2414;
   --color-live-ink: #f5b79a;
 

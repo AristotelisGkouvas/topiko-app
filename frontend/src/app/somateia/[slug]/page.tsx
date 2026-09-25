@@ -18,6 +18,7 @@ import { HomeAway, splitRecord } from "@/components/HomeAway";
 import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
 import { Icon } from "@/components/Icon";
+import { FormGuide } from "@/components/FormGuide";
 
 export const dynamic = "force-dynamic";
 
@@ -42,27 +43,6 @@ export async function generateMetadata({
   } catch {
     return { title: "Σωματείο" };
   }
-}
-
-function FormPills({ form }: { form: string }) {
-  return (
-    <span className={styles.form}>
-      {form.split("").map((result, i) => (
-        <span
-          key={i}
-          className={`${styles.pill} ${
-            result === "Ν"
-              ? styles.win
-              : result === "Ι"
-                ? styles.draw
-                : styles.loss
-          }`}
-        >
-          {result}
-        </span>
-      ))}
-    </span>
-  );
 }
 
 export default async function TeamPage({
@@ -162,7 +142,7 @@ export default async function TeamPage({
         {standing?.form && (
           <div className={styles.formRow}>
             <span className={styles.formLabel}>ΦΟΡΜΑ</span>
-            <FormPills form={standing.form} />
+            <FormGuide form={standing.form} variant="letter" />
           </div>
         )}
       </header>

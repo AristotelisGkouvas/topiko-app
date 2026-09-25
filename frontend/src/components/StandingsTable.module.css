@@ -154,30 +154,10 @@
 
 /* --- form dots ------------------------------------------------------ */
 
-.form {
-  display: flex;
-  justify-content: center;
-  gap: 3px;
-}
 
-.pill {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: none;
-}
 
-.pillWin {
-  background: var(--color-green-600);
-}
 
-.pillDraw {
-  background: var(--color-draw-dot);
-}
 
-.pillLoss {
-  background: var(--color-loss-mark);
-}
 
 /* --- zones ---------------------------------------------------------- */
 
@@ -206,7 +186,7 @@
 }
 
 .zone_relegation_playoff td {
-  background: color-mix(in srgb, var(--color-draw-surface) 40%, transparent);
+  background: color-mix(in srgb, var(--color-highlight-surface) 70%, transparent);
 }
 
 .zone_relegation_playoff td:first-child {

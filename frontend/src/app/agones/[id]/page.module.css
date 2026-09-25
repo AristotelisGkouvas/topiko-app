@@ -9,11 +9,11 @@
 
 .hero {
   --focus-ring: var(--color-on-navy-accent);
-  background: var(--color-navy-900);
+  background: var(--color-bar);
   /* Full bleed past <main>'s 1180px: the band's colour runs to both edges
      of the window, so there is no seam where it meets the app bar. The
      content stays in the column. */
-  box-shadow: 0 0 0 100vmax var(--color-navy-900);
+  box-shadow: 0 0 0 100vmax var(--color-bar);
   clip-path: inset(0 -100vmax);
   padding: 12px 16px 20px;
 }
@@ -281,8 +281,8 @@
 }
 
 .draw {
-  background: var(--color-highlight-surface);
-  color: var(--color-highlight-ink);
+  background: var(--color-draw-surface);
+  color: var(--color-draw-ink);
 }
 
 .loss {

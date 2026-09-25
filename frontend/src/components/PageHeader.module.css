@@ -10,7 +10,7 @@
 
 .header {
   --focus-ring: var(--color-on-navy-accent);
-  background: var(--color-navy-900);
+  background: var(--color-bar);
   /* Full bleed: cancels the padding <main> applies, so the band reaches both
      edges the way the design draws it. */
   margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;

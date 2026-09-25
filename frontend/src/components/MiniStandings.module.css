@@ -100,23 +100,9 @@
   gap: 3px;
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
 
-.win {
-  background: var(--color-green-600);
-}
 
-.draw {
-  background: var(--color-draw-dot);
-}
 
-.loss {
-  background: var(--color-loss-mark);
-}
 
 .points {
   text-align: right;

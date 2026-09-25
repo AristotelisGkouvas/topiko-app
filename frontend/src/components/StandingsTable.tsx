@@ -8,6 +8,7 @@ import { useFavourite, useHydrated } from "@/lib/favourite";
 import { formatGoalDifference, listName, zoneLabel } from "@/lib/format";
 import type { League, Standing, StandingZone } from "@/lib/types";
 import styles from "./StandingsTable.module.css";
+import { FormGuide } from "@/components/FormGuide";
 
 type SortKey = "position" | "played" | "goal_difference" | "points";
 
@@ -32,33 +33,6 @@ function zoneRange(positions: number[] | undefined): string {
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
   return first === last ? `(${first})` : `(${first}–${last})`;
-}
-
-function FormPills({ form }: { form: string }) {
-  return (
-    <span
-      className={styles.form}
-      role="img"
-      aria-label={`Φόρμα: ${form
-        .split("")
-        .map((r) => (r === "Ν" ? "νίκη" : r === "Ι" ? "ισοπαλία" : "ήττα"))
-        .join(", ")}`}
-    >
-      {form.split("").map((result, i) => (
-        <span
-          key={i}
-          className={`${styles.pill} ${
-            result === "Ν"
-              ? styles.pillWin
-              : result === "Ι"
-                ? styles.pillDraw
-                : styles.pillLoss
-          }`}
-          aria-hidden="true"
-        />
-      ))}
-    </span>
-  );
 }
 
 export function StandingsTable({
@@ -195,7 +169,7 @@ export function StandingsTable({
                     {formatGoalDifference(row.goal_difference)}
                   </td>
                 <td className={`${styles.num} ${styles.formCol}`}>
-                  {row.form ? <FormPills form={row.form} /> : "—"}
+                  {row.form ? <FormGuide form={row.form} /> : "—"}
                 </td>
                 <td className={`${styles.num} ${styles.pointsCol}`}>
                   {row.points}
@@ -210,7 +184,8 @@ export function StandingsTable({
           a phone has no hover, and this is where most tables are read. */}
       <p className={styles.key}>
         ΑΓ. αγώνες · ΔΤ διαφορά τερμάτων · Β βαθμοί · ΦΟΡΜΑ οι τελευταίοι
-        αγώνες (πράσινο νίκη, γκρι ισοπαλία, κόκκινο ήττα)
+        αγώνες (<FormGuide form="Ν" /> νίκη,{" "}
+        <FormGuide form="Ι" /> ισοπαλία, <FormGuide form="Η" /> ήττα)
         <br />
         {/* Mirrors backend/app/services/standings.py — change both together. */}
         Σε ισοβαθμία: πρώτα οι βαθμοί στα μεταξύ τους παιχνίδια, μετά η

@@ -67,8 +67,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // navy-900, so the browser chrome matches the header bar
-  themeColor: "#003c71",
+  // The header bar's colour (--color-bar), per scheme, so the browser chrome
+  // matches it in both.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#003c71" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1d30" },
+  ],
   width: "device-width",
   initialScale: 1,
 };

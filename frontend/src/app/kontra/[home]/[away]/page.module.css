@@ -159,8 +159,8 @@
 }
 
 .draw {
-  background: var(--color-highlight-surface);
-  color: var(--color-highlight-ink);
+  background: var(--color-draw-surface);
+  color: var(--color-draw-ink);
 }
 
 .loss {

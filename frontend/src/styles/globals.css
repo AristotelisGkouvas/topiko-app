@@ -195,6 +195,7 @@ html:root[data-contrast="high"] {
   --color-soft: #1c1c1c;
   --color-navy-900: #000;
   --color-navy-700: #000;
+  --color-bar: #000;
   --color-on-navy: #fff;
   --color-on-navy-muted: #f0f0f0;
   --color-on-navy-idle: #fff;
