@@ -124,10 +124,12 @@
      the border and shadow instead. */
   --color-surface-raised: var(--color-grey-50);
 
-  /* The phone tab bar's height: a 48px hit target plus its top border.
-     Anything that has to float above the bar needs this, and a second
-     copy of the number is a second thing to forget when the kit moves. */
-  --bottom-nav-height: 49px;
+  /* The phone tab bar's height as it renders: 1px top border, 8px padding,
+     a 44px tab, 14px bottom padding (BottomNav.module.css). The safe-area
+     inset comes on top of this. It is the one number for "clear the bar":
+     the page's bottom padding and anything floating above the bar use it.
+     There used to be two, 49px and 62px, and neither was the real 67px. */
+  --bottom-nav-height: 67px;
 
   --color-link: var(--color-navy-900);
   --color-link-hover: var(--color-green-600);
@@ -199,8 +201,6 @@
   --shadow-card: 0 1px 2px rgba(0, 60, 113, 0.07),
     0 4px 14px rgba(0, 60, 113, 0.06);
 
-  /* Height of the mobile tab bar, so scroll containers can clear it. */
-  --nav-height: 62px;
 }
 
 @keyframes livePulse {

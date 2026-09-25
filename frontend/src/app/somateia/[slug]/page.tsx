@@ -202,30 +202,31 @@ export default async function TeamPage({
           )}
           {/* What a coach opens before Sunday: every past meeting with the
               next opponent, one tap from here. */}
-          {upcoming[0] && (
-            <Link
-              className={styles.nextH2h}
-              href={`/kontra/${upcoming[0].home_team.slug}/${upcoming[0].away_team.slug}`}
-            >
-              Κόντρα με{" "}
-              {upcoming[0].home_team.id === team.id
-                ? upcoming[0].away_team.name
-                : upcoming[0].home_team.name}{" "}
-              ›
-            </Link>
-          )}
-          {upcoming[0] && (
-            <Link
-              className={styles.nextH2h}
-              href={`/somateia/${
-                upcoming[0].home_team.id === team.id
-                  ? upcoming[0].away_team.slug
-                  : upcoming[0].home_team.slug
-              }/analysi?me=${team.slug}`}
-            >
-              Ανάλυση αντιπάλου ›
-            </Link>
-          )}
+          {upcoming[0] && (() => {
+            const next = upcoming[0];
+            const opponent =
+              next.home_team.id === team.id ? next.away_team : next.home_team;
+            return (
+              // One card, not two bare links under the list: they belong to
+              // the next fixture, and a card makes them read as its actions.
+              <nav className={`${styles.card} ${styles.nextCard}`} aria-label="Επόμενος αντίπαλος">
+                <Link
+                  className={styles.linkRow}
+                  href={`/kontra/${next.home_team.slug}/${next.away_team.slug}`}
+                >
+                  <span>Κόντρα με {opponent.name}</span>
+                  <span className={styles.chevron} aria-hidden="true">›</span>
+                </Link>
+                <Link
+                  className={styles.linkRow}
+                  href={`/somateia/${opponent.slug}/analysi?me=${team.slug}`}
+                >
+                  <span>Ανάλυση αντιπάλου</span>
+                  <span className={styles.chevron} aria-hidden="true">›</span>
+                </Link>
+              </nav>
+            );
+          })()}
         </section>
 
         {pending.length > 0 && (

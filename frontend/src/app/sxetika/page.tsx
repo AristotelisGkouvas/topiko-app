@@ -118,6 +118,9 @@ export default function AboutPage() {
             Είσαι από σωματείο και θέλεις να δηλώνεις τα σκορ της ομάδας σου;{" "}
             <Link href="/ethelontis">Δήλωση αγώνα</Link>.
           </p>
+          <p>
+            Γραμματεία της ένωσης: <Link href="/diaxeirisi">Διαχείριση</Link>.
+          </p>
         </section>
       </div>
     </>

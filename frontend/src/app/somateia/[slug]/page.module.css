@@ -422,17 +422,6 @@
   }
 }
 
-.nextH2h {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 2px;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-link);
-  text-decoration: none;
-}
-
-.nextH2h:hover {
-  text-decoration: underline;
+.nextCard {
+  margin-top: 8px;
 }

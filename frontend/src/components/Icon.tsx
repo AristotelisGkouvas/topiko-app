@@ -21,6 +21,16 @@ export const ICON_PATHS = {
   auto: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 4v16",
   moon: "M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z",
   sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4",
+  // Match events (MatchTicker, the secretary's log).
+  miss: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM9 9l6 6M15 9l-6 6",
+  card: "M8 4h8v16H8z",
+  swap: "M4 8h13l-3-3M20 16H7l3 3",
+  play: "M8 5v14l11-7z",
+  pause: "M8 5v14M16 5v14",
+  stop: "M6 6h12v12H6z",
+  hourglass: "M7 4h10M7 20h10M8 4c0 5 8 6 8 16M16 4c0 5-8 6-8 16",
+  abandoned: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM6.5 6.5l11 11",
+  note: "M5 19l1-4L16 5l3 3L9 18z",
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

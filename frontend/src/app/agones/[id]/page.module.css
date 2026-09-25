@@ -411,7 +411,10 @@
   cursor: pointer;
 }
 
+/* The main action gets its own row; the two secondary ones share the next,
+   instead of the third button falling onto a line of its own. */
 .primary {
+  flex-basis: 100%;
   background: var(--color-action);
   border: 1px solid var(--color-action);
   color: var(--color-action-ink);

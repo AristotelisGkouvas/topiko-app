@@ -273,7 +273,8 @@
    exactly when the person reading it is outdoors in daylight. */
 .queue {
   position: sticky;
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  /* The bar plus a 9px breath. */
+  bottom: calc(var(--bottom-nav-height) + 9px + env(safe-area-inset-bottom));
   z-index: 5;
   margin: 0;
   padding: 10px 12px;

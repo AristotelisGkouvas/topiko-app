@@ -1,7 +1,7 @@
 .main {
   max-width: 1180px;
   margin: 0 auto;
-  padding: var(--layout-gutter-top) var(--layout-gutter-x) calc(var(--nav-height) + 24px);
+  padding: var(--layout-gutter-top) var(--layout-gutter-x) calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 24px);
 }
 
 @media (min-width: 860px) {
