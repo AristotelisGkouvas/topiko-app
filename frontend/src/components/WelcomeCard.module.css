@@ -35,17 +35,7 @@
 }
 
 .go {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: var(--radius-md);
-  background: var(--color-action);
-  color: var(--color-action-ink);
-  font-weight: 600;
-  font-size: var(--text-base);
-  text-decoration: none;
-  white-space: nowrap;
+  composes: buttonPrimary from "../styles/primitives.module.css";
 }
 
 .dismiss {

@@ -96,18 +96,9 @@
 }
 
 .installButton {
-  width: 100%;
+  composes: buttonPrimary buttonBlock from "../styles/primitives.module.css";
+  /* Compact: it sits in the 200px rail under the division list. */
   min-height: 36px;
-  border: 1px solid var(--color-green-600);
-  border-radius: var(--radius-md);
-  background: var(--color-action);
-  color: var(--color-action-ink);
-  font-family: var(--font-display);
-  font-weight: 700;
   font-size: var(--text-md);
-  cursor: pointer;
 }
 
-.installButton:hover {
-  filter: brightness(1.05);
-}

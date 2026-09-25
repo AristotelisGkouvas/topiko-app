@@ -97,17 +97,9 @@
 }
 
 .live {
+  composes: tagLive from "../styles/primitives.module.css";
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   right: 14px;
-  padding: 3px 6px;
-  border-radius: var(--radius-tag);
-  /* The darker live fill: white on terra-500 is 3.6:1 at 10px. */
-  background: var(--color-live-surface);
-  color: var(--color-live-ink);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-xs);
-  letter-spacing: 1px;
 }

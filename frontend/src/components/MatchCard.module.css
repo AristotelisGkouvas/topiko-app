@@ -251,12 +251,5 @@ li:last-child > .fixtureRow {
 }
 
 .fixtureRowLive {
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  background: var(--color-live-surface);
-  color: var(--color-live-ink);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-xs);
-  letter-spacing: 1px;
+  composes: tagLive from "../styles/primitives.module.css";
 }

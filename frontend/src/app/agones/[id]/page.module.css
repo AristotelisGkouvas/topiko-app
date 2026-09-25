@@ -394,45 +394,21 @@
   gap: 8px;
 }
 
-.primary,
-.secondary {
-  flex: 1 1 140px;
-  display: grid;
-  place-items: center;
-  height: 44px;
-  padding: 0 16px;
-  box-sizing: border-box;
-  border-radius: var(--radius-md);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-base);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
 /* The main action gets its own row; the two secondary ones share the next,
    instead of the third button falling onto a line of its own. */
 .primary {
-  flex-basis: 100%;
-  background: var(--color-action);
-  border: 1px solid var(--color-action);
-  color: var(--color-action-ink);
-}
-
-.primary:hover {
-  filter: brightness(1.05);
+  composes: buttonPrimary from "../../../styles/primitives.module.css";
+  flex: 1 1 100%;
 }
 
 .secondary {
-  background: var(--color-surface);
-  border: 1px solid var(--color-chip-border);
-  color: var(--color-heading);
+  composes: buttonSecondary from "../../../styles/primitives.module.css";
+  flex: 1 1 140px;
 }
 
-.secondary:hover {
-  background: var(--color-grey-100);
-}
+
+
+
 
 /* --- history --------------------------------------------------------- */
 

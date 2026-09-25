@@ -260,44 +260,19 @@
   padding-top: 4px;
 }
 
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  /* 50px, not 44 — the design gives the one action on an onboarding screen
-     more height than an ordinary button. */
-  height: 50px;
-  padding: 0 16px;
-  box-sizing: border-box;
-  border-radius: var(--radius-md);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-base);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
+/* 50px, not 44 — the design gives the one action on an onboarding screen
+   more height than an ordinary button. */
 .primary {
-  background: var(--color-action);
-  border: 1px solid var(--color-action);
-  color: var(--color-action-ink);
-}
-
-.primary:hover {
-  filter: brightness(1.05);
+  composes: buttonPrimary buttonLarge buttonBlock from "../../styles/primitives.module.css";
 }
 
 .secondary {
-  background: var(--color-surface);
-  border: 1px solid var(--color-chip-border);
-  color: var(--color-heading);
+  composes: buttonSecondary buttonLarge buttonBlock from "../../styles/primitives.module.css";
 }
 
-.secondary:hover {
-  background: var(--color-grey-100);
-}
+
+
+
 
 .skip {
   display: grid;

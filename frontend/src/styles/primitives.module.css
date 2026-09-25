@@ -18,14 +18,148 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-4);
   max-width: 720px;
   margin: 0 auto;
-  padding: 14px 14px 0;
+  padding: var(--space-4) var(--space-4) 0;
 }
 
 /* The same column, wide enough for a table beside a rail. */
 .pageWide {
   composes: page;
   max-width: 1200px;
+}
+
+/* --- Buttons --------------------------------------------------------
+   One button, three looks. Before this there were a dozen copies of the
+   same 44px box in the page modules, each with its own padding, radius and
+   hover. A page composes the look it wants and adds only layout (width,
+   flex share).
+
+   primary:   the one action on a screen — green fill, white label.
+   secondary: everything else — surface fill, outlined.
+   ghost:     a quiet text action beside a primary ("Όχι τώρα").
+   large:     50px, for the single action of an onboarding or volunteer
+              screen; block: full width. */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.buttonPrimary {
+  composes: button;
+  background: var(--color-action);
+  border-color: var(--color-action);
+  color: var(--color-action-ink);
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.buttonSecondary {
+  composes: button;
+  background: var(--color-surface);
+  border-color: var(--color-chip-border);
+  color: var(--color-heading);
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background: var(--color-grey-100);
+}
+
+.buttonGhost {
+  composes: button;
+  background: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-md);
+}
+
+.buttonGhost:hover {
+  color: var(--color-heading);
+}
+
+.buttonLarge {
+  min-height: 50px;
+}
+
+.buttonBlock {
+  display: flex;
+  width: 100%;
+}
+
+/* --- Tags -----------------------------------------------------------
+   The small uppercase label on a match: LIVE, ΑΝΑΒΟΛΗ, a kickoff time. */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px 6px;
+  border-radius: var(--radius-tag);
+  background: var(--color-badge-surface);
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-2xs);
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tagLive {
+  composes: tag;
+  background: var(--color-live-surface);
+  color: var(--color-live-ink);
+}
+
+/* --- List rows ------------------------------------------------------
+   A tappable row inside a .card that leads somewhere: label left, › right,
+   a hairline between rows. "Περισσότερα", a club's roster and penalties. */
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.listRow + .listRow {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.listRow:hover {
+  background: var(--color-grey-100);
 }

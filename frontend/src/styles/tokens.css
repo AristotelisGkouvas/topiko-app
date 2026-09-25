@@ -190,6 +190,18 @@
   /* Chips, segmented tabs, round buttons. */
   --radius-pill: 999px;
 
+  /* --- Space --------------------------------------------------------
+     The kit's spacing scale (design handoff, --ps-s1…s7). The primitives
+     use it; module paddings still hold px values and move over as they are
+     touched — 6px and 10px, common there, are not steps of the kit. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 14px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-7: 26px;
+
   /* --- Type scale ----------------------------------------------------
      Eight steps for everything below a heading. The modules had drifted to
      32 distinct sizes, several half a pixel apart (11.5, 12.5, 13.5px);
