@@ -132,6 +132,7 @@ jobs:
           # Started here rather than in its own step, so both servers live as
           # long as the tests that need them.
           (cd ../backend && nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > ../frontend/api.log 2>&1 &)
-          npx wait-on -t 60000 http://127.0.0.1:8000/health http://127.0.0.1:3000             || { echo "--- api.log"; cat api.log; echo "--- web.log"; cat web.log; exit 1; }
+          # http-get: wait-on probes with HEAD by default, and /health is GET.
+          npx wait-on -t 60000 http-get://127.0.0.1:8000/health http-get://127.0.0.1:3000 || { echo "--- api.log"; cat api.log; echo "--- web.log"; cat web.log; exit 1; }
           npm run e2e
         working-directory: frontend
