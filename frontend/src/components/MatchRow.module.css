@@ -35,21 +35,6 @@
   min-width: 0;
 }
 
-.crest {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-grey-400);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.4375rem;
-  line-height: 1;
-  color: #fff;
-  user-select: none;
-}
 
 .name {
   flex: 1;
@@ -73,9 +58,6 @@
   color: var(--color-heading);
 }
 
-.won .crest {
-  background: var(--color-navy-900);
-}
 
 .lost {
   color: var(--color-text-muted);

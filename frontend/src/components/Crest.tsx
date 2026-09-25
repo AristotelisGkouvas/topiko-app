@@ -10,7 +10,7 @@ export function Crest({
   onNavy = false,
 }: {
   team: CrestSubject;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   /** Inverts the disc for use on the navy bar, where green vanishes. */
   onNavy?: boolean;
 }) {

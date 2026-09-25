@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Crest } from "@/components/Crest";
+
 import { listName } from "@/lib/format";
 import type { Scorer } from "@/lib/types";
 import styles from "./ScorerRail.module.css";
@@ -59,9 +61,7 @@ export function ScorerRail({
           className={styles.row}
         >
           <span className={styles.rank}>{rank}</span>
-          <span className={styles.crest} aria-hidden="true">
-            {scorer.team?.initials ?? scorer.team?.name.slice(0, 2) ?? "—"}
-          </span>
+          <Crest team={scorer.team ?? { name: "—", initials: "—" }} size="sm" />
           <span className={styles.names}>
             <span className={styles.name}>{scorer.player.name}</span>
             {scorer.team && (

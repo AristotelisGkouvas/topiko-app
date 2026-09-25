@@ -16,6 +16,15 @@
   user-select: none;
 }
 
+/* Dense rows: results lists, the table, the home page's top five. The
+   initials stay at 9px — the 6–7px the rows used to draw their own discs
+   with was below what anyone can read. */
+.xs {
+  width: 20px;
+  height: 20px;
+  font-size: 0.5625rem;
+}
+
 .sm {
   width: 24px;
   height: 24px;

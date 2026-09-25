@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { formatGoalDifference, listName } from "@/lib/format";
 import type { League, Standing } from "@/lib/types";
@@ -101,9 +102,7 @@ function Row({ row, mine }: { row: Standing; mine: boolean }) {
     >
       <span className={styles.pos}>{row.position}</span>
       <span className={styles.team}>
-        <span className={styles.crest} aria-hidden="true">
-          {row.team.initials ?? row.team.name.slice(0, 2)}
-        </span>
+        <Crest team={row.team} size="xs" />
         <span className={styles.name}>{listName(row.team)}</span>
       </span>
       <span className={styles.num}>

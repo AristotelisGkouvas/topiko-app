@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 
 import { formatDayDate, formatTime, listName, matchStatusLabel } from "@/lib/format";
@@ -107,9 +108,7 @@ function Side({
     <span
       className={`${styles.side} ${won ? styles.won : ""} ${lost ? styles.lost : ""}`}
     >
-      <span className={styles.crest} aria-hidden="true">
-        {team.initials ?? team.name.slice(0, 2)}
-      </span>
+      <Crest team={team} size="xs" />
       <span className={styles.name}>{listName(team)}</span>
       {score !== null && <span className={styles.score}>{score}</span>}
     </span>

@@ -27,7 +27,10 @@ import { READABILITY_BOOT } from "@/lib/readabilityBoot";
    fallback for the first second is an acceptable price. */
 const display = Fira_Sans_Condensed({
   subsets: ["greek", "latin"],
-  weight: ["400", "600", "700"],
+  // 800 is the weight the design uses for scores, crests, the winner's name
+  // and the promotion zone — 38 rules ask for it. Without the file the
+  // browser falls back to 700 and every one of those contrasts goes flat.
+  weight: ["400", "600", "700", "800"],
   variable: "--font-fira",
   display: "swap",
 });

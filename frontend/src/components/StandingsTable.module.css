@@ -140,16 +140,8 @@
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
-  /* The crest is 18px here — small enough that the club name, not the badge,
-     is what the eye reads down the column. */
-  --crest: 18px;
 }
 
-.teamLink :global(span[aria-hidden]) {
-  width: 18px;
-  height: 18px;
-  font-size: 0.375rem;
-}
 
 .teamName {
   overflow: hidden;

@@ -175,7 +175,7 @@ export function StandingsTable({
                     href={`/somateia/${row.team.slug}`}
                     className={styles.teamLink}
                   >
-                    <Crest team={row.team} size="sm" />
+                    <Crest team={row.team} size="xs" />
                     <span className={styles.teamName}>{listName(row.team)}</span>
                   </Link>
                 </td>
