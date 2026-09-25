@@ -1,6 +1,6 @@
 # Kit αξιολόγησης από «χρήστες»
 
-Ό,τι χρειάζεται για να ξανατρέξουν οι 10 agents-χρήστες του `UX_REVIEW.md`.
+Ό,τι χρειάζεται για να ξανατρέξουν οι 10 agents-χρήστες της αξιολόγησης UX (η αρχική αναφορά, `UX_REVIEW.md`, σβήστηκε όταν διορθώθηκαν τα ευρήματά της· υπάρχει στο git history).
 Τα ευρήματα είναι εκεί· εδώ είναι μόνο το πώς.
 
 ## Αρχεία
@@ -72,8 +72,31 @@ docker compose -p pamesentra-review --env-file docs/ux-review/review.env down -v
 είναι live (`/api/v1/epsip-ipeirou/matches/live`) — το seed βάζει δύο live
 τη στιγμή που τρέχει, και οι δοκιμές των εθελοντών τούς αλλάζουν.
 
-Στην πρώτη εκτέλεση οι 4, 7, 8, 10 διακόπηκαν από όριο χρήσης. Ξεκίνα από
-αυτούς.
+Στην πρώτη εκτέλεση οι 4, 7, 8, 10 διακόπηκαν από όριο χρήσης. Έτρεξαν ξανά
+στις 25/9: `rerun-2026-09-25.md`.
+
+### Χωρίς docker build (Windows)
+
+Αν το build των images αργεί ή αποτυγχάνει, το ίδιο περιβάλλον στήνεται από
+τον κώδικα, με τη βάση του compose που ήδη τρέχει:
+
+```bash
+docker exec pamesentra-db psql -U pamesentra -c "create database pamesentra_review"
+cd backend
+export DATABASE_URL=postgresql+asyncpg://pamesentra:pamesentra@127.0.0.1:5432/pamesentra_review
+.venv/Scripts/python.exe -m alembic upgrade head && .venv/Scripts/python.exe -m scripts.seed
+CORS_ORIGINS=http://127.0.0.1:3002 SECRET_KEY=review-only-local-secret-key-not-for-production-0123456789   .venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001 &
+cd ../frontend
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8001 NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3002 npx next build
+# Αντίγραψε το standalone έξω από το repo, για να μην το πειράξει άλλο build:
+cp -r .next/standalone/. $OUT && cp -r .next/static $OUT/.next/static && cp -r public $OUT/public
+PORT=3002 HOSTNAME=127.0.0.1 API_INTERNAL_URL=http://127.0.0.1:8001 node $OUT/server.js
+```
+
+`127.0.0.1` και όχι `localhost`: στα Windows το localhost δοκιμάζει πρώτα IPv6
+και κάθε σύνδεση στη βάση περιμένει δύο δευτερόλεπτα.
+Για curl με ελληνικό body στα Windows χρησιμοποίησε Python (httpx)· το curl
+χαλάει την κωδικοποίηση. Κάθε POST στο API θέλει `Origin: http://127.0.0.1:3002`.
 
 ## Τα δέκα προφίλ
 
