@@ -15,6 +15,8 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from typing import Generic, TypeVar
+from collections.abc import Mapping
 from collections import Counter
 from difflib import SequenceMatcher
 
@@ -56,14 +58,18 @@ def is_corrupt(name: str) -> bool:
     return REPLACEMENT in name or not name.strip()
 
 
+#: Whatever the caller keys by name: a Team, a Field, or a plain string.
+T = TypeVar("T")
+
+
 @dataclass(frozen=True, slots=True)
-class Match:
-    value: str
+class Match(Generic[T]):
+    value: T
     score: float
     exact: bool
 
 
-def find(name: str, candidates: dict[str, str]) -> Match | None:
+def find(name: str, candidates: Mapping[str, T]) -> Match[T] | None:
     """Look `name` up among `candidates`, a mapping of normalised key -> value.
 
     Returns an exact match when the normalised keys agree, otherwise the best
@@ -79,7 +85,7 @@ def find(name: str, candidates: dict[str, str]) -> Match | None:
     if key in candidates:
         return Match(candidates[key], 1.0, exact=True)
 
-    best: Match | None = None
+    best: Match[T] | None = None
     for candidate_key, value in candidates.items():
         score = SequenceMatcher(None, key, candidate_key).ratio()
         if score >= SUGGEST_THRESHOLD and (best is None or score > best.score):
@@ -304,14 +310,14 @@ def assign_monograms(names: list[str]) -> dict[str, str]:
     return out
 
 
-def index(values: dict[str, str]) -> dict[str, str]:
+def index(values: Mapping[str, T]) -> dict[str, T]:
     """Build a lookup keyed by normalised name.
 
     Collisions are dropped rather than silently resolved: if two clubs in one
     association normalise to the same key, no automatic match on that key can be
     trusted, and an alias has to settle it.
     """
-    result: dict[str, str] = {}
+    result: dict[str, T] = {}
     collided: set[str] = set()
     for name, value in values.items():
         key = normalize(name)

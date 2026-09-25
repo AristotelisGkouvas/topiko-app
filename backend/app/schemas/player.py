@@ -32,6 +32,51 @@ class ScorerOut(ORMModel):
     minutes: int | None = None
 
 
+class RosterRowOut(ORMModel):
+    """One player on a club's public roster.
+
+    "Roster" is everybody who has appeared for the club this season — the
+    federation publishes appearances, not registrations.
+    """
+
+    player: PlayerRef
+    goals: int = 0
+    yellow_cards: int | None = None
+    red_cards: int | None = None
+    #: The latest ban this season, when it may still be running: counted from
+    #: the round it followed against the division's current round. A guide,
+    #: not a ruling — the federation's own list is the authority.
+    banned_matches: int | None = None
+    banned_after_matchday: int | None = None
+
+
+class GoalMinutesOut(ORMModel):
+    """When a club scores and concedes, in six 15-minute bands.
+
+    From the goals logged at the ground, so it covers only matches somebody
+    kept a sheet for — `matches` says how many that is.
+    """
+
+    #: 1–15, 16–30, 31–45+, 46–60, 61–75, 76–90+.
+    scored: list[int]
+    conceded: list[int]
+    matches: int
+
+
+class LiveScorerOut(ORMModel):
+    """A scorer counted from the goals logged at the ground.
+
+    Unofficial and kept apart from ScorerOut: these are what volunteers and
+    the desk typed during matches, named from the roster. The federation's own
+    table is the record; this one is what happened last Sunday before the
+    federation has published it.
+    """
+
+    player: PlayerRef
+    team: TeamRef | None = None
+    goals: int
+
+
 class PlayerSearchOut(PlayerRef):
     """A search hit.
 
@@ -83,6 +128,10 @@ class PlayerDetailOut(ORMModel):
     seasons_scored: int = 0
     #: The clubs they appear for, newest first.
     clubs: list[TeamRef] = []
+    #: Goals logged at the ground by volunteers and the desk, with this
+    #: player named. Unofficial and never added to `total_goals`: it is what
+    #: the page can say on Sunday evening, before the federation publishes.
+    live_goals: int = 0
 
 
 class SuspensionOut(ORMModel):

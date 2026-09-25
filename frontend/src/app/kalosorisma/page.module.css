@@ -3,7 +3,7 @@
 /* Breaks out of <main>'s padding and takes the whole viewport below the
    header: the welcome is a screen, not a card on a page. */
 .page {
-  margin: -18px -16px 0;
+  margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
   min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
@@ -31,7 +31,7 @@
 .heroSmall {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
   letter-spacing: 9px;
   /* The tracking pushes the word right by one gap; pulling it back keeps it
@@ -43,7 +43,7 @@
 .heroBig {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 70px;
+  font-size: 4.375rem;
   line-height: 0.85;
   color: #fff;
 }
@@ -75,7 +75,7 @@
   margin: 26px 0 0;
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: #fff;
   text-align: center;
@@ -128,7 +128,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 28px;
+  font-size: 1.75rem;
   line-height: 1.05;
   color: var(--color-heading);
 }
@@ -137,14 +137,14 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.55;
   color: var(--color-text-muted);
 }
 
 .small {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -213,7 +213,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: #fff;
 }
 
@@ -226,7 +226,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1;
   color: #fff;
   flex: none;
@@ -236,7 +236,7 @@
 .tileName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.15;
   color: var(--color-heading);
   text-align: center;
@@ -267,7 +267,7 @@
   border-radius: 10px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -286,7 +286,7 @@
 .secondary {
   background: var(--color-surface);
   border: 1px solid var(--color-chip-border);
-  color: var(--color-navy-900);
+  color: var(--color-heading);
 }
 
 .secondary:hover {
@@ -296,11 +296,11 @@
 .skip {
   display: grid;
   place-items: center;
-  min-height: 40px;
-  color: var(--color-text-muted);
+  min-height: 44px;
+  color: var(--color-text);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 1rem;
   text-decoration: none;
 }
 
@@ -311,12 +311,15 @@
 
 .back {
   margin: 0;
-  padding: 14px 20px 24px;
-  font-size: 12px;
+  padding: 8px 20px 24px;
+  font-size: 0.9375rem;
 }
 
 .back a {
-  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-text);
   font-family: var(--font-body);
   font-weight: 600;
   text-decoration: none;
@@ -330,10 +333,7 @@
 /* --- O3 toggles ----------------------------------------------------- */
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
+  composes: card from "../../styles/primitives.module.css";
 }
 
 .notify {
@@ -351,7 +351,7 @@
 
 @media (min-width: 860px) {
   .page {
-    margin: -18px -16px 0;
+    margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
     /* The onboarding stays a single narrow column on a desktop: three columns
        of village clubs across 1200px is a wall, not a choice. */
     align-items: center;

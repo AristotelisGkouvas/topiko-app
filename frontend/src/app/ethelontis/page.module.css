@@ -3,7 +3,7 @@
 .page {
   /* V1 fills the screen: no card, no header, because this is a door and not a
      page of the site. */
-  margin: -18px -16px 0;
+  margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
   min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
@@ -40,7 +40,7 @@
   margin: 20px 0 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 30px;
+  font-size: 1.875rem;
   line-height: 1.05;
   color: var(--color-heading);
 }
@@ -49,7 +49,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -57,7 +57,7 @@
 .loginNote {
   margin: auto 0 0;
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -73,7 +73,7 @@
 .codeLabel {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -99,7 +99,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 22px;
+  font-size: 1.375rem;
   color: var(--color-heading);
 }
 
@@ -120,8 +120,8 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 22px;
-  color: var(--color-grey-400);
+  font-size: 1.375rem;
+  color: var(--color-nav-idle);
 }
 
 /* The real field, invisible but present: it takes the keyboard, the paste and
@@ -149,7 +149,7 @@
 @media (max-width: 400px) {
   .codeBox {
     height: 46px;
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 }
 
@@ -168,7 +168,7 @@
   color: #fff;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 
@@ -188,7 +188,7 @@
   background: var(--color-loss-surface);
   color: var(--color-loss-ink);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 /* --- V2: signed in -------------------------------------------------- */
@@ -214,7 +214,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 10px;
+  font-size: 0.6875rem;
   letter-spacing: 1.4px;
   color: var(--color-on-navy-muted);
 }
@@ -223,7 +223,7 @@
   margin: 2px 0 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1;
   color: var(--color-on-navy);
   overflow: hidden;
@@ -234,21 +234,21 @@
 .whoWho {
   margin: 3px 0 0;
   font-family: var(--font-body);
-  font-size: 11.5px;
+  font-size: 0.7188rem;
   color: var(--color-on-navy-muted);
 }
 
 .logout {
   flex: none;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 1px solid rgb(255 255 255 / 0.28);
   border-radius: 8px;
   background: none;
   color: var(--color-on-navy-idle);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 
@@ -258,6 +258,10 @@
 }
 
 .sheetWrap {
+  /* Full width even while the log is empty: as a flex child it shrank to
+     its content and the sheet sat in half the screen. */
+  width: 100%;
+  box-sizing: border-box;
   padding: 14px 14px 0;
   max-width: 720px;
   margin: 0 auto;
@@ -268,7 +272,7 @@
   max-width: 720px;
   padding: 0 14px;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
   color: var(--color-text-muted);
 }

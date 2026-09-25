@@ -25,8 +25,12 @@ const listeners = new Set<() => void>();
 if (typeof window !== "undefined") {
   window.addEventListener("beforeinstallprompt", (event) => {
     // Chrome shows its own mini-infobar unless this is prevented; the design
-    // puts the invitation in the rail instead.
-    event.preventDefault();
+    // puts the invitation in the rail instead. The rail exists only on a wide
+    // screen, so on a phone the browser's own prompt is left alone — hiding
+    // it there left no way to install at all short of the browser menu.
+    if (window.matchMedia("(min-width: 1040px)").matches) {
+      event.preventDefault();
+    }
     deferred = event as Prompt;
     listeners.forEach((l) => l());
   });

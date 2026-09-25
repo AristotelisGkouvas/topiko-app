@@ -95,10 +95,12 @@ class Fetcher:
             if response.status_code == 200:
                 parser.parse(response.text.splitlines())
             else:
-                parser.allow_all = True
+                # No rules parsed is "everything allowed" — and, unlike setting
+                # the undocumented allow_all flag, marks the file as read.
+                parser.parse([])
         except httpx.HTTPError as exc:
             logger.warning("robots.txt unreachable at %s (%s); assuming allowed", url, exc)
-            parser.allow_all = True
+            parser.parse([])
         self._robots = parser
 
     def _may_fetch(self, url: str) -> bool:

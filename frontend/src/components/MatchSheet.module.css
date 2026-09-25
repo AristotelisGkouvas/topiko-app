@@ -2,7 +2,7 @@
    and the two goal buttons are deliberately the largest things on the page. */
 
 .loading {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
 
@@ -26,17 +26,27 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: 0.8438rem;
   text-align: left;
   cursor: pointer;
   color: var(--color-text);
 }
 
 .pickTime {
+  display: flex;
+  flex-direction: column;
+  min-width: 64px;
   font-family: var(--font-display);
   font-weight: 700;
   color: var(--color-heading);
   flex: none;
+}
+
+.pickDay {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
 }
 
 .pickTeams {
@@ -53,7 +63,7 @@
   border-radius: 999px;
   background: var(--color-terra-300);
   color: var(--color-terra-700);
-  font-size: 10px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.8px;
 }
@@ -69,11 +79,12 @@
   background: none;
   border: none;
   padding: 8px 0;
-  font-size: 12.5px;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--color-link);
   cursor: pointer;
   font-family: inherit;
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .board {
@@ -90,7 +101,7 @@
 
 .boardTeam {
   font-family: var(--font-display);
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   font-weight: 600;
   overflow-wrap: anywhere;
   /* green-400, not green-600: on navy the darker green all but disappears. */
@@ -100,7 +111,7 @@
 .boardScore {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 34px;
+  font-size: 2.125rem;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -109,7 +120,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
@@ -120,7 +131,7 @@
   text-align: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 1.125rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 8px);
   background: var(--color-surface);
@@ -148,14 +159,15 @@
   color: var(--color-grey-800);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 1.0625rem;
   cursor: pointer;
 }
 
 .goalTeam {
-  font-size: 11.5px;
-  font-weight: 600;
-  opacity: 0.85;
+  /* The only thing telling the two big buttons apart: it has to be read at
+     arm's length, standing up. */
+  font-size: 0.9375rem;
+  font-weight: 700;
   overflow-wrap: anywhere;
   text-align: center;
 }
@@ -181,12 +193,12 @@
   background: var(--color-surface);
   color: var(--color-text);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 
 .smallSide {
-  font-size: 10.5px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
   text-align: center;
@@ -212,13 +224,20 @@
   cursor: default;
 }
 
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .error {
   margin: 0;
   padding: 10px 12px;
   border-radius: var(--radius-md, 8px);
   background: #f6dcd8;
   color: var(--color-grey-800);
-  font-size: 12.5px;
+  font-size: 0.7812rem;
 }
 
 .log {
@@ -235,7 +254,7 @@
   gap: 8px;
   padding: 7px 0;
   border-bottom: 1px solid var(--color-grey-100);
-  font-size: 12.5px;
+  font-size: 0.7812rem;
 }
 
 .logRow:last-child {
@@ -253,6 +272,9 @@
 /* Amber with dark ink: white on amber is unreadable, and this strip appears
    exactly when the person reading it is outdoors in daylight. */
 .queue {
+  position: sticky;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 5;
   margin: 0;
   padding: 10px 12px;
   border-radius: var(--radius-md, 8px);
@@ -260,7 +282,7 @@
   color: var(--color-grey-800);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 0.8125rem;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -269,7 +291,7 @@
 .queueHint {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 11.5px;
+  font-size: 0.7188rem;
   opacity: 0.85;
 }
 
@@ -290,6 +312,85 @@
 
 .minuteAuto {
   font-family: var(--font-body);
-  font-size: 11px;
-  color: var(--color-green-600);
+  font-size: 0.6875rem;
+  color: var(--color-accent-ink);
+}
+
+.undoWhat {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.logWaiting {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.dismiss {
+  margin-left: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.clockRow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+}
+
+.clock {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-navy);
+}
+
+.clockButton {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 2px solid var(--color-on-navy-accent);
+  border-radius: 999px;
+  background: none;
+  color: var(--color-on-navy);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.clockButton:disabled {
+  opacity: 0.5;
+}
+
+.boardFlash {
+  animation: boardFlash 700ms ease-out;
+}
+
+@keyframes boardFlash {
+  0% {
+    box-shadow: 0 0 0 4px var(--color-green-400);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boardFlash {
+    animation: none;
+  }
 }

@@ -17,15 +17,27 @@ export function LeagueChips({
   leagues,
   active,
   basePath,
+  withAll = false,
 }: {
   leagues: League[];
   active: string;
   basePath: string;
+  /** An "Όλες" chip first, for pages that can show every division at once. */
+  withAll?: boolean;
 }) {
   if (leagues.length < 2) return null;
 
   return (
     <nav className={styles.chips} aria-label="Κατηγορία">
+      {withAll && (
+        <Link
+          href={`${basePath}?liga=oles`}
+          className={`${styles.chip} ${active === "oles" ? styles.chipOn : ""}`}
+          aria-current={active === "oles" ? "page" : undefined}
+        >
+          Όλες
+        </Link>
+      )}
       {leagues.map((league) => (
         <Link
           key={league.slug}

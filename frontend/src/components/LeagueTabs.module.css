@@ -24,13 +24,13 @@
   background: var(--color-surface);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-grey-600);
   white-space: nowrap;
 }
 
 .tab:hover {
-  color: var(--color-navy-900);
+  color: var(--color-heading);
   border-color: var(--color-green-300);
 }
 
@@ -48,12 +48,12 @@
   font: inherit;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-grey-600);
   border-style: dashed;
 }
 
 .toggle:hover {
-  color: var(--color-navy-900);
+  color: var(--color-heading);
   border-color: var(--color-green-300);
 }

@@ -1,0 +1,31 @@
+/* The shapes every page repeats, written once.
+
+   A module picks one up with `composes: card from "…/primitives.module.css"`
+   and adds only what makes its own version different. Before this, the same
+   four lines of card lived in eleven files and the same column in five, and
+   changing the corner radius meant finding all of them. */
+
+/* A surface on the canvas: the tables, lists and panels. */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* A reading column: one stack of content at a width that still reads on a
+   desktop. Most pages are this. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 14px 0;
+}
+
+/* The same column, wide enough for a table beside a rail. */
+.pageWide {
+  composes: page;
+  max-width: 1200px;
+}

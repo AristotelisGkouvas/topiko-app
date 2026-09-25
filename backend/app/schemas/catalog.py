@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from app.models.enums import FieldSurface, LeagueKind
+from app.models.enums import FieldSurface, LeagueKind, StandingZone
 from app.schemas.common import ORMModel
 
 
@@ -106,5 +106,6 @@ class LeagueOut(ORMModel):
     group_name: str | None = None
     total_matchdays: int | None = None
     current_matchday: int | None = None
-    zones: dict = {}
+    #: Positions per band, e.g. {"promotion": [1], "relegation": [13, 14]}.
+    zones: dict[StandingZone, list[int]] = {}
     season: SeasonOut

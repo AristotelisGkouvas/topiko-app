@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRef, useState } from "react";
 import useSWR from "swr";
 
-import { apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import { useFavourite, useHydrated } from "@/lib/favourite";
+import { useWelcomed } from "@/lib/onboarding";
 import { formatDayDate, formatTime } from "@/lib/format";
-import type { Match } from "@/lib/types";
+import type { Match, TeamStanding } from "@/lib/types";
 import { Crest } from "./Crest";
 import styles from "./MyClub.module.css";
+import { pollEvery } from "@/lib/network";
 
 interface ClubForm {
+  live?: Match;
   last?: Match;
   next?: Match;
 }
@@ -22,11 +26,12 @@ interface ClubForm {
  *  fixture is next — and this function already runs outside it.
  */
 const fetchForm = async (url: string): Promise<ClubForm> => {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(String(response.status));
-  const matches: Match[] = await response.json();
+  const matches = await apiFetch<Match[]>(url);
 
   const now = Date.now();
+  // A match in progress outranks everything: the reader who follows the club
+  // wants the score now, not next Sunday's fixture.
+  const live = matches.find((m) => m.is_live);
   const played = matches.filter(
     (m) => m.home_score !== null && m.away_score !== null,
   );
@@ -40,7 +45,7 @@ const fetchForm = async (url: string): Promise<ClubForm> => {
       new Date(m.kickoff_at).getTime() >= now,
   );
 
-  return { last: played[played.length - 1], next };
+  return { live, last: played[played.length - 1], next };
 };
 
 /** The reader's own club, at the top of the home page.
@@ -52,16 +57,53 @@ const fetchForm = async (url: string): Promise<ClubForm> => {
 export function MyClub() {
   const { favourite } = useFavourite();
   const hydrated = useHydrated();
+  const welcomed = useWelcomed();
 
   const { data } = useSWR<ClubForm>(
     favourite ? apiUrl(`/teams/${favourite.slug}/matches`) : null,
     fetchForm,
+  );
+  // While the club plays, poll the small live list (one or two matches), not
+  // the club's whole season — 13 KB every 20 seconds on a 3G allowance.
+  // Same key as the home page's live strip, so it is one request for both.
+  // A goal for the reader's club is announced out loud (assertive), and only
+  // theirs: the rest of the league's goals would be noise. Compared in the
+  // fetch callback, not in an effect, so it fires once per new score.
+  const lastScore = useRef<Record<number, number>>({});
+  const [goalNews, setGoalNews] = useState("");
+  const { data: liveList } = useSWR<Match[]>(
+    data?.live ? apiUrl("/matches/live") : null,
+    jsonFetcher,
+    {
+      refreshInterval: () => pollEvery(20_000),
+      onSuccess: (list) => {
+        const mine = list.find((m) => m.id === data?.live?.id);
+        if (!mine || !favourite) return;
+        const ours = mine.home_team.slug === favourite.slug ? mine.home_score : mine.away_score;
+        const before = lastScore.current[mine.id];
+        lastScore.current[mine.id] = ours ?? 0;
+        if (before !== undefined && (ours ?? 0) > before) {
+          setGoalNews(
+            `Γκολ για ${favourite.name}! ${mine.home_team.name} ${mine.home_score}, ${mine.away_team.name} ${mine.away_score}.`,
+          );
+        }
+      },
+    },
+  );
+  const { data: placement } = useSWR<TeamStanding | null>(
+    favourite ? apiUrl(`/teams/${favourite.slug}/standing`) : null,
+    jsonFetcher,
+    { revalidateOnFocus: false },
   );
 
   // Nothing at all until the browser has been read. Rendering the invitation
   // first and replacing it a tick later makes every load flicker for the
   // people who already follow somebody.
   if (!hydrated) return null;
+
+  // The welcome card above asks the same question; two "pick your club"
+  // boxes one under the other read as a glitch. It wins until dismissed.
+  if (!favourite && !welcomed) return null;
 
   if (!favourite) {
     return (
@@ -77,6 +119,9 @@ export function MyClub() {
     );
   }
 
+  const live = data?.live
+    ? (liveList?.find((m) => m.id === data.live!.id) ?? data.live)
+    : undefined;
   const last = data?.last;
   const next = data?.next;
 
@@ -84,10 +129,34 @@ export function MyClub() {
   // their own section below it on the home page, so repeating the last one here
   // would be the same information twice. In June, when there is no next
   // fixture, the last result takes the slot rather than leaving a hole.
-  const shown = next ?? last;
+  const shown = live ?? next ?? last;
+
+  // The whole card as one sentence, for TalkBack and VoiceOver: position,
+  // what is happening now, the last result and the next match — read in one
+  // go instead of crest, name, "vs", crest, name.
+  const vs = (m: Match) => `${m.home_team.name} – ${m.away_team.name}`;
+  const summary = [
+    `Η ομάδα σου, ${favourite.name}`,
+    placement ? `${placement.standing.position}η θέση με ${placement.standing.points} βαθμούς` : null,
+    live
+      ? `Παίζει τώρα: ${live.home_team.name} ${live.home_score ?? 0}, ${live.away_team.name} ${live.away_score ?? 0}${live.minute ? `, ${live.minute}ο λεπτό` : ""}`
+      : null,
+    last && last !== live
+      ? `Τελευταίο αποτέλεσμα: ${last.home_team.name} ${last.home_score}, ${last.away_team.name} ${last.away_score}`
+      : null,
+    next && !live
+      ? `Επόμενος αγώνας: ${vs(next)}, ${formatDayDate(next.kickoff_at)} ${formatTime(next.kickoff_at)}${next.field ? `, ${next.field.name}` : ""}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(". ");
 
   return (
     <section className={styles.wrap}>
+      <p className="srOnly">{summary}.</p>
+      <p className="srOnly" role="alert" aria-live="assertive">
+        {goalNews}
+      </p>
       <div className={styles.head}>
         <span className={styles.label}>Η ΟΜΑΔΑ ΜΟΥ</span>
         <Link href={`/somateia/${favourite.slug}`} className={styles.more}>
@@ -98,11 +167,21 @@ export function MyClub() {
       {shown ? (
         <Link href={`/agones/${shown.id}`} className={styles.card}>
           <div className={styles.meta}>
-            <span>
-              {shown.kickoff_at
-                ? `${formatDayDate(shown.kickoff_at)} · ${formatTime(shown.kickoff_at)}`
-                : "Χωρίς ώρα"}
-            </span>
+            {shown.is_live ? (
+              <span className={styles.live}>
+                {shown.status === "halftime"
+                  ? "ΗΜΙΧΡΟΝΟ"
+                  : shown.minute
+                    ? `LIVE · ${shown.minute}′`
+                    : "LIVE"}
+              </span>
+            ) : (
+              <span>
+                {shown.kickoff_at
+                  ? `${formatDayDate(shown.kickoff_at)} · ${formatTime(shown.kickoff_at)}`
+                  : "Χωρίς ώρα"}
+              </span>
+            )}
             {shown.matchday !== null && <span>{shown.matchday}η ΑΓΩΝ.</span>}
           </div>
 
@@ -121,6 +200,26 @@ export function MyClub() {
           <p className={styles.none}>Χωρίς ορισμένο αγώνα.</p>
         </div>
       )}
+
+      {/* Yesterday's result under next week's fixture: the card showed only
+          what is coming, and the Monday reader wanted what happened. */}
+      {shown && shown !== last && last && (
+        <Link href={`/agones/${last.id}`} className={styles.lastResult}>
+          Τελευταίο: {last.home_team.short_name ?? last.home_team.name}{" "}
+          {last.home_score}–{last.away_score}{" "}
+          {last.away_team.short_name ?? last.away_team.name}
+          {last.kickoff_at ? ` · ${formatDayDate(last.kickoff_at)}` : ""}
+        </Link>
+      )}
+
+      {/* The two things a club official checks midweek, one tap away. */}
+      <nav className={styles.links} aria-label={`Για ${favourite.name}`}>
+        {shown?.field && (
+          <Link href={`/gipeda/${shown.field.slug}`}>Γήπεδο &amp; οδηγίες</Link>
+        )}
+        <Link href={`/poines?somateio=${favourite.slug}`}>Ποινές</Link>
+        <Link href="/anakoinoseis">Ανακοινώσεις</Link>
+      </nav>
     </section>
   );
 }

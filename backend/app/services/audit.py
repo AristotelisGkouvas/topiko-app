@@ -72,15 +72,13 @@ def record(
 
 
 def _client_ip(request: Request | None) -> str | None:
-    """The caller's address, honouring one proxy hop.
+    """The caller's address, as uvicorn resolved it.
 
-    Behind the compose setup the socket address is the proxy's, so every entry
-    would otherwise read as the same container. Only the first hop of
-    X-Forwarded-For is trusted; the rest is client-supplied and means nothing.
+    X-Forwarded-For is not read here: any client can write it, so honouring it
+    unconditionally lets anyone put any address in the trail. Uvicorn already
+    replaces `client` with the forwarded address when — and only when — the
+    request came through a proxy listed in FORWARDED_ALLOW_IPS.
     """
     if request is None:
         return None
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()[:45] or None
     return request.client.host[:45] if request.client else None

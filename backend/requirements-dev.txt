@@ -1,0 +1,4 @@
+# Development and CI only. Not installed in the image.
+-r requirements.txt
+ruff==0.16.8
+mypy==2.3.1

@@ -13,7 +13,9 @@ import { ApiError, api } from "@/lib/api";
 import { formatGoalDifference } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
-import type { FieldRef, League, Match, Standing, TeamDetail } from "@/lib/types";
+import type { FieldRef, Match, TeamDetail } from "@/lib/types";
+import { HomeAway, splitRecord } from "@/components/HomeAway";
+import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -25,30 +27,6 @@ async function loadTeam(slug: string): Promise<TeamDetail> {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
   }
-}
-
-/** Which league the club plays in, and where it stands.
- *
- *  There is no per-team standings endpoint, so this scans the association's
- *  leagues — of which an ΕΠΣ publishes a handful, not hundreds. If that ever
- *  stops being true it becomes one endpoint on the backend, not a cache here.
- */
-async function findStanding(
-  team: TeamDetail,
-  season: string | undefined,
-): Promise<{ league: League; standing: Standing } | null> {
-  const leagues = await api.listLeagues(season);
-  // In parallel: a season here publishes seventeen competitions, and asking
-  // for them one after another made a club page wait seventeen round trips to
-  // answer a question that is the same for all of them.
-  const tables = await Promise.all(
-    leagues.map((league) => api.getStandings(league.slug, season)),
-  );
-  for (const [i, standings] of tables.entries()) {
-    const standing = standings.find((row) => row.team.id === team.id);
-    if (standing) return { league: leagues[i], standing };
-  }
-  return null;
 }
 
 export async function generateMetadata({
@@ -105,7 +83,7 @@ export default async function TeamPage({
     : team.seasons[0];
 
   const [placement, matches] = await Promise.all([
-    findStanding(team, season),
+    api.getTeamStanding(slug, season),
     api.getTeamMatches(slug, season),
   ]);
 
@@ -117,6 +95,11 @@ export default async function TeamPage({
   // never scored, so on an archived season every fixture the club ever played
   // qualified and "Επόμενοι αγώνες" filled up with matches from 2016.
   const upcoming = stillToCome(matches);
+  // Postponed and not yet replayed: owed games, which "Επόμενοι" (dated,
+  // in the future) never showed.
+  const pending = matches.filter(
+    (m) => m.status === "postponed" && m.home_score === null,
+  );
 
   return (
     <div className={styles.page}>
@@ -148,9 +131,11 @@ export default async function TeamPage({
           <dl className={styles.stats}>
             <Stat value={`${standing.position}η`} label="Θέση" />
             <Stat value={standing.points} label="Βαθμοί" />
+            {/* Words, not "32:28": a ratio has to be decoded, and read out
+                it is "thirty-two colon twenty-eight". */}
             <Stat
-              value={`${standing.goals_for}:${standing.goals_against}`}
-              label="Γκολ"
+              value={`${standing.goals_for} – ${standing.goals_against}`}
+              label="Γκολ υπέρ – κατά"
             />
             <Stat
               value={formatGoalDifference(standing.goal_difference)}
@@ -161,7 +146,6 @@ export default async function TeamPage({
 
         <div className={styles.actions}>
           <FollowButton slug={team.slug} name={team.name} />
-          <CalendarLink slug={team.slug} name={team.name} />
           {/* The card this shares is the club's own OG image, which already
               carries the crest and the standing — so the link arrives in a
               group chat looking like something rather than like a URL. */}
@@ -169,6 +153,9 @@ export default async function TeamPage({
             title={team.short_name ?? team.name}
             className={styles.share}
           />
+          <div className={styles.calendar}>
+            <CalendarLink slug={team.slug} name={team.name} />
+          </div>
         </div>
 
         {standing?.form && (
@@ -205,13 +192,56 @@ export default async function TeamPage({
                   key={match.id}
                   match={match}
                   last={i === shown.length - 1}
+                  showDate
                 />
               ))}
             </div>
           ) : (
             <Empty title="Κανένας προγραμματισμένος αγώνας" />
           )}
+          {/* What a coach opens before Sunday: every past meeting with the
+              next opponent, one tap from here. */}
+          {upcoming[0] && (
+            <Link
+              className={styles.nextH2h}
+              href={`/kontra/${upcoming[0].home_team.slug}/${upcoming[0].away_team.slug}`}
+            >
+              Κόντρα με{" "}
+              {upcoming[0].home_team.id === team.id
+                ? upcoming[0].away_team.name
+                : upcoming[0].home_team.name}{" "}
+              ›
+            </Link>
+          )}
+          {upcoming[0] && (
+            <Link
+              className={styles.nextH2h}
+              href={`/somateia/${
+                upcoming[0].home_team.id === team.id
+                  ? upcoming[0].away_team.slug
+                  : upcoming[0].home_team.slug
+              }/analysi?me=${team.slug}`}
+            >
+              Ανάλυση αντιπάλου ›
+            </Link>
+          )}
         </section>
+
+        {pending.length > 0 && (
+          <section className={styles.column} aria-labelledby="pending">
+            <SectionHeader id="pending" title="ΕΚΚΡΕΜΟΥΝ" />
+            <div className={styles.card}>
+              {pending.map((match, i) => (
+                <MatchRow
+                  key={match.id}
+                  match={match}
+                  last={i === pending.length - 1}
+                  showDate
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className={styles.column} aria-labelledby="results">
           <SectionHeader id="results" title="ΠΡΟΣΦΑΤΑ ΑΠΟΤΕΛΕΣΜΑΤΑ" />
@@ -241,6 +271,23 @@ export default async function TeamPage({
         </section>
 
         <aside className={styles.column} aria-label="Έδρα και ιστορικό">
+          {played.length > 0 && (
+            <>
+              <SectionHeader title="ΕΝΤΟΣ / ΕΚΤΟΣ" />
+              <HomeAway record={splitRecord(team, played)} />
+            </>
+          )}
+          <GoalMinutes slug={team.slug} title="ΓΚΟΛ ΑΝΑ 15ΛΕΠΤΟ" />
+
+          <SectionHeader
+            title="ΡΟΣΤΕΡ"
+            action={{ href: `/somateia/${team.slug}/roster`, label: "Δες ›" }}
+          />
+          <SectionHeader
+            title="ΠΟΙΝΕΣ"
+            action={{ href: `/poines?somateio=${team.slug}`, label: "Δες ›" }}
+          />
+
           {team.home_field && (
             <>
               <SectionHeader title="ΕΔΡΑ" />

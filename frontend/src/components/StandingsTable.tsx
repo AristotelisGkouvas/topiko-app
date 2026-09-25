@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Crest } from "./Crest";
+import { useFavourite, useHydrated } from "@/lib/favourite";
 import { formatGoalDifference, listName, zoneLabel } from "@/lib/format";
 import type { League, Standing, StandingZone } from "@/lib/types";
 import styles from "./StandingsTable.module.css";
@@ -35,7 +36,14 @@ function zoneRange(positions: number[] | undefined): string {
 
 function FormPills({ form }: { form: string }) {
   return (
-    <span className={styles.form} aria-label={`Φόρμα: ${form.split("").join(" ")}`}>
+    <span
+      className={styles.form}
+      role="img"
+      aria-label={`Φόρμα: ${form
+        .split("")
+        .map((r) => (r === "Ν" ? "νίκη" : r === "Ι" ? "ισοπαλία" : "ήττα"))
+        .join(", ")}`}
+    >
       {form.split("").map((result, i) => (
         <span
           key={i}
@@ -61,6 +69,10 @@ export function StandingsTable({
   league: Pick<League, "zones">;
 }) {
   const [sort, setSort] = useState<SortKey>("position");
+  // The reader's own clubs stand out, as they do in the home page's preview:
+  // in a table of sixteen the first thing anyone does is look for theirs.
+  const { following } = useFavourite();
+  const hydrated = useHydrated();
 
   const rows = useMemo(() => {
     if (sort === "position") return standings;
@@ -90,13 +102,17 @@ export function StandingsTable({
               <th scope="col" className={styles.teamCol}>
                 ΟΜΑΔΑ
               </th>
-              <th scope="col" className={styles.num}>
+              <th
+                scope="col"
+                className={styles.num}
+                aria-sort={sort === "played" ? "descending" : "none"}
+              >
                 <SortButton
                   active={sort === "played"}
                   onClick={() => toggle("played")}
                   title={SORTABLE.played}
                 >
-                  ΑΓ.
+                  <abbr title="Αγώνες">ΑΓ.</abbr>
                 </SortButton>
               </th>
                                 <th scope="col" className={`${styles.num} ${styles.wide}`}>
@@ -111,25 +127,33 @@ export function StandingsTable({
                   <th scope="col" className={`${styles.num} ${styles.wide}`}>
                     ΓΚΟΛ
                   </th>
-              <th scope="col" className={styles.num}>
+              <th
+                scope="col"
+                className={styles.num}
+                aria-sort={sort === "goal_difference" ? "descending" : "none"}
+              >
                   <SortButton
                     active={sort === "goal_difference"}
                     onClick={() => toggle("goal_difference")}
                     title={SORTABLE.goal_difference}
                   >
-                    ΔΤ
+                    <abbr title="Διαφορά τερμάτων">ΔΤ</abbr>
                   </SortButton>
                 </th>
               <th scope="col" className={`${styles.num} ${styles.formCol}`}>
                 ΦΟΡΜΑ
               </th>
-              <th scope="col" className={`${styles.num} ${styles.pointsCol}`}>
+              <th
+                scope="col"
+                className={`${styles.num} ${styles.pointsCol}`}
+                aria-sort={sort === "points" ? "descending" : "none"}
+              >
                 <SortButton
                   active={sort === "points"}
                   onClick={() => toggle("points")}
                   title={SORTABLE.points}
                 >
-                  Β
+                  <abbr title="Βαθμοί">Β</abbr>
                 </SortButton>
               </th>
             </tr>
@@ -138,7 +162,12 @@ export function StandingsTable({
             {rows.map((row) => (
               <tr
                 key={row.team.id}
-                className={row.zone ? styles[`zone_${row.zone}`] : undefined}
+                className={[
+                  row.zone ? styles[`zone_${row.zone}`] : "",
+                  hydrated && following(row.team.slug) ? styles.mine : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined}
               >
                 <td className={styles.posCol}>{row.position}</td>
                 <td className={styles.teamCol}>
@@ -159,7 +188,8 @@ export function StandingsTable({
                       {row.lost}
                     </td>
                     <td className={`${styles.num} ${styles.wide}`}>
-                      {row.goals_for}:{row.goals_against}
+                      {row.goals_for}–{row.goals_against}
+                      <span className="srOnly"> γκολ υπέρ – κατά</span>
                     </td>
                 <td className={styles.num}>
                     {formatGoalDifference(row.goal_difference)}
@@ -175,6 +205,18 @@ export function StandingsTable({
           </tbody>
         </table>
       </div>
+
+      {/* The abbreviations spelled out once. A title attribute helps a mouse;
+          a phone has no hover, and this is where most tables are read. */}
+      <p className={styles.key}>
+        ΑΓ. αγώνες · ΔΤ διαφορά τερμάτων · Β βαθμοί · ΦΟΡΜΑ οι τελευταίοι
+        αγώνες (πράσινο νίκη, γκρι ισοπαλία, κόκκινο ήττα)
+        <br />
+        {/* Mirrors backend/app/services/standings.py — change both together. */}
+        Σε ισοβαθμία: πρώτα οι βαθμοί στα μεταξύ τους παιχνίδια, μετά η
+        διαφορά τερμάτων, μετά τα γκολ υπέρ. Οι βαθμοί είναι μετά από τυχόν
+        αφαίρεση.
+      </p>
 
       {activeZones.length > 0 && (
         <ul className={styles.legend}>
@@ -209,6 +251,7 @@ function SortButton({
       type="button"
       onClick={onClick}
       title={title}
+      aria-label={title}
       aria-pressed={active}
       className={`${styles.sortButton} ${active ? styles.sortActive : ""}`}
     >

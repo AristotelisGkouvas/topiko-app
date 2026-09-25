@@ -2,45 +2,11 @@
 
 import useSWR from "swr";
 
-import { apiUrl } from "@/lib/api";
+import { apiUrl, jsonFetcher } from "@/lib/api";
+import { formatRelative } from "@/lib/format";
+import type { EventKind, MatchFeed } from "@/lib/types";
 import styles from "./MatchTicker.module.css";
-
-export type EventKind =
-  | "goal"
-  | "penalty_goal"
-  | "own_goal"
-  | "penalty_miss"
-  | "yellow"
-  | "second_yellow"
-  | "red"
-  | "substitution"
-  | "kickoff"
-  | "halftime"
-  | "second_half"
-  | "fulltime"
-  | "postponed"
-  | "abandoned"
-  | "note";
-
-export interface FeedEvent {
-  id: number;
-  kind: EventKind;
-  minute: number | null;
-  team: { id: number; slug: string; name: string; short_name: string | null } | null;
-  player_name: string | null;
-  note: string | null;
-  created_at: string;
-}
-
-export interface MatchFeed {
-  match_id: number;
-  home_score: number | null;
-  away_score: number | null;
-  minute: number | null;
-  is_live: boolean;
-  status: string;
-  events: FeedEvent[];
-}
+import { pollEvery } from "@/lib/network";
 
 /** Glyph and wording per kind. A single map, because the ticker, the
  *  secretary's screen and the share card all have to call the same thing the
@@ -63,36 +29,43 @@ export const EVENT_LABELS: Record<EventKind, { glyph: string; label: string }> =
   note: { glyph: "✎", label: "Σημείωση" },
 };
 
-const fetcher = async (url: string): Promise<MatchFeed> => {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(String(response.status));
-  return response.json();
-};
+const REPORTERS = { club: "εθελοντής σωματείου", association: "ένωση" } as const;
 
 /** The running log of a match.
  *
- *  Shown only once there is something in it. Most matches here have no log at
- *  all — nobody was at the ground with the screen open — and an empty "ΡΟΗ
- *  ΓΕΓΟΝΟΤΩΝ" heading on every page would read as a broken feature rather than
- *  an unused one.
+ *  Shown once there is something in it — or while the match is live, when
+ *  even a bare score with no log needs its minute and its state said. A
+ *  finished match with no log shows nothing: most matches here have none, and
+ *  an empty "ΡΟΗ ΓΕΓΟΝΟΤΩΝ" on every page would read as a broken feature.
  */
-export function MatchTicker({ matchId }: { matchId: number }) {
+export function MatchTicker({
+  matchId,
+  homeName,
+  awayName,
+}: {
+  matchId: number;
+  /** For the spoken score: "Ζίτσα 2, Πωγώνι 1" rather than "2–1". */
+  homeName?: string;
+  awayName?: string;
+}) {
   const { data } = useSWR<MatchFeed>(
     apiUrl(`/matches/${matchId}/feed`),
-    fetcher,
+    jsonFetcher<MatchFeed>,
     // Only while it is running. Polling a finished match forever costs the
     // reader's battery to re-read a log that cannot change.
     {
-      refreshInterval: (latest) => (latest?.is_live ? 15_000 : 0),
+      refreshInterval: (latest) => (latest?.is_live ? pollEvery(15_000) : 0),
       revalidateOnFocus: true,
     },
   );
 
-  if (!data || data.events.length === 0) return null;
+  if (!data || (data.events.length === 0 && !data.is_live)) return null;
 
   // Newest first: somebody opening this mid-match wants the last thing that
   // happened, not the kickoff.
   const events = [...data.events].reverse();
+  const latest = events[0];
+  const scored = data.home_score !== null && data.away_score !== null;
 
   return (
     <section className={styles.box}>
@@ -105,6 +78,30 @@ export function MatchTicker({ matchId }: { matchId: number }) {
           </span>
         )}
       </h2>
+
+      {/* Polite, so a screen reader says the new score when it changes
+          without cutting into whatever it is reading. */}
+      <p className={styles.status} aria-live="polite" aria-atomic="true">
+        {data.status === "halftime"
+          ? "Ημίχρονο"
+          : data.is_live
+            ? "Σε εξέλιξη"
+            : "Τελικό"}
+        {scored
+          ? homeName && awayName
+            ? ` · ${homeName} ${data.home_score}, ${awayName} ${data.away_score}`
+            : ` · ${data.home_score}–${data.away_score}`
+          : ""}
+        {latest?.reported_by
+          ? ` · Ενημερώνει: ${REPORTERS[latest.reported_by]}, ${formatRelative(latest.created_at)}`
+          : ""}
+      </p>
+
+      {events.length === 0 && (
+        <p className={styles.source}>
+          Δεν έχουν καταγραφεί ακόμη γεγονότα για αυτόν τον αγώνα.
+        </p>
+      )}
 
       <ol className={styles.list}>
         {events.map((event) => {
@@ -140,10 +137,12 @@ export function MatchTicker({ matchId }: { matchId: number }) {
         })}
       </ol>
 
-      <p className={styles.source}>
-        Καταγραφή από τον αγώνα, όχι από την ένωση. Ο σκόρερ μπορεί να
-        συμπληρωθεί αργότερα.
-      </p>
+      {events.length > 0 && (
+        <p className={styles.source}>
+          Καταγραφή από τον αγώνα· η ένωση επιβεβαιώνει αργότερα. Ο σκόρερ
+          μπορεί να συμπληρωθεί εκ των υστέρων.
+        </p>
+      )}
     </section>
   );
 }

@@ -6,7 +6,9 @@ data?" is answerable from the URL alone.
 """
 
 import dataclasses
+from datetime import date, datetime, time, timedelta
 from typing import Annotated
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, or_, select
@@ -18,19 +20,23 @@ from app.api.deps import (
     CurrentSeason,
     DbSession,
 )
+from app.api.lookups import MATCH_LOADS, match_in, team_in
 from app.models import (
     Association,
     Field,
     League,
     LeagueTeam,
     Match,
+    MatchEvent,
     Player,
     PlayerStat,
+    PlayerSuspension,
+    ScrapeRun,
     Season,
     Standing,
     Team,
 )
-from app.models.enums import MatchStatus
+from app.models.enums import MatchEventKind, MatchStatus, ScrapeRunStatus
 from app.services import search as search_service
 from app.services.live import LIVE_WINDOW
 from app.services.standings import project_live_standings
@@ -44,6 +50,9 @@ from app.schemas import (
     MatchDetailOut,
     MatchOut,
     Meta,
+    LiveScorerOut,
+    RosterRowOut,
+    GoalMinutesOut,
     ScorerOut,
     SearchHitOut,
     SearchOut,
@@ -52,14 +61,7 @@ from app.schemas import (
     TeamDetailOut,
     TeamOut,
     TeamRef,
-)
-
-# Loader options reused by every match query — a match card is useless without
-# both teams and the venue, so they are never left to lazy-load.
-_MATCH_LOADS = (
-    selectinload(Match.home_team),
-    selectinload(Match.away_team),
-    selectinload(Match.field),
+    TeamStandingOut,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["public"])
@@ -143,7 +145,7 @@ async def list_league_matches(
 ) -> list[Match]:
     stmt = (
         select(Match)
-        .options(*_MATCH_LOADS)
+        .options(*MATCH_LOADS)
         .where(Match.league_id == league.id)
     )
     if matchday is not None:
@@ -212,7 +214,7 @@ async def list_live_matches(
     stays a single indexed query across the tenant rather than one per league."""
     result = await db.execute(
         select(Match)
-        .options(*_MATCH_LOADS)
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
@@ -230,6 +232,164 @@ async def list_live_matches(
         .order_by(Match.kickoff_at.nulls_last(), Match.id)
     )
     return list(result.scalars())
+
+
+def weekend_around(today: date) -> tuple[date, date]:
+    """Friday to Monday of the weekend a reader means by "this weekend".
+
+    Tuesday to Thursday look ahead to the coming one; Friday to Monday mean
+    the one under way — a Monday reader wants yesterday's results, not the
+    fixtures five days out.
+    """
+    weekday = today.weekday()  # Monday 0 … Sunday 6
+    if weekday == 0:
+        friday = today - timedelta(days=3)
+    elif weekday >= 4:
+        friday = today - timedelta(days=weekday - 4)
+    else:
+        friday = today + timedelta(days=4 - weekday)
+    return friday, friday + timedelta(days=3)
+
+
+@router.get("/{association_slug}/matches/weekend", response_model=list[MatchOut])
+async def list_weekend_matches(
+    association: CurrentAssociation,
+    season: CurrentSeason,
+    db: DbSession,
+    day: Annotated[date | None, Query(description="Οποιαδήποτε μέρα του Σαββατοκύριακου")] = None,
+) -> list[Match]:
+    """Every division's matches for one weekend, on one screen.
+
+    With fifteen divisions, a reporter putting together Sunday's results used
+    to open fifteen pages. Ordered by division, then kickoff, so the client
+    can group without sorting again.
+    """
+    athens = ZoneInfo("Europe/Athens")
+    start, end = weekend_around(day or datetime.now(athens).date())
+    lo = datetime.combine(start, time.min, tzinfo=athens)
+    hi = datetime.combine(end + timedelta(days=1), time.min, tzinfo=athens)
+    result = await db.execute(
+        select(Match)
+        .options(*MATCH_LOADS)
+        .join(League, Match.league_id == League.id)
+        .where(
+            League.association_id == association.id,
+            League.season_id == season.id,
+            Match.kickoff_at >= lo,
+            Match.kickoff_at < hi,
+        )
+        .order_by(League.tier.nulls_last(), League.name, Match.kickoff_at, Match.id)
+    )
+    return list(result.scalars())
+
+
+@router.get("/{association_slug}/teams/{team_slug}/roster", response_model=list[RosterRowOut])
+async def team_roster(
+    association: CurrentAssociation,
+    season: CurrentSeason,
+    team_slug: str,
+    db: DbSession,
+) -> list[RosterRowOut]:
+    """Who plays for this club this season, and who may be banned.
+
+    Built from the published stat lines, like the volunteer's scorer picker.
+    A coach reading the opponent wants two things from it: who scores, and
+    who is out on Sunday.
+    """
+    team = await team_in(db, association.id, team_slug)
+    rows = (
+        await db.execute(
+            select(Player, PlayerStat)
+            .join(PlayerStat, PlayerStat.player_id == Player.id)
+            .join(League, PlayerStat.league_id == League.id)
+            .where(
+                League.association_id == association.id,
+                League.season_id == season.id,
+                PlayerStat.team_id == team.id,
+            )
+            .order_by(PlayerStat.goals.desc().nulls_last(), Player.name)
+        )
+    ).all()
+
+    out: dict[int, RosterRowOut] = {}
+    for player, stat in rows:
+        if player.id in out:
+            continue
+        out[player.id] = RosterRowOut(
+            player=player,
+            goals=stat.goals or 0,
+            yellow_cards=stat.yellow_cards,
+            red_cards=stat.red_cards,
+        )
+    if not out:
+        return []
+
+    bans = (
+        await db.execute(
+            select(PlayerSuspension, League.current_matchday)
+            .join(League, PlayerSuspension.league_id == League.id)
+            .where(
+                League.season_id == season.id,
+                PlayerSuspension.player_id.in_(out.keys()),
+            )
+            .order_by(PlayerSuspension.matchday.desc().nulls_last())
+        )
+    ).all()
+    for ban, current in bans:
+        row = out[ban.player_id]
+        if row.banned_matches is not None or ban.matchday is None:
+            continue
+        served = max(0, (current or ban.matchday) - ban.matchday)
+        if ban.matches > served:
+            row.banned_matches = ban.matches
+            row.banned_after_matchday = ban.matchday
+    return list(out.values())
+
+
+def minute_band(minute: int) -> int:
+    """0–5: which 15-minute band a goal falls in. Stoppage time stays in the
+    half it belongs to (45+ is band 2, 90+ band 5); a second-half goal is
+    never logged below 46, so anything over 45 is second half."""
+    if minute <= 45:
+        return min(max(minute - 1, 0) // 15, 2)
+    return min(3 + (minute - 46) // 15, 5)
+
+
+@router.get(
+    "/{association_slug}/teams/{team_slug}/goal-minutes", response_model=GoalMinutesOut
+)
+async def team_goal_minutes(
+    association: CurrentAssociation,
+    season: CurrentSeason,
+    team_slug: str,
+    db: DbSession,
+) -> GoalMinutesOut:
+    """When they score and when they concede — the coach's question."""
+    team = await team_in(db, association.id, team_slug)
+    rows = (
+        await db.execute(
+            select(MatchEvent.match_id, MatchEvent.kind, MatchEvent.team_id, MatchEvent.minute)
+            .join(Match, MatchEvent.match_id == Match.id)
+            .join(League, Match.league_id == League.id)
+            .where(
+                League.season_id == season.id,
+                (Match.home_team_id == team.id) | (Match.away_team_id == team.id),
+                MatchEvent.kind.in_(
+                    (MatchEventKind.GOAL, MatchEventKind.PENALTY_GOAL, MatchEventKind.OWN_GOAL)
+                ),
+                MatchEvent.minute.is_not(None),
+            )
+        )
+    ).all()
+    scored = [0] * 6
+    conceded = [0] * 6
+    for _match_id, kind, team_id, minute in rows:
+        # An own goal is filed against the side that put it in.
+        ours = (team_id == team.id) != (kind is MatchEventKind.OWN_GOAL)
+        (scored if ours else conceded)[minute_band(minute)] += 1
+    return GoalMinutesOut(
+        scored=scored, conceded=conceded, matches=len({r[0] for r in rows})
+    )
 
 
 @router.get("/{association_slug}/teams", response_model=list[TeamOut])
@@ -252,20 +412,9 @@ async def list_teams(
 async def _load_team(
     association: Association, team_slug: str, db: DbSession
 ) -> Team:
-    """The club row, or a 404. Shared by the club page and its fixture list,
-    which want the same lookup and different things around it."""
-    result = await db.execute(
-        select(Team)
-        .options(selectinload(Team.home_field))
-        .where(Team.association_id == association.id, Team.slug == team_slug)
-    )
-    team = result.scalar_one_or_none()
-    if team is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Δεν βρέθηκε ομάδα '{team_slug}'.",
-        )
-    return team
+    """The club row with its ground. Shared by the club page and its fixture
+    list, which want the same lookup and different things around it."""
+    return await team_in(db, association.id, team_slug, selectinload(Team.home_field))
 
 
 @router.get("/{association_slug}/teams/{team_slug}", response_model=TeamDetailOut)
@@ -292,6 +441,47 @@ async def get_team(
     )
 
 
+@router.get(
+    "/{association_slug}/teams/{team_slug}/standing",
+    response_model=TeamStandingOut | None,
+)
+async def get_team_standing(
+    association: CurrentAssociation,
+    team_slug: str,
+    season: CurrentSeason,
+    db: DbSession,
+) -> TeamStandingOut | None:
+    """The club's row in the season's table, and which table it is. Null if
+    the club has none — a youth-only club, or a season with no table yet.
+
+    A club can appear in more than one division; the first in the site's own
+    league order wins, the same order the league picker shows.
+    """
+    team = await _load_team(association, team_slug, db)
+    row = (
+        await db.execute(
+            select(Standing, League)
+            .join(League, Standing.league_id == League.id)
+            .options(selectinload(Standing.team), selectinload(League.season))
+            .where(
+                League.association_id == association.id,
+                League.season_id == season.id,
+                League.is_active.is_(True),
+                Standing.team_id == team.id,
+            )
+            .order_by(League.sort_order, League.tier, League.name)
+            .limit(1)
+        )
+    ).first()
+    if row is None:
+        return None
+    standing, league = row
+    return TeamStandingOut(
+        league=LeagueOut.model_validate(league),
+        standing=StandingOut.model_validate(standing),
+    )
+
+
 @router.get("/{association_slug}/teams/{team_slug}/matches", response_model=list[MatchOut])
 async def list_team_matches(
     association: CurrentAssociation,
@@ -302,7 +492,7 @@ async def list_team_matches(
     team = await _load_team(association, team_slug, db)
     result = await db.execute(
         select(Match)
-        .options(*_MATCH_LOADS)
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
@@ -359,12 +549,19 @@ async def search(
             db, association_id=association.id, needle=needle
         ),
     )
+    matches = await search_service.search_referee_matches(
+        db, association_id=association.id, needle=needle
+    )
 
     def out(hits: list[search_service.Hit]) -> list[SearchHitOut]:
         return [SearchHitOut(**dataclasses.asdict(h)) for h in hits]
 
     return SearchOut(
-        query=q, teams=out(teams), players=out(players), fields=out(fields)
+        query=q,
+        teams=out(teams),
+        players=out(players),
+        fields=out(fields),
+        matches=out(matches),
     )
 
 
@@ -397,7 +594,7 @@ async def list_field_matches(
     field = await _load_field(association, field_slug, db)
     result = await db.execute(
         select(Match)
-        .options(*_MATCH_LOADS)
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
@@ -461,6 +658,65 @@ async def list_scorers(
     return list(result.scalars())
 
 
+@router.get(
+    "/{association_slug}/leagues/{league_slug}/scorers/live",
+    response_model=list[LiveScorerOut],
+)
+async def list_live_scorers(
+    league: CurrentLeague,
+    db: DbSession,
+    limit: Annotated[int, Query(ge=1, le=100)] = 30,
+) -> list[LiveScorerOut]:
+    """Goals logged at the ground this season, per named player.
+
+    Only events tied to a player from the register count: a goal filed as
+    "Άγνωστος", or with a name typed free-hand, cannot be put against anybody.
+    Own goals are left out — they are not the scorer's.
+    """
+    goals = func.count(MatchEvent.id).label("goals")
+    rows = (
+        await db.execute(
+            select(MatchEvent.player_id, MatchEvent.team_id, goals)
+            .join(Match, MatchEvent.match_id == Match.id)
+            .where(
+                Match.league_id == league.id,
+                MatchEvent.player_id.is_not(None),
+                MatchEvent.kind.in_((MatchEventKind.GOAL, MatchEventKind.PENALTY_GOAL)),
+            )
+            .group_by(MatchEvent.player_id, MatchEvent.team_id)
+            .order_by(goals.desc())
+            .limit(limit)
+        )
+    ).all()
+    if not rows:
+        return []
+
+    players = {
+        p.id: p
+        for p in (
+            await db.execute(select(Player).where(Player.id.in_({r.player_id for r in rows})))
+        ).scalars()
+    }
+    team_ids = {r.team_id for r in rows if r.team_id is not None}
+    teams = {
+        t.id: t
+        for t in (await db.execute(select(Team).where(Team.id.in_(team_ids)))).scalars()
+    } if team_ids else {}
+
+    out = [
+        LiveScorerOut(
+            player=players[r.player_id],
+            team=teams.get(r.team_id),
+            goals=r.goals,
+        )
+        for r in rows
+        if r.player_id in players
+    ]
+    # Same tie-break as the official table, so equal rows do not reshuffle.
+    out.sort(key=lambda row: (-row.goals, row.player.name))
+    return out
+
+
 @router.get("/{association_slug}/matches/{match_id}", response_model=MatchDetailOut)
 async def get_match(
     association: CurrentAssociation,
@@ -473,20 +729,13 @@ async def get_match(
     sequential across every tenant, so without it /epsa/matches/17 would answer
     with a fixture from another federation.
     """
-    match = (
-        await db.execute(
-            select(Match)
-            .options(*_MATCH_LOADS, selectinload(Match.league).selectinload(League.season))
-            .join(League, Match.league_id == League.id)
-            .where(Match.id == match_id, League.association_id == association.id)
-        )
-    ).scalar_one_or_none()
-
-    if match is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Δεν βρέθηκε αγώνας με id {match_id}.",
-        )
+    match = await match_in(
+        db,
+        association.id,
+        match_id,
+        *MATCH_LOADS,
+        selectinload(Match.league).selectinload(League.season),
+    )
 
     # Earlier meetings, either way round, this fixture excluded.
     pair = (match.home_team_id, match.away_team_id)
@@ -494,7 +743,7 @@ async def get_match(
         (
             await db.execute(
                 select(Match)
-                .options(*_MATCH_LOADS)
+                .options(*MATCH_LOADS)
                 .join(League, Match.league_id == League.id)
                 .where(
                     League.association_id == association.id,
@@ -561,9 +810,22 @@ async def get_meta(association: CurrentAssociation, db: DbSession) -> Meta:
             Match.kickoff_at > func.now() - LIVE_WINDOW,
         )
     )
+    last_run = (
+        await db.execute(
+            select(ScrapeRun.status, ScrapeRun.finished_at)
+            .where(
+                ScrapeRun.association_id == association.id,
+                ScrapeRun.status != ScrapeRunStatus.RUNNING,
+            )
+            .order_by(ScrapeRun.started_at.desc())
+            .limit(1)
+        )
+    ).first()
     return Meta(
         association=association.slug,
         source_url=association.source_url,
         last_scraped_at=last_scrape,
         live_matches=live_count or 0,
+        last_run_status=last_run.status.value if last_run else None,
+        last_run_at=last_run.finished_at if last_run else None,
     )

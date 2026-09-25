@@ -1,0 +1,43 @@
+.page {
+  composes: page from "../../styles/primitives.module.css";
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.card p {
+  margin: 0 0 10px;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+.card a {
+  color: var(--color-link);
+  font-weight: 600;
+}
+
+.heading {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-heading);
+}
+
+.list {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.list li {
+  margin-bottom: 4px;
+}

@@ -24,9 +24,15 @@ export default async function RecordsPage() {
       <PageHeader title="Ρεκόρ" />
 
       <dl className={styles.totals}>
-        <Total value={records.total_matches.toLocaleString("el-GR")} label="αγώνες" />
+        <Total
+          value={records.total_matches.toLocaleString("el-GR")}
+          label={records.total_matches === 1 ? "αγώνας" : "αγώνες"}
+        />
         <Total value={records.total_goals.toLocaleString("el-GR")} label="γκολ" />
-        <Total value={records.seasons_covered} label="περίοδοι" />
+        <Total
+          value={records.seasons_covered}
+          label={records.seasons_covered === 1 ? "περίοδος" : "περίοδοι"}
+        />
       </dl>
 
       <section>
@@ -53,7 +59,7 @@ export default async function RecordsPage() {
                 <span className={styles.scorerGoals}>
                   {scorer.goals}
                   <span className={styles.unit}>
-                    γκολ / {scorer.seasons} περίοδοι
+                    γκολ / {scorer.seasons} {scorer.seasons === 1 ? "περίοδος" : "περίοδοι"}
                   </span>
                 </span>
               </Link>

@@ -3,49 +3,11 @@
 import { useState } from "react";
 import useSWR from "swr";
 
-import { apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
+import type { PredictionChoice as Choice, PredictionPoll } from "@/lib/types";
+import { voterToken } from "@/lib/voter";
 import styles from "./Prediction.module.css";
-
-type Choice = "home" | "draw" | "away";
-
-interface Poll {
-  match_id: number;
-  open: boolean;
-  total: number;
-  home: number;
-  draw: number;
-  away: number;
-  mine: Choice | null;
-  revealed: boolean;
-}
-
-const KEY = "pamesentra:voter";
-
-/** A token this browser keeps, so a second visit is recognised as the same
- *  person without anyone having to register.
- *
- *  Created on first use rather than at import: generating one for every reader
- *  who never votes would write to storage on a page they only read.
- */
-function voterToken(): string | null {
-  try {
-    const existing = window.localStorage.getItem(KEY);
-    if (existing) return existing;
-    const fresh = crypto.randomUUID().replace(/-/g, "");
-    window.localStorage.setItem(KEY, fresh);
-    return fresh;
-  } catch {
-    // Private mode or storage blocked. Voting simply is not offered rather
-    // than being offered and silently failing.
-    return null;
-  }
-}
-
-const fetcher = async (url: string): Promise<Poll> => {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(String(response.status));
-  return response.json();
-};
+import { plural } from "@/lib/format";
 
 export function Prediction({
   matchId,
@@ -64,24 +26,24 @@ export function Prediction({
   const url = apiUrl(
     `/matches/${matchId}/prognostiko${token ? `?voter=${token}` : ""}`,
   );
-  const { data, mutate } = useSWR<Poll>(token ? url : null, fetcher);
+  const { data, mutate } = useSWR<PredictionPoll>(token ? url : null, jsonFetcher<PredictionPoll>);
 
-  if (!data) return null;
+  // A closed poll nobody voted in is nothing to show. It used to take the best
+  // spot on the page of every live and every old match to say so.
+  if (!data || (!data.open && data.total === 0)) return null;
 
   async function vote(choice: Choice) {
     if (!token || busy) return;
     setBusy(true);
     try {
-      const response = await fetch(
+      const poll = await apiFetch<PredictionPoll>(
         apiUrl(`/matches/${matchId}/prognostiko`),
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ choice, voter: token }),
-        },
+        { method: "POST", json: { choice, voter: token } },
       );
-      if (response.ok) mutate(await response.json(), { revalidate: false });
-      else mutate();
+      mutate(poll, { revalidate: false });
+    } catch {
+      // Closed at kickoff, or throttled: show whatever the server now holds.
+      mutate();
     } finally {
       setBusy(false);
     }
@@ -99,9 +61,7 @@ export function Prediction({
       <p className={styles.sub}>
         {data.open
           ? "Χωρίς στοίχημα. Τα ποσοστά φαίνονται αφού ψηφίσεις."
-          : data.total > 0
-            ? `${data.total} ${data.total === 1 ? "ψήφος" : "ψήφοι"} πριν τη σέντρα`
-            : "Η ψηφοφορία έκλεισε χωρίς ψήφους."}
+          : `${data.total} ${plural(data.total, "ψήφος", "ψήφοι")} πριν τη σέντρα`}
       </p>
 
       <ul className={styles.options}>
@@ -145,7 +105,7 @@ export function Prediction({
         })}
       </ul>
 
-      {!data.open && data.mine === null && data.total > 0 && (
+      {!data.open && data.mine === null && (
         <p className={styles.missed}>Δεν πρόλαβες να ψηφίσεις σε αυτόν.</p>
       )}
     </section>

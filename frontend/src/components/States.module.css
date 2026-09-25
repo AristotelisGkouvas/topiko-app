@@ -16,27 +16,27 @@
   background: var(--color-grey-100);
   display: grid;
   place-items: center;
-  font-size: 18px;
-  color: var(--color-grey-400);
+  font-size: 1.125rem;
+  color: var(--color-nav-idle);
   margin-bottom: 4px;
 }
 
 .emptyTitle {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--color-heading);
 }
 
 .emptyBody {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
   max-width: 34ch;
 }
 
 .emptyAction {
   margin-top: 6px;
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   font-weight: 600;
 }
 

@@ -7,7 +7,7 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding: 8px 2px 14px;
@@ -17,6 +17,7 @@
 }
 
 .tab {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -26,9 +27,9 @@
   min-height: 44px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 10px;
+  font-size: 0.6875rem;
   line-height: 1;
-  color: var(--color-grey-600);
+  color: var(--color-nav-idle);
   text-decoration: none;
 }
 
@@ -38,25 +39,32 @@
   position: relative;
   display: grid;
   place-items: center;
-  color: var(--color-grey-400);
+  color: var(--color-nav-idle);
 }
 
 .label {
   text-align: center;
+  /* At 200% text the five labels no longer fit a phone; each one stays in
+     its own fifth of the bar instead of pushing "Περισσότερα" off-screen. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: min(1em, 3.1vw);
 }
 
 .tab:hover {
-  color: var(--color-navy-900);
+  color: var(--color-heading);
 }
 
 .tab:hover .icon {
-  color: var(--color-navy-900);
+  color: var(--color-heading);
 }
 
 /* Active: one colour for icon and label together, no pill behind it. */
 .active,
 .active .icon {
-  color: var(--color-green-600);
+  color: var(--color-accent-ink);
 }
 
 .badge {

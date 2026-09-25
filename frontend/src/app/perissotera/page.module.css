@@ -1,11 +1,6 @@
 /* The design's content area: padding 14px, 14px between blocks. */
 .page {
-  padding: 14px 14px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 720px;
-  margin: 0 auto;
+  composes: page from "../../styles/primitives.module.css";
 }
 
 /* Section label, exactly as the design sets it: Fira 700 11px,
@@ -14,16 +9,13 @@
   margin: 0 2px -6px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
+  composes: card from "../../styles/primitives.module.css";
 }
 
 .row {
@@ -52,7 +44,7 @@
 .icon {
   display: grid;
   place-items: center;
-  color: var(--color-grey-400);
+  color: var(--color-nav-idle);
   flex: none;
 }
 
@@ -61,14 +53,28 @@
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 0.9062rem;
   color: var(--color-heading);
+}
+
+.labelBlock {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.description {
+  font-size: 0.7812rem;
+  color: var(--color-text-muted);
+  line-height: 1.35;
 }
 
 .chevron {
   flex: none;
-  color: var(--color-grey-400);
-  font-size: 18px;
+  color: var(--color-nav-idle);
+  font-size: 1.125rem;
   line-height: 1;
 }
 
@@ -82,7 +88,7 @@
   border-radius: 999px;
   background: none;
   color: var(--color-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   cursor: pointer;
 }
 

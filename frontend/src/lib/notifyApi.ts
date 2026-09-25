@@ -1,6 +1,7 @@
 "use client";
 
-import { API_URL, ASSOCIATION } from "./api";
+import type { components } from "./api-schema";
+import { apiFetch, apiUrl } from "./api";
 
 /** The notification settings screen's half of the API.
  *
@@ -10,7 +11,7 @@ import { API_URL, ASSOCIATION } from "./api";
  *  identifies this phone to the server.
  */
 
-const base = () => `${API_URL}/api/v1/${ASSOCIATION}/push`;
+const base = () => apiUrl("/push");
 
 /** The switches screen N1 offers. One per group, not one per event kind:
  *  nobody wants second yellows on and reds off, and thirteen switches is a
@@ -24,12 +25,7 @@ export const EVENT_GROUPS = [
 
 export type GroupKey = (typeof EVENT_GROUPS)[number]["key"];
 
-export interface TeamPrefs {
-  team_slug: string;
-  prefs: Record<string, boolean>;
-  quiet_from: number | null;
-  quiet_to: number | null;
-}
+export type TeamPrefs = components["schemas"]["PrefsOut"];
 
 /** The endpoint this browser is subscribed with, or null if it is not.
  *
@@ -48,13 +44,10 @@ export async function currentEndpoint(): Promise<string | null> {
   }
 }
 
-export async function readPrefs(endpoint: string): Promise<TeamPrefs[]> {
-  const response = await fetch(
+export function readPrefs(endpoint: string): Promise<TeamPrefs[]> {
+  return apiFetch<TeamPrefs[]>(
     `${base()}/prefs?endpoint=${encodeURIComponent(endpoint)}`,
-    { headers: { Accept: "application/json" } },
   );
-  if (!response.ok) throw new Error(String(response.status));
-  return (await response.json()) as TeamPrefs[];
 }
 
 export async function writePrefs(body: {
@@ -64,16 +57,14 @@ export async function writePrefs(body: {
   quiet_from: number | null;
   quiet_to: number | null;
 }): Promise<void> {
-  const response = await fetch(`${base()}/prefs`, {
+  await apiFetch<unknown>(`${base()}/prefs`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+    json: {
       ...body,
       // The server stores a window in local hours and needs the offset to
       // compare it against its own clock. Negated because getTimezoneOffset
       // counts minutes *behind* UTC and everything else counts them ahead.
       utc_offset: -new Date().getTimezoneOffset(),
-    }),
+    },
   });
-  if (!response.ok) throw new Error(String(response.status));
 }

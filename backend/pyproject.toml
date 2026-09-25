@@ -1,0 +1,22 @@
+# Tool configuration only; the app is installed from requirements.txt.
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+# Pyflakes (unused and undefined names) and syntax errors: the checks that
+# catch real bugs without a style debate. Widen deliberately, one rule set at
+# a time, fixing what it finds in the same change.
+select = ["F", "E9"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["app"]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+# Not strict yet: the annotations are complete, so turn these on one at a
+# time and fix what each finds, rather than silencing a wall of errors.
+check_untyped_defs = true
+warn_unused_ignores = true

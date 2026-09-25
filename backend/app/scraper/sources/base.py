@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from app.scraper.labels import LeagueLabel
+
 from app.scraper.types import (
     ScrapedField,
     ScrapedLeague,
@@ -57,6 +59,19 @@ class Source(Protocol):
 
     def parse_standings(self, html: str) -> list[ScrapedStanding]:
         ...
+
+
+@runtime_checkable
+class TitleReader(Protocol):
+    """A source that knows how its federation writes competition titles.
+
+    Optional. The generic reader in `app.scraper.labels` was written against
+    the ΕΠΣ Ηπείρου site — its sponsors, its "Κ10 Α" spellings — and another
+    federation's titles will need their own rules. An adapter that does not
+    implement this gets the generic one.
+    """
+
+    def describe_league(self, name: str) -> LeagueLabel: ...
 
 
 @runtime_checkable

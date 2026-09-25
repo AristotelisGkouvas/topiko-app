@@ -48,7 +48,9 @@
   --color-hairline: #eeeff0;
   /* Περίγραμμα ανενεργού chip. Πιο σκούρο από το border, γιατί ένα chip
      πρέπει να διαβάζεται ως πάτημα πάνω στον καμβά. */
-  --color-chip-border: #d2d3d5;
+  /* The outline that says "this is a button": 3.3:1, the non-text
+     contrast minimum. A paler one left chips looking like plain text. */
+  --color-chip-border: #8a8e92;
 
   --color-canvas: #f4f5f6;
 
@@ -58,7 +60,8 @@
   /* Η κουκκίδα ισοπαλίας στη φόρμα. Ουδέτερο γκρι και όχι κεχριμπαρένιο:
      σε μια σειρά από πράσινο/κόκκινο, το κεχριμπαρένιο διαβάζεται ως
      προειδοποίηση — και η ισοπαλία δεν είναι. */
-  --color-draw-dot: #c9cccf;
+  /* 3.3:1 on white — a lighter grey vanished beside the green and red. */
+  --color-draw-dot: #8a8e92;
   --color-loss: #c0392b; /* dark brick, not alarm red */
   --color-live: var(--color-terra-500);
 
@@ -70,6 +73,17 @@
   --color-win-ink: var(--color-grey-800);
   --color-draw-surface: var(--color-amber-600);
   --color-draw-ink: var(--color-grey-800);
+  /* Green as *text* — links like "Όλα ›", the active tab. green-600 is 4.3:1
+     on white and 3.6:1 on the dark surface, short of AA at the 10–12px these
+     are set in; green-700 clears it on light, green-400 on dark. */
+  --color-accent-ink: var(--color-green-700);
+  /* Idle nav icon and label: grey-400 was 2.6:1. */
+  --color-nav-idle: var(--color-grey-600);
+  /* Cream tile for a record or a number worth pointing at. */
+  /* Loss as text (an arrow down, a minus): brick on light, lifted on dark. */
+  --color-loss-text: var(--color-loss);
+  --color-highlight-surface: var(--color-amber-200);
+  --color-highlight-ink: var(--color-grey-800);
   --color-loss-surface: var(--color-loss);
   --color-loss-ink: var(--color-grey-50);
   --color-live-surface: var(--color-terra-700);
@@ -118,6 +132,17 @@
     "Segoe UI", "Helvetica Neue", sans-serif;
   --font-body: var(--font-noto), "Noto Sans", "Segoe UI", Tahoma,
     "DejaVu Sans", sans-serif;
+
+  /* The layout's own padding around every page. A page that runs edge to
+     edge cancels it with these, so the two cannot drift apart. */
+  --layout-gutter-top: 18px;
+  --layout-gutter-x: 16px;
+
+  /* Breakpoints. Custom properties cannot be read inside @media, so these
+     two are the contract rather than tokens: 860px is where the bottom tab
+     bar becomes the top navigation, 1040px is where a page gains a side
+     rail. A new min-width query uses one of them; the max-width ones under
+     480px are per-component fixes for the narrowest phones. */
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -209,11 +234,17 @@
     --color-grey-100: #1a2e47;
     --color-grey-200: #1f3550;
     --color-hairline: #1a2e47;
-    --color-chip-border: #2a4566;
+    --color-chip-border: #5a7697;
     --color-badge-surface: #1f3550;
-  --color-soft: #123d2a;
     --color-soft: #123d2a;
+    /* grey-100 goes dark here, so text on the navy bar needs its own value. */
+    --color-on-navy: #f5f5f5;
     --color-on-navy-fill: #1a3252;
+    --color-highlight-surface: #3a3117;
+    --color-highlight-ink: #f2d88f;
+    --color-accent-ink: var(--color-green-400);
+    --color-nav-idle: #a9b6c4;
+    --color-loss-text: #f08a7e;
   }
 }
 
@@ -245,8 +276,14 @@
   --color-grey-100: #1a2e47;
   --color-grey-200: #1f3550;
   --color-hairline: #1a2e47;
-  --color-chip-border: #2a4566;
+  --color-chip-border: #5a7697;
   --color-badge-surface: #1f3550;
   --color-soft: #123d2a;
+  --color-on-navy: #f5f5f5;
   --color-on-navy-fill: #1a3252;
+  --color-highlight-surface: #3a3117;
+  --color-highlight-ink: #f2d88f;
+  --color-accent-ink: var(--color-green-400);
+  --color-nav-idle: #a9b6c4;
+  --color-loss-text: #f08a7e;
 }

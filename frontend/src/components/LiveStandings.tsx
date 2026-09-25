@@ -3,15 +3,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 
-import { apiUrl } from "@/lib/api";
+import { apiUrl, jsonFetcher } from "@/lib/api";
 import type { LiveTable } from "@/lib/types";
 import styles from "./LiveStandings.module.css";
-
-const fetcher = async (url: string): Promise<LiveTable> => {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(String(response.status));
-  return response.json();
-};
+import { pollEvery } from "@/lib/network";
 
 /** "Αν τελείωνε τώρα" — the table with every match in progress counted.
  *
@@ -24,10 +19,15 @@ export function LiveStandings({ leagueSlug }: { leagueSlug: string }) {
 
   const { data } = useSWR<LiveTable>(
     apiUrl(`/leagues/${leagueSlug}/standings/live`),
-    fetcher,
+    jsonFetcher<LiveTable>,
     // Matched to the live-score strip. Faster would mostly re-fetch a table
     // that only moves when a goal is entered by hand.
-    { refreshInterval: 20_000, revalidateOnFocus: true },
+    // Only while something is being played: with nothing live this renders
+    // nothing, and polling it anyway cost a 3G reader 0.7 MB an hour.
+    {
+      refreshInterval: (latest) => (latest?.live_matches ? pollEvery(20_000) : 0),
+      revalidateOnFocus: true,
+    },
   );
 
   if (!data || data.live_matches === 0) return null;

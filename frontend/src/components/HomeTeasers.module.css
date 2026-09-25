@@ -1,0 +1,50 @@
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 10px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.card:hover {
+  border-color: var(--color-link-hover);
+}
+
+.kicker {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 1.4px;
+  color: var(--color-text-muted);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-heading);
+}
+
+.meta {
+  font-size: 0.8125rem;
+  color: var(--color-accent-ink);
+  font-weight: 600;
+}
+
+/* Live and subscribe-me boxes mean nothing on paper. */
+@media print {
+  .row {
+    display: none;
+  }
+}

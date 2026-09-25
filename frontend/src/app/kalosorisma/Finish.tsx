@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 
 import { NotifyButton } from "@/components/NotifyButton";
+import { apiUrl, jsonFetcher } from "@/lib/api";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { markWelcomed } from "@/lib/onboarding";
 import styles from "./page.module.css";
@@ -19,6 +21,14 @@ export function Finish() {
   const { favourite } = useFavourite();
   const hydrated = useHydrated();
   const router = useRouter();
+  // Same key as NotifyButton's, so SWR asks once. Without push keys on the
+  // server there is no button to offer, and a screen promising alerts with
+  // nothing to press reads as broken.
+  const { data: push } = useSWR<{ enabled: boolean; public_key: string | null }>(
+    apiUrl("/push/config"),
+    jsonFetcher,
+  );
+  const pushReady = !!push?.enabled && !!push.public_key;
 
   function done(href: string) {
     markWelcomed();
@@ -32,12 +42,20 @@ export function Finish() {
           heading that repeats their choice back is what makes the switch below
           feel like it is about their team rather than about the app. */}
       <h1 className={styles.heading}>
-        {hydrated && favourite
-          ? `Μάθε πρώτος για τον ${favourite.name}`
-          : "Ειδοποιήσεις"}
+        {!pushReady
+          ? "Όλα έτοιμα"
+          : hydrated && favourite
+            ? `Μάθε πρώτος για τον ${favourite.name}`
+            : "Ειδοποιήσεις"}
       </h1>
 
-      {!hydrated ? (
+      {!pushReady ? (
+        <p className={styles.lead}>
+          {hydrated && favourite
+            ? `Ο ${favourite.name} θα σε περιμένει πρώτος στην αρχική. Άλλαξέ τον οποτεδήποτε με το ☆ στη σελίδα κάθε σωματείου.`
+            : "Διάλεξε ομάδα οποτεδήποτε με το ☆ στη σελίδα του σωματείου."}
+        </p>
+      ) : !hydrated ? (
         // Nothing is claimed before the browser has been read: rendering
         // "you follow nobody" and correcting it a frame later reads as a bug.
         <p className={styles.lead}>…</p>

@@ -3,7 +3,7 @@
 /* Breaks out of <main>'s padding: the band and the navy title block reach both
    edges in the design, and the body pads itself. */
 .page {
-  margin: -18px -16px 0;
+  margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
 }
 
 .banner {
@@ -33,18 +33,19 @@
 .back {
   position: absolute;
   top: 14px;
-  left: 14px;
+  /* Right, not left: Leaflet's zoom buttons live top-left and sat on it. */
+  right: 14px;
   z-index: 500; /* above Leaflet's own panes */
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
+  min-height: 44px;
   padding: 5px 10px;
   border-radius: 14px;
   background: rgb(0 30 60 / 0.6);
   color: #fff;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 0.75rem;
   text-decoration: none;
   backdrop-filter: blur(2px);
 }
@@ -65,7 +66,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 26px;
+  font-size: 1.625rem;
   line-height: 1;
   color: var(--color-on-navy);
 }
@@ -74,7 +75,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-on-navy-muted);
 }
 
@@ -112,7 +113,7 @@
   flex: none;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
 
@@ -121,7 +122,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 0.8438rem;
   color: var(--color-text);
 }
 
@@ -143,7 +144,7 @@
   border-radius: 10px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
@@ -162,7 +163,7 @@
 .secondary {
   background: var(--color-surface);
   border: 1px solid var(--color-chip-border);
-  color: var(--color-navy-900);
+  color: var(--color-heading);
 }
 
 .secondary:hover {
@@ -171,7 +172,7 @@
 
 .noPin {
   margin: 0 2px;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
   color: var(--color-text-muted);
 }
@@ -189,16 +190,13 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
+  composes: card from "../../../styles/primitives.module.css";
 }
 
 .row {
@@ -226,21 +224,21 @@
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 0.9062rem;
   color: var(--color-heading);
 }
 
 .chevron {
   flex: none;
-  color: var(--color-grey-400);
-  font-size: 18px;
+  color: var(--color-nav-idle);
+  font-size: 1.125rem;
   line-height: 1;
 }
 
 .none {
   margin: 0;
   padding: 16px 14px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
 
@@ -249,7 +247,7 @@
   padding: 12px 14px;
   border-left: 3px solid var(--color-border);
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -257,7 +255,7 @@
 
 @media (min-width: 860px) {
   .page {
-    margin: -18px -16px 0;
+    margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
     max-width: none;
   }
 
@@ -273,7 +271,7 @@
   }
 
   .name {
-    font-size: 34px;
+    font-size: 2.125rem;
   }
 
   .body {

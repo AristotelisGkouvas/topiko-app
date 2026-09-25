@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 
 import { Empty } from "@/components/States";
+import { apiUrl, jsonFetcher } from "@/lib/api";
 import { useFavourite } from "@/lib/favourite";
 import {
   EVENT_GROUPS,
@@ -34,6 +36,10 @@ type State =
 export function NotifySettings() {
   const [state, setState] = useState<State>({ status: "loading" });
   const [saving, setSaving] = useState(false);
+  const { data: push } = useSWR<{ enabled: boolean; public_key: string | null }>(
+    apiUrl("/push/config"),
+    jsonFetcher,
+  );
   const { clubs } = useFavourite();
 
   useEffect(() => {
@@ -80,6 +86,25 @@ export function NotifySettings() {
         <Empty
           title="Χωρίς ειδοποιήσεις εδώ"
           body="Αυτό το πρόγραμμα περιήγησης δεν υποστηρίζει ειδοποιήσεις. Σε iPhone δουλεύουν αφού προσθέσεις την εφαρμογή στην αρχική οθόνη."
+        />
+      </div>
+    );
+  }
+
+  // Without push keys on the server there is nothing to switch on anywhere;
+  // sending the reader to a club page to find a button that is not there was
+  // a dead end.
+  if (state.status === "none" && push && !(push.enabled && push.public_key)) {
+    return (
+      <div className={styles.page}>
+        <Empty
+          title="Οι ειδοποιήσεις δεν λειτουργούν ακόμη"
+          body="Ετοιμάζονται. Μέχρι τότε, το ημερολόγιο του σωματείου σου ενημερώνει μόνο του για ώρες και αναβολές."
+          action={
+            clubs.length > 0
+              ? { href: `/somateia/${clubs[0].slug}`, label: "Ημερολόγιο σωματείου" }
+              : undefined
+          }
         />
       </div>
     );

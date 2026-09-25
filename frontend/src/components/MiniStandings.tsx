@@ -42,7 +42,8 @@ export function MiniStandings({
 
   return (
     <div className={styles.card}>
-      <div className={styles.head}>
+      {/* The column heads are for the eye; each row below is read out whole. */}
+      <div className={styles.head} aria-hidden="true">
         <span className={styles.headPos}>#</span>
         <span>ΟΜΑΔΑ</span>
         <span className={styles.headNum}>ΔΤ</span>
@@ -50,20 +51,26 @@ export function MiniStandings({
         <span className={styles.headNum}>Β</span>
       </div>
 
-      {top.map((row) => (
-        <Row key={row.team.id} row={row} mine={row === mine} />
-      ))}
+      <ol className={styles.list} aria-label="Κορυφή βαθμολογίας">
+        {top.map((row) => (
+          <li key={row.team.id}>
+            <Row row={row} mine={row === mine} />
+          </li>
+        ))}
 
-      {extra && (
-        <>
-          {/* A gap, not a continuation: the rows between are missing, and a
-              flush join would read as sixth place. */}
-          <div className={styles.gap} aria-hidden="true">
-            ⋯
-          </div>
-          <Row row={extra} mine />
-        </>
-      )}
+        {extra && (
+          <>
+            {/* A gap, not a continuation: the rows between are missing, and a
+                flush join would read as sixth place. */}
+            <li className={styles.gap} aria-hidden="true">
+              ⋯
+            </li>
+            <li>
+              <Row row={extra} mine />
+            </li>
+          </>
+        )}
+      </ol>
 
       <Link href={`/vathmologia?liga=${league.slug}`} className={styles.all}>
         Πλήρης βαθμολογία ›
@@ -72,11 +79,25 @@ export function MiniStandings({
   );
 }
 
+const RESULT = { Ν: "νίκη", Ι: "ισοπαλία", Η: "ήττα" } as Record<string, string>;
+
 function Row({ row, mine }: { row: Standing; mine: boolean }) {
+  const form = (row.form ?? "").split("").slice(-3);
+  // The dots are colour alone; the label says the results in words.
+  const spoken = [
+    `${row.position}. ${listName(row.team)}`,
+    `${row.points} βαθμοί`,
+    `διαφορά ${formatGoalDifference(row.goal_difference)}`,
+    form.length ? `φόρμα: ${form.map((r) => RESULT[r] ?? r).join(", ")}` : null,
+    mine ? "η ομάδα σου" : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   return (
     <Link
       href={`/somateia/${row.team.slug}`}
       className={`${styles.row} ${mine ? styles.rowMine : ""}`}
+      aria-label={spoken}
     >
       <span className={styles.pos}>{row.position}</span>
       <span className={styles.team}>
@@ -89,7 +110,7 @@ function Row({ row, mine }: { row: Standing; mine: boolean }) {
         {formatGoalDifference(row.goal_difference)}
       </span>
       <span className={styles.form}>
-        {(row.form ?? "").split("").slice(-3).map((r, i) => (
+        {form.map((r, i) => (
           <span
             key={i}
             className={`${styles.dot} ${

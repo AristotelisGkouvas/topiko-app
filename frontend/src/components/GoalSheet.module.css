@@ -54,14 +54,14 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 20px;
+  font-size: 1.25rem;
   color: var(--color-heading);
 }
 
 .sub {
   margin: 2px 0 0;
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   color: var(--color-text-muted);
 }
 
@@ -79,10 +79,10 @@
   border: 1px solid var(--color-chip-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  color: var(--color-navy-900);
+  color: var(--color-heading);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
   cursor: pointer;
 }
 
@@ -99,7 +99,7 @@
   background: var(--color-canvas);
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .search:focus-visible {
@@ -144,7 +144,7 @@
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--color-heading);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -157,8 +157,8 @@
   text-align: right;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 14px;
-  color: var(--color-green-600);
+  font-size: 0.875rem;
+  color: var(--color-accent-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -166,7 +166,7 @@
   margin: 0;
   padding: 16px 14px;
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -180,7 +180,7 @@
   color: var(--color-text-muted);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 

@@ -12,49 +12,17 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, DbSession
+from app.core.ratelimit import vote_limit
 from app.models import League, MvpCandidate, MvpPoll, MvpVote
+from app.schemas.polls import MvpCandidateOut, MvpPollOut, MvpVoteIn
 
 router = APIRouter(prefix="/api/v1", tags=["mvp"])
-
-
-class CandidateOut(BaseModel):
-    id: int
-    player_slug: str
-    player_name: str
-    team_name: str | None = None
-    team_slug: str | None = None
-    reason: str | None = None
-    #: Null until the reader has voted. The design shows the tally afterwards,
-    #: and only afterwards: a ballot that displays a running count is a ballot
-    #: that tells the undecided what to pick.
-    votes: int | None = None
-
-
-class PollOut(BaseModel):
-    id: int
-    league_slug: str
-    league_name: str
-    matchday: int
-    closes_at: datetime | None = None
-    open: bool
-    candidates: list[CandidateOut] = []
-    #: Which candidate this browser chose, if any.
-    my_vote: int | None = None
-    total_votes: int | None = None
-
-
-class VoteIn(BaseModel):
-    candidate_id: int
-    #: Generated and kept by the browser. Long enough not to collide, opaque
-    #: enough to mean nothing to anybody who sees it.
-    voter_token: str = Field(min_length=16, max_length=64)
 
 
 async def _latest_poll(association_id: int, db: DbSession) -> MvpPoll | None:
@@ -78,7 +46,7 @@ async def _latest_poll(association_id: int, db: DbSession) -> MvpPoll | None:
 
 async def _describe(
     poll: MvpPoll, db: DbSession, voter_token: str | None
-) -> PollOut:
+) -> MvpPollOut:
     is_open = poll.closes_at is None or poll.closes_at > datetime.now(UTC)
 
     mine: int | None = None
@@ -108,7 +76,7 @@ async def _describe(
         counts = {candidate_id: n for candidate_id, n in rows}
         total = sum(counts.values())
 
-    return PollOut(
+    return MvpPollOut(
         id=poll.id,
         league_slug=poll.league.slug,
         league_name=poll.league.short_name or poll.league.name,
@@ -118,7 +86,7 @@ async def _describe(
         my_vote=mine,
         total_votes=total,
         candidates=[
-            CandidateOut(
+            MvpCandidateOut(
                 id=c.id,
                 player_slug=c.player.slug,
                 player_name=c.player.name,
@@ -132,12 +100,12 @@ async def _describe(
     )
 
 
-@router.get("/{association_slug}/mvp", response_model=PollOut | None)
+@router.get("/{association_slug}/mvp", response_model=MvpPollOut | None)
 async def current_poll(
     association: CurrentAssociation,
     db: DbSession,
     voter_token: str | None = None,
-) -> PollOut | None:
+) -> MvpPollOut | None:
     """The most recent ballot, or null when the federation has opened none."""
     poll = await _latest_poll(association.id, db)
     if poll is None:
@@ -145,13 +113,17 @@ async def current_poll(
     return await _describe(poll, db, voter_token)
 
 
-@router.post("/{association_slug}/mvp/{poll_id}/vote", response_model=PollOut)
+@router.post(
+    "/{association_slug}/mvp/{poll_id}/vote",
+    response_model=MvpPollOut,
+    dependencies=[Depends(vote_limit)],
+)
 async def vote(
     association: CurrentAssociation,
     poll_id: int,
-    payload: VoteIn,
+    payload: MvpVoteIn,
     db: DbSession,
-) -> PollOut:
+) -> MvpPollOut:
     """Cast or change a vote.
 
     Changing is allowed until the poll closes. A ballot nobody can correct

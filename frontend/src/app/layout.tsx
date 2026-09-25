@@ -11,22 +11,33 @@ import { leagueLabel, resolveLeague } from "@/lib/leagues";
 import { APP_NAME, APP_TAGLINE } from "@/lib/nav";
 import "@/styles/globals.css";
 import styles from "./layout.module.css";
+import { headers } from "next/headers";
+import { DEFAULT_ASSOCIATION, TENANT_HEADER, isAssociationSlug } from "@/lib/tenant";
+import { Providers } from "@/components/Providers";
+import { READABILITY_BOOT } from "@/lib/readabilityBoot";
 
 /* Both faces are loaded with the Greek subset explicitly — the Latin subset
    alone renders Greek text from a fallback and the page ends up in two
-   typefaces at once. */
+   typefaces at once.
+
+   Weight 500 is not loaded: two rules used it, and each extra weight is two
+   more files. Measured on 3G, preloading ten font files pushed the first paint
+   of a match page from 1.5 s to 3.7 s. The display face (headings, scores) is
+   still preloaded; the body face is not — for running text the system
+   fallback for the first second is an acceptable price. */
 const display = Fira_Sans_Condensed({
   subsets: ["greek", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   variable: "--font-fira",
   display: "swap",
 });
 
 const body = Noto_Sans({
   subsets: ["greek", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   variable: "--font-noto",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -78,10 +89,23 @@ export default async function RootLayout({
     leagues: [],
     league: null,
   }));
+  const tenant = (await headers()).get(TENANT_HEADER);
+  const association = isAssociationSlug(tenant) ? tenant : DEFAULT_ASSOCIATION;
+
   const pickable = leagues.map((l) => ({ slug: l.slug, label: leagueLabel(l) }));
 
   return (
-    <html lang="el" className={`${display.variable} ${body.variable}`}>
+    <html
+      lang="el"
+      className={`${display.variable} ${body.variable}`}
+      // Read by apiUrl() in the browser: the one place client code learns
+      // which ΕΠΣ it is serving. See lib/tenant.ts.
+      data-association={association}
+      // The pre-paint script below sets data-theme, data-text and
+      // data-contrast before React loads, so <html> differs from the server
+      // render by design. This silences that one element only, not its tree.
+      suppressHydrationWarning
+    >
       <head>
         {/* Runs before the first paint. A reader who chose dark and is served
             a light page for one frame sees a flash that no amount of CSS can
@@ -92,29 +116,34 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html:
               "try{var t=localStorage.getItem('pamesentra:theme');" +
-              "if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}",
+              "if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}" +
+              // Large text and high contrast, for the same reason: a page
+              // that jumps size a frame after loading is worse than either.
+              READABILITY_BOOT,
           }}
         />
       </head>
       <body>
-        <a href="#content" className={styles.skip}>
-          Μετάβαση στο περιεχόμενο
-        </a>
-        <SiteHeader
-          leagues={pickable}
-          activeLeague={
-            league ? { slug: league.slug, label: leagueLabel(league) } : null
-          }
-        />
-        <main id="content" className={styles.main}>
-          {/* First in the flow, so it pushes the stale content down instead of
-              covering it — screen E1. */}
-          <OfflineBar />
-          {children}
-        </main>
-        <BottomNav liveCount={liveCount} />
-        <SearchShortcut />
-        <ServiceWorker />
+        <Providers>
+          <a href="#content" className={styles.skip}>
+            Μετάβαση στο περιεχόμενο
+          </a>
+          <SiteHeader
+            leagues={pickable}
+            activeLeague={
+              league ? { slug: league.slug, label: leagueLabel(league) } : null
+            }
+          />
+          <main id="content" className={styles.main}>
+            {/* First in the flow, so it pushes the stale content down instead of
+                covering it — screen E1. */}
+            <OfflineBar />
+            {children}
+          </main>
+          <BottomNav liveCount={liveCount} />
+          <SearchShortcut />
+          <ServiceWorker />
+        </Providers>
       </body>
     </html>
   );

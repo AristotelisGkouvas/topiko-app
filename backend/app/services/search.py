@@ -20,13 +20,15 @@ at which point the fold belongs in a stored generated column with an index on it
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import ColumnElement, Select, case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import InstrumentedAttribute, aliased, selectinload
 
-from app.models import Field, League, LeagueTeam, Player, PlayerStat, Team
+from app.models import Field, League, LeagueTeam, Match, Player, PlayerStat, Team
 
 #: Characters that differ only by decoration, and what they become. Kept as two
 #: parallel strings because that is the shape translate() wants; the assert
@@ -46,12 +48,46 @@ MIN_QUERY = 2
 LIMIT = 8
 
 
+#: Greeklish, for a query typed on a Latin keyboard: "zitsa", "konitsa".
+#: Digraphs first, so "th" becomes θ rather than τη. Only the common spellings;
+#: ο/ω and ι/η/υ cannot be told apart from Latin, so "ioannina" still misses
+#: Ιωάννινα — but the village names people actually search mostly survive.
+_GREEKLISH_DIGRAPHS = (
+    ("th", "θ"),
+    ("ch", "χ"),
+    ("kh", "χ"),
+    ("ps", "ψ"),
+    ("ks", "ξ"),
+    ("ou", "ου"),
+)
+_GREEKLISH = str.maketrans(
+    "abgdezhiklmnxoprstyfvwcuq",
+    "αβγδεζηικλμνξοπρστυφβωκυκ",
+)
+_LATIN_ONLY = re.compile(r"^[a-z0-9\s.\-']+$")
+
+
+def greeklish(text: str) -> str:
+    """"zitsa" → "ζιτσα". Text with any Greek in it is returned untouched."""
+    lowered = text.lower()
+    if not _LATIN_ONLY.match(lowered) or not re.search(r"[a-z]", lowered):
+        return text
+    for latin, greek in _GREEKLISH_DIGRAPHS:
+        lowered = lowered.replace(latin, greek)
+    return lowered.translate(_GREEKLISH)
+
+
 def fold(text: str) -> str:
-    """The Python half of the fold. Must agree with :func:`folded`."""
-    return text.lower().translate(_FOLD)
+    """The Python half of the fold. Must agree with :func:`folded`.
+
+    A query in Latin letters is read as greeklish first — the register holds
+    no Latin names worth finding, and "zitsa" returning nothing told a reader
+    on an English keyboard that Ζίτσα was not on the site.
+    """
+    return greeklish(text).lower().translate(_FOLD)
 
 
-def folded(column: ColumnElement[str]) -> ColumnElement[str]:
+def folded(column: ColumnElement[str] | InstrumentedAttribute[str]) -> ColumnElement[str]:
     """The SQL half. Must agree with :func:`fold`."""
     return func.translate(func.lower(column), _ACCENTED, _PLAIN)
 
@@ -65,7 +101,9 @@ class Hit:
     logo_url: str | None = None
 
 
-def _ranked(stmt: Select, name_column: ColumnElement[str], needle: str) -> Select:
+def _ranked(
+    stmt: Select, name_column: ColumnElement[str] | InstrumentedAttribute[str], needle: str
+) -> Select:
     """Order by how well the name matches, then alphabetically.
 
     A name that *starts* with what was typed comes first. Searching "ολυ" should
@@ -137,6 +175,60 @@ def _latest_league(team: Team) -> str | None:
         if league is not None:
             return league.short_name or league.name
     return None
+
+
+_ATHENS = ZoneInfo("Europe/Athens")
+
+
+async def search_referee_matches(
+    db: AsyncSession, *, association_id: int, needle: str
+) -> list[Hit]:
+    """Recent matches with a referee whose name contains the query.
+
+    The slug is the match id, so the row links to the match page; the
+    subtitle names the referee and the date, which is what makes eight games
+    of the same official distinguishable.
+    """
+    home = aliased(Team)
+    away = aliased(Team)
+    rows = (
+        await db.execute(
+            select(Match, home.name, away.name)
+            .join(League, Match.league_id == League.id)
+            .join(home, Match.home_team_id == home.id)
+            .join(away, Match.away_team_id == away.id)
+            .where(
+                League.association_id == association_id,
+                Match.referee.is_not(None),
+                # coalesce only to type the column as str; the row above
+                # already excludes NULL.
+                folded(func.coalesce(Match.referee, "")).contains(needle),
+            )
+            .order_by(Match.kickoff_at.desc().nulls_last(), Match.id.desc())
+            .limit(LIMIT)
+        )
+    ).all()
+    hits = []
+    for match, home_name, away_name in rows:
+        when = (
+            match.kickoff_at.astimezone(_ATHENS).strftime("%d/%m/%Y")
+            if match.kickoff_at
+            else None
+        )
+        score = (
+            f" {match.home_score}-{match.away_score}"
+            if match.home_score is not None and match.away_score is not None
+            else ""
+        )
+        hits.append(
+            Hit(
+                kind="match",
+                slug=str(match.id),
+                name=f"{home_name} – {away_name}{score}",
+                subtitle=" · ".join(filter(None, [f"Διαιτ. {match.referee}", when])),
+            )
+        )
+    return hits
 
 
 async def search_fields(

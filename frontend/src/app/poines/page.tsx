@@ -6,7 +6,7 @@ import { LastUpdated } from "@/components/LastUpdated";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
-import { formatDayDate } from "@/lib/format";
+import { formatDayDate, plural } from "@/lib/format";
 import { readParam, type SearchParams } from "@/lib/leagues";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
@@ -34,6 +34,18 @@ export default async function SuspensionsPage({
 
   const current = seasons.find((s) => s.is_current);
 
+  // One club's bans. With 177 clubs in the list, "who is out on Sunday" is
+  // unanswerable by scrolling — a president wants his own, a coach the
+  // opponent's.
+  const club = readParam(params, "somateio");
+  const clubs = [
+    ...new Map(
+      suspensions.filter((b) => b.team).map((b) => [b.team!.slug, b.team!]),
+    ).values(),
+  ].sort((a, b) => a.name.localeCompare(b.name, "el"));
+  const shown = club ? suspensions.filter((b) => b.team?.slug === club) : suspensions;
+  const clubName = clubs.find((c) => c.slug === club)?.name;
+
   return (
     <div className={pageStyles.page}>
       <PageHeader title="Ποινές" />
@@ -45,16 +57,43 @@ export default async function SuspensionsPage({
 
       <div className={pageStyles.pickers}>
         <SeasonPicker seasons={seasons} active={season} />
+        {clubs.length > 1 && (
+          // A plain GET form: works before any script has loaded.
+          <form method="get" action="/poines" className={styles.filter}>
+            {season && <input type="hidden" name="periodos" value={season} />}
+            <label className="srOnly" htmlFor="somateio">
+              Σωματείο
+            </label>
+            <select id="somateio" name="somateio" defaultValue={club ?? ""} className={styles.select}>
+              <option value="">Όλα τα σωματεία</option>
+              {clubs.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className={styles.go}>
+              Εμφάνιση
+            </button>
+          </form>
+        )}
       </div>
 
-      {suspensions.length > 0 ? (
+      {club && clubName && (
+        <p className={styles.filtering}>
+          {shown.length} {plural(shown.length, "ποινή", "ποινές")} για {clubName} ·{" "}
+          <Link href={season ? `/poines?periodos=${season}` : "/poines"}>όλες</Link>
+        </p>
+      )}
+
+      {shown.length > 0 ? (
         <ul className={styles.list}>
-          {suspensions.map((ban) => (
+          {shown.map((ban) => (
             <li key={ban.id} className={styles.row}>
               <span className={styles.matches}>
                 {ban.matches}
                 <span className={styles.matchesLabel}>
-                  {ban.matches === 1 ? "αγώνας" : "αγώνες"}
+                  {plural(ban.matches, "αγώνας", "αγώνες")}
                 </span>
               </span>
 
@@ -99,7 +138,11 @@ export default async function SuspensionsPage({
           body={
             season && season !== current?.slug
               ? "Δεν υπάρχει καταγεγραμμένη ποινή για αυτή την περίοδο."
-              : "Η ένωση δεν έχει δημοσιεύσει ποινές για την τρέχουσα περίοδο. Διάλεξε προηγούμενη περίοδο από πάνω."
+              : // The picker hides itself with a single season, so only point
+                // at it when it is actually there.
+                `Η ένωση δεν έχει δημοσιεύσει ποινές για την τρέχουσα περίοδο.${
+                  seasons.length > 1 ? " Διάλεξε προηγούμενη περίοδο από πάνω." : ""
+                }`
           }
         />
       )}

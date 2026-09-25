@@ -9,7 +9,7 @@
 }
 
 .table {
-  font-size: 13.5px;
+  font-size: 0.8438rem;
   min-width: 100%;
   border-collapse: collapse;
 }
@@ -27,7 +27,7 @@
 
 .table thead th {
   font-family: var(--font-display);
-  font-size: 10.5px;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 1.1px;
   text-transform: uppercase;
@@ -75,7 +75,7 @@
 .goals {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--color-heading);
 }
 
@@ -106,7 +106,7 @@
 }
 
 .teamName {
-  font-size: 11.5px;
+  font-size: 0.7188rem;
   color: var(--color-text-muted);
   text-decoration: none;
   overflow: hidden;
@@ -121,7 +121,7 @@
 
 .note {
   margin: 10px 2px 0;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   line-height: 1.5;
 }

@@ -70,6 +70,11 @@ export default async function PlayerPage({
           {best?.goals ? (
             <Total value={best.goals} label={`καλύτερη (${best.season.slug})`} />
           ) : null}
+          {/* Counted apart: the federation's lists are the record, these are
+              what volunteers logged at the ground with this name. */}
+          {player.live_goals > 0 && (
+            <Total value={player.live_goals} label="γκολ από τα γήπεδα (ανεπίσημα)" />
+          )}
         </dl>
       </header>
 

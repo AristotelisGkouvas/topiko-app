@@ -3,9 +3,11 @@
 import useSWR from "swr";
 
 import { MatchCard } from "./MatchCard";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, jsonFetcher } from "@/lib/api";
 import type { Match } from "@/lib/types";
 import styles from "./LiveMatches.module.css";
+import { plural } from "@/lib/format";
+import { pollEvery } from "@/lib/network";
 
 /**
  * Polling, not websockets.
@@ -17,15 +19,9 @@ import styles from "./LiveMatches.module.css";
  */
 const POLL_MS = 20_000;
 
-const fetcher = async (url: string): Promise<Match[]> => {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json();
-};
-
 export function LiveMatches({ initial }: { initial: Match[] }) {
-  const { data, error } = useSWR<Match[]>(apiUrl("/matches/live"), fetcher, {
-    refreshInterval: POLL_MS,
+  const { data, error } = useSWR<Match[]>(apiUrl("/matches/live"), jsonFetcher<Match[]>, {
+    refreshInterval: () => pollEvery(POLL_MS),
     fallbackData: initial,
     // Coming back to the tab should show current scores immediately.
     revalidateOnFocus: true,
@@ -43,7 +39,7 @@ export function LiveMatches({ initial }: { initial: Match[] }) {
           Τώρα ζωντανά
         </h2>
         <span className={styles.count}>
-          {matches.length} {matches.length === 1 ? "αγώνας" : "αγώνες"}
+          {matches.length} {plural(matches.length, "αγώνας", "αγώνες")}
         </span>
       </header>
 

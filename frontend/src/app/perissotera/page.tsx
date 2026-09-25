@@ -4,6 +4,7 @@ import Link from "next/link";
 import { NavIcon } from "@/components/NavIcon";
 import { PageHeader } from "@/components/PageHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ReadabilitySettings } from "./ReadabilitySettings";
 import { SECONDARY_NAV_ITEMS } from "@/lib/nav";
 import styles from "./page.module.css";
 
@@ -30,7 +31,12 @@ export default function MorePage() {
               <span className={styles.icon}>
                 <NavIcon item={item} size={20} />
               </span>
-              <span className={styles.label}>{item.label}</span>
+              <span className={styles.labelBlock}>
+                <span className={styles.label}>{item.label}</span>
+                {item.description && (
+                  <span className={styles.description}>{item.description}</span>
+                )}
+              </span>
               <span className={styles.chevron} aria-hidden="true">
                 ›
               </span>
@@ -62,6 +68,7 @@ export default function MorePage() {
             <span className={styles.label}>Θέμα εμφάνισης</span>
             <ThemeToggle className={styles.theme} />
           </div>
+          <ReadabilitySettings />
         </div>
 
         <p className={styles.sectionLabel}>ΣΩΜΑΤΕΙΑ</p>
@@ -83,6 +90,24 @@ export default function MorePage() {
               <NavIcon item={{ icon: "M4 6h16M4 12h16M4 18h10" }} size={20} />
             </span>
             <span className={styles.label}>Διαχείριση ένωσης</span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
+        </div>
+
+        <p className={styles.sectionLabel}>ΠΛΗΡΟΦΟΡΙΕΣ</p>
+        <div className={styles.card}>
+          <Link href="/sxetika" className={styles.row}>
+            <span className={styles.icon}>
+              <NavIcon item={{ icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h.01" }} size={20} />
+            </span>
+            <span className={styles.labelBlock}>
+              <span className={styles.label}>Σχετικά</span>
+              <span className={styles.description}>
+                Τι καλύπτουμε, από πού τα δεδομένα, απόρρητο, λάθη
+              </span>
+            </span>
             <span className={styles.chevron} aria-hidden="true">
               ›
             </span>

@@ -22,6 +22,12 @@ CONTESTED = ("home_score", "away_score", "status")
 #: score has no opinion about which pitch the match is on.
 UNCONTESTED = ("kickoff_at", "field_id", "referee", "note", "external_id")
 
+#: Uncontested, except just after a human moved the match. The secretary
+#: reschedules a postponement from the dashboard hours before the federation's
+#: page catches up, and the next scrape would put the old date straight back.
+#: Held for the same window as a manual score.
+RESCHEDULE = ("kickoff_at", "field_id")
+
 
 class Action(str, enum.Enum):
     CREATE = "create"
@@ -69,9 +75,12 @@ def plan_match(
         return Plan(action=Action.CREATE, changes=dict(wanted))
 
     changes: dict[str, Any] = {}
+    held = existing.reschedule_held(now)
 
     for name in UNCONTESTED:
         if name not in wanted:
+            continue
+        if held and name in RESCHEDULE:
             continue
         new = wanted[name]
         # Never blank out something we already know just because this page did

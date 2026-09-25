@@ -51,6 +51,10 @@ services:
       SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
       DEBUG: ${DEBUG:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      # Which proxies uvicorn believes about X-Forwarded-For. The rate limits
+      # and the audit trail key on the address it resolves; behind a proxy
+      # that it does not trust, every visitor is the proxy.
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       # Without this the container falls back to the placeholder in config.py
       # and refuses to boot outside development — which is the guard working,
       # but only because it was there.
@@ -112,6 +116,7 @@ services:
         # Same reason: baked in, because og:image URLs are absolute and are
         # rendered into the HTML at build time.
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
     image: pamesentra-frontend
     container_name: pamesentra-web
     restart: unless-stopped
@@ -119,6 +124,9 @@ services:
       # Read at request time, and only by the server half: page rendering stays
       # on the compose network instead of leaving the host and coming back.
       API_INTERNAL_URL: http://api:8000
+      # host=slug pairs, for serving more than one ΕΠΣ from one deployment.
+      # Empty: every host is NEXT_PUBLIC_ASSOCIATION. See src/lib/tenant.ts.
+      ASSOCIATION_HOSTS: ${ASSOCIATION_HOSTS:-}
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:

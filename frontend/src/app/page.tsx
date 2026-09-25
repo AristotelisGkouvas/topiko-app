@@ -1,3 +1,4 @@
+import { HomeTeasers } from "@/components/HomeTeasers";
 import { LastUpdated } from "@/components/LastUpdated";
 import { LiveMatches } from "@/components/LiveMatches";
 import { MyClub } from "@/components/MyClub";
@@ -56,8 +57,16 @@ export default async function HomePage({
     api.listMatches(league.slug, { matchday: shownMatchday }),
   ]);
 
+  // "Results" over a list with no scores in it is a promise the list does not
+  // keep; until the first final whistle the round is still a programme.
+  const anyScored = fixtures.some(
+    (m) => m.home_score !== null && m.away_score !== null,
+  );
+  const listTitle = anyScored ? "ΑΠΟΤΕΛΕΣΜΑΤΑ" : "ΠΡΟΓΡΑΜΜΑ";
+
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${styles.home}`}>
+      <h1 className="srOnly">Πάμε Σέντρα · {league.name}</h1>
       {/* Screen D01's three columns: division rail, the page, the numbers.
           One column on a phone, where the rail's job belongs to the header
           chip and the right-hand numbers come after the results. */}
@@ -82,7 +91,7 @@ export default async function HomePage({
         <section className={styles.section} aria-labelledby="results-heading">
           <SectionHeader
             id="results-heading"
-            title={`ΑΠΟΤΕΛΕΣΜΑΤΑ · ${shownMatchday}η`}
+            title={`${listTitle} · ${shownMatchday}η`}
             action={{
               href: `/agones?liga=${league.slug}&agonistiki=${shownMatchday}`,
               label: "Όλα ›",
@@ -108,26 +117,26 @@ export default async function HomePage({
           )}
         </section>
 
-        {/* Phone only: on a wide screen these live in the right-hand column,
-            beside the results rather than below them. */}
-        <div className={styles.narrowOnly}>
-          <Numbers standings={standings} league={league} />
-        </div>
+        <HomeTeasers />
       </div>
 
+      {/* Rendered once. On a phone the grid is one column, so this simply
+          follows the results; on a wide screen it becomes the right-hand
+          column beside them. */}
       <aside className={styles.side} aria-label="Βαθμολογία και σκόρερ">
         <Numbers standings={standings} league={league} />
-        <LastUpdated
-          timestamp={meta.last_scraped_at}
-          sourceUrl={meta.source_url}
-        />
+        <div className={styles.wideOnly}>
+          <LastUpdated
+            timestamp={meta.last_scraped_at}
+            sourceUrl={meta.source_url}
+          />
+        </div>
       </aside>
     </div>
   );
 }
 
-/** The table preview and the scorers — the same block in both layouts, so the
- *  phone and the desktop cannot drift apart. */
+/** The table preview and the scorers. */
 function Numbers({
   standings,
   league,

@@ -87,5 +87,8 @@ export function clockTime(at: number): string {
   return new Date(at).toLocaleTimeString("el-GR", {
     hour: "2-digit",
     minute: "2-digit",
+    // el-GR defaults to 12-hour with π.μ./μ.μ.; "00:08" is how the time is
+    // read everywhere else on the site.
+    hourCycle: "h23",
   });
 }

@@ -13,14 +13,16 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.api.deps import CurrentAssociation, DbSession
-from app.models import League, Match, MatchPrediction
+from app.api.lookups import match_in
+from app.core.ratelimit import vote_limit
+from app.models import Match, MatchPrediction
 from app.models.enums import MatchStatus, PredictionChoice
+from app.schemas.polls import PredictionPollOut, PredictionVoteIn
 
 router = APIRouter(prefix="/api/v1", tags=["predictions"])
 
@@ -32,44 +34,6 @@ _CLOSED_STATUSES = (
     MatchStatus.AWARDED,
     MatchStatus.CANCELLED,
 )
-
-
-class VoteIn(BaseModel):
-    choice: PredictionChoice
-    #: Generated and kept by the browser. Not an account, and deliberately not
-    #: an IP: a village shares a handful of those, and two neighbours on one
-    #: connection are two opinions.
-    voter: str = Field(min_length=8, max_length=64)
-
-
-class PollOut(BaseModel):
-    match_id: int
-    open: bool
-    total: int = 0
-    home: int = 0
-    draw: int = 0
-    away: int = 0
-    #: What this browser picked, if anything.
-    mine: PredictionChoice | None = None
-    #: False until this reader has voted or the match has started. Showing the
-    #: split first turns a prediction into a poll about the poll.
-    revealed: bool = False
-
-
-async def _match_or_404(association_id: int, match_id: int, db: DbSession) -> Match:
-    match = (
-        await db.execute(
-            select(Match)
-            .join(League, Match.league_id == League.id)
-            .where(Match.id == match_id, League.association_id == association_id)
-        )
-    ).scalar_one_or_none()
-    if match is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Δεν βρέθηκε αγώνας με id {match_id}.",
-        )
-    return match
 
 
 def _is_open(match: Match, now: datetime) -> bool:
@@ -87,7 +51,7 @@ def _is_open(match: Match, now: datetime) -> bool:
     return now < match.kickoff_at
 
 
-async def _tally(match: Match, voter: str | None, db: DbSession) -> PollOut:
+async def _tally(match: Match, voter: str | None, db: DbSession) -> PredictionPollOut:
     rows = (
         await db.execute(
             select(MatchPrediction.choice, func.count())
@@ -112,7 +76,7 @@ async def _tally(match: Match, voter: str | None, db: DbSession) -> PollOut:
     is_open = _is_open(match, now)
     revealed = mine is not None or not is_open
 
-    return PollOut(
+    return PredictionPollOut(
         match_id=match.id,
         open=is_open,
         # Zeroed until revealed, so the numbers cannot be read off the wire
@@ -127,28 +91,30 @@ async def _tally(match: Match, voter: str | None, db: DbSession) -> PollOut:
 
 
 @router.get(
-    "/{association_slug}/matches/{match_id}/prognostiko", response_model=PollOut
+    "/{association_slug}/matches/{match_id}/prognostiko", response_model=PredictionPollOut
 )
 async def get_poll(
     association: CurrentAssociation,
     match_id: int,
     db: DbSession,
     voter: Annotated[str | None, Query(max_length=64)] = None,
-) -> PollOut:
-    match = await _match_or_404(association.id, match_id, db)
+) -> PredictionPollOut:
+    match = await match_in(db, association.id, match_id)
     return await _tally(match, voter, db)
 
 
 @router.post(
-    "/{association_slug}/matches/{match_id}/prognostiko", response_model=PollOut
+    "/{association_slug}/matches/{match_id}/prognostiko",
+    response_model=PredictionPollOut,
+    dependencies=[Depends(vote_limit)],
 )
 async def cast_vote(
     association: CurrentAssociation,
     match_id: int,
-    payload: VoteIn,
+    payload: PredictionVoteIn,
     db: DbSession,
-) -> PollOut:
-    match = await _match_or_404(association.id, match_id, db)
+) -> PredictionPollOut:
+    match = await match_in(db, association.id, match_id)
 
     if not _is_open(match, datetime.now(UTC)):
         raise HTTPException(

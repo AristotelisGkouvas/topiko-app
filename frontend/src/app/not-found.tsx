@@ -21,8 +21,8 @@ export default function NotFound() {
         </span>
         <p className={styles.title}>Η σελίδα δεν βρέθηκε</p>
         <p className={styles.body}>
-          Ίσως το σωματείο άλλαξε όνομα ή η σεζόν αρχειοθετήθηκε. Δοκίμασε την
-          αναζήτηση.
+          Ίσως ο σύνδεσμος είναι παλιός ή έχει λάθος. Δοκίμασε την αναζήτηση —
+          βρίσκει σωματεία, γήπεδα και παίκτες.
         </p>
         <div className={styles.actions}>
           <Link href="/anazitisi" className={styles.action}>

@@ -10,21 +10,24 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.api.auth_deps import CurrentUser
+from app.api.auth_deps import CurrentUser, read_token
 from app.api.deps import DbSession
 from app.core.config import settings
+from app.core.ratelimit import login_limit
 from app.core.security import (
     create_access_token,
+    decode_access_token,
     hash_password,
     needs_rehash,
     verify_password,
 )
 from app.models import Association, User
+from app.services.sessions import revoke
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -104,7 +107,9 @@ async def _describe(user: User, db: DbSession) -> UserOut:
     )
 
 
-@router.post("/login", response_model=UserOut)
+@router.post(
+    "/login", response_model=UserOut, dependencies=[Depends(login_limit)]
+)
 async def login(
     payload: LoginIn,
     response: Response,
@@ -163,7 +168,12 @@ async def login(
     status_code=status.HTTP_204_NO_CONTENT,
     response_model=None,
 )
-async def logout(response: Response) -> None:
+async def logout(request: Request, response: Response, db: DbSession) -> None:
+    # Revoked first: deleting the cookie only asks this browser to forget it,
+    # and a copy of the token would otherwise stay valid until it expires.
+    token = read_token(request)
+    await revoke(db, decode_access_token(token) if token else None)
+    await db.commit()
     # Deleted by matching attributes, not just name: a cookie set with a path
     # and dropped without one survives, and the user stays logged in.
     response.delete_cookie(

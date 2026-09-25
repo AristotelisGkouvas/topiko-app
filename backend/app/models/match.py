@@ -22,6 +22,7 @@ from app.models.enums import ConflictStatus, DataSource, MatchStatus, StandingZo
 
 if TYPE_CHECKING:
     from app.models.club import Field, Team
+    from app.models.event import MatchEvent
     from app.models.league import League
     from app.models.user import User
 
@@ -44,7 +45,16 @@ class Match(Base, TimestampMixin):
         UniqueConstraint("league_id", "external_id", name="uq_matches_league_external"),
         Index("ix_matches_league_matchday", "league_id", "matchday"),
         Index("ix_matches_kickoff", "kickoff_at"),
-        Index("ix_matches_live", "is_live"),
+        # A pairing is played once per round. The scraper dedupes in memory
+        # too; this is what holds when two runs overlap. (A boolean index on
+        # is_live used to sit here: two values, so the planner never used it.)
+        UniqueConstraint(
+            "league_id",
+            "matchday",
+            "home_team_id",
+            "away_team_id",
+            name="uq_matches_league_round_pairing",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -85,6 +95,9 @@ class Match(Base, TimestampMixin):
     )
     is_live: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     last_manual_edit_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: When the secretary last moved the date or the ground by hand. Kept apart
+    #: from last_manual_edit_at: a score correction must not freeze the venue.
+    rescheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_scraped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     external_id: Mapped[str | None] = mapped_column(String(64))
@@ -129,6 +142,19 @@ class Match(Base, TimestampMixin):
             return False
         protected_until = max(self.kickoff_at, self.last_manual_edit_at)
         return now - protected_until > MANUAL_PRIORITY_WINDOW
+
+    def reschedule_held(self, now: datetime | None = None) -> bool:
+        """True while a hand-made change of date or ground outranks the scraper.
+
+        Same window as a manual score, from the later of the new kickoff and
+        the change: by then the federation's page has caught up, or the match
+        has been played and the question is moot.
+        """
+        if self.rescheduled_at is None:
+            return False
+        now = now or datetime.now(timezone.utc)
+        anchor = max(self.rescheduled_at, self.kickoff_at or self.rescheduled_at)
+        return now - anchor <= MANUAL_PRIORITY_WINDOW
 
     def __repr__(self) -> str:
         return f"<Match {self.home_team_id}-{self.away_team_id} {self.status}>"

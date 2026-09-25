@@ -70,7 +70,7 @@ export function HeadToHeadBar({
       <div
         className={styles.bar}
         role="img"
-        aria-label={`${record.home} νίκες ${listName(home)}, ${record.draws} ισοπαλίες, ${record.away} νίκες ${listName(away)} σε ${total} συναντήσεις`}
+        aria-label={`${record.home} ${record.home === 1 ? "νίκη" : "νίκες"} ${listName(home)}, ${record.draws} ${record.draws === 1 ? "ισοπαλία" : "ισοπαλίες"}, ${record.away} ${record.away === 1 ? "νίκη" : "νίκες"} ${listName(away)} σε ${total} ${total === 1 ? "συνάντηση" : "συναντήσεις"}`}
       >
         <span className={styles.barHome} style={{ width: pct(record.home) }} />
         <span className={styles.barDraw} style={{ width: pct(record.draws) }} />

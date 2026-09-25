@@ -8,7 +8,7 @@
   position: absolute;
   left: 12px;
   pointer-events: none;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1;
   color: var(--color-grey-600);
 }
@@ -20,7 +20,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   font: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-heading);
 }
 

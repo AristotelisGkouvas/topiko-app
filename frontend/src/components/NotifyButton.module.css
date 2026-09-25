@@ -14,13 +14,13 @@
   color: var(--color-text);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   cursor: pointer;
 }
 
 .button:hover:enabled {
   border-color: var(--color-navy-700);
-  color: var(--color-navy-900);
+  color: var(--color-heading);
 }
 
 .button:disabled {
@@ -34,13 +34,13 @@
   border-radius: var(--radius-md, 8px);
   background: var(--color-green-100);
   color: var(--color-grey-800);
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   font-weight: 600;
 }
 
 .note {
   margin: 8px 0 0;
-  font-size: 11.5px;
+  font-size: 0.7188rem;
   line-height: 1.5;
   color: var(--color-text-muted);
 }

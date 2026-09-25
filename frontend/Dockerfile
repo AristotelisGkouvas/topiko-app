@@ -25,9 +25,12 @@ ARG NEXT_PUBLIC_ASSOCIATION=epsip-ipeirou
 # localhost and every og:image on every shared link points at the reader's
 # own machine — which is why links to the site have had no preview.
 ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+# Where "Αναφορά λάθους" and the about page point. Empty hides them.
+ARG NEXT_PUBLIC_CONTACT_EMAIL=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_ASSOCIATION=$NEXT_PUBLIC_ASSOCIATION \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_CONTACT_EMAIL=$NEXT_PUBLIC_CONTACT_EMAIL \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

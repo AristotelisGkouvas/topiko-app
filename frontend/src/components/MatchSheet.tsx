@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 
-import { EVENT_LABELS, type EventKind, type MatchFeed } from "@/components/MatchTicker";
-import { GoalSheet, type GoalChoice, type RosterPlayer } from "@/components/GoalSheet";
+import { EVENT_LABELS } from "@/components/MatchTicker";
+import { GoalSheet, type GoalChoice } from "@/components/GoalSheet";
+import type { EventKind, MatchFeed, RosterPlayer } from "@/lib/types";
 import { Empty } from "@/components/States";
-import { EditorError, editorApi } from "@/lib/editorApi";
+import { ApiError } from "@/lib/api";
+import { editorApi } from "@/lib/editorApi";
 import {
+  dismissRejected,
   enqueue,
   flush,
   newClientId,
+  pending,
+  rejected,
   useOnline,
   useOutboxSize,
 } from "@/lib/outbox";
-import { formatTime } from "@/lib/format";
+import { formatDayDate, formatTime } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchSheet.module.css";
 
@@ -26,6 +31,9 @@ import styles from "./MatchSheet.module.css";
  *  corrections belong to the federation's own editors.
  */
 const UNDO_WINDOW_MS = 60_000;
+
+const UNDO_EXPIRED =
+  "Πέρασε το λεπτό για αναίρεση. Για διόρθωση, ενημέρωσε την ένωση.";
 
 function undoable(event: { created_at: string }): boolean {
   return Date.now() - new Date(event.created_at).getTime() < UNDO_WINDOW_MS;
@@ -40,7 +48,42 @@ function undoable(event: { created_at: string }): boolean {
  *  Returns null until there is a kickoff to count from. A clock that starts at
  *  zero the moment the screen opens is worse than no clock: it looks right.
  */
-function useMatchClock(feed: MatchFeed | null): number | null {
+/** "16:05" typed on a kickoff entry: when the whistle actually went. */
+const CLOCK_NOTE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+
+/** When the match started, as the clock should count it.
+ *
+ *  The kickoff entry's own time, unless its note carries the real one — a
+ *  volunteer who arrives at 16:20 and presses Σέντρα for a 16:00 start would
+ *  otherwise put every goal twenty minutes early. Without any kickoff entry,
+ *  the scheduled time, while the match could plausibly be running: a sheet
+ *  opened mid-match with no Σέντρα pressed used to file every event with no
+ *  minute at all. */
+function clockStart(
+  feed: MatchFeed,
+  scheduled: string | null,
+  now: number,
+): number | null {
+  const kickoff = feed.events.find((e) => e.kind === "kickoff");
+  if (kickoff) {
+    const typed = kickoff.note?.trim().match(CLOCK_NOTE);
+    if (typed) {
+      const at = new Date(kickoff.created_at);
+      at.setHours(Number(typed[1]), Number(typed[2]), 0, 0);
+      return at.getTime();
+    }
+    return new Date(kickoff.created_at).getTime();
+  }
+  if (!scheduled) return null;
+  const start = new Date(scheduled).getTime();
+  const since = now - start;
+  return since > 0 && since < 3 * 60 * 60_000 ? start : null;
+}
+
+function useMatchClock(
+  feed: MatchFeed | null,
+  scheduled: string | null,
+): number | null {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -52,8 +95,8 @@ function useMatchClock(feed: MatchFeed | null): number | null {
 
   if (!feed) return null;
 
-  const kickoff = feed.events.find((e) => e.kind === "kickoff");
-  if (!kickoff) return null;
+  const start = clockStart(feed, scheduled, now);
+  if (start === null) return null;
 
   const stopped = feed.events.some(
     (e) => e.kind === "halftime" || e.kind === "fulltime",
@@ -65,7 +108,7 @@ function useMatchClock(feed: MatchFeed | null): number | null {
     return last.minute ?? null;
   }
 
-  const elapsed = (now - new Date(kickoff.created_at).getTime()) / 60_000;
+  const elapsed = (now - start) / 60_000;
   return Math.max(1, Math.round(elapsed));
 }
 
@@ -86,6 +129,9 @@ export interface SheetBackend {
   /** The club's own players, for the scorer sheet. Absent for the editor's
    *  dashboard, which covers every club and has no single squad to offer. */
   roster?: () => Promise<RosterPlayer[]>;
+  /** Whose roster that is. The opponent's goals get the free-name sheet,
+   *  not a list of our own players. */
+  ownTeamSlug?: string;
   empty: { title: string; body: string };
 }
 
@@ -118,7 +164,15 @@ export function MatchSheet({
 
   const { data: matches, isLoading } = useSWR<Match[]>(
     [backend.key, 1],
-    () => backend.matches(),
+    // Today's and live matches first: a club's list is the whole season,
+    // and on a Sunday the one that matters was eighteen rows down. Sorted
+    // here, in the fetcher, so the clock is read outside render.
+    async () => {
+      const all = await backend.matches();
+      const today = formatDayDate(new Date().toISOString());
+      const now = (m: Match) => m.is_live || formatDayDate(m.kickoff_at) === today;
+      return [...all.filter(now), ...all.filter((m) => !now(m))];
+    },
   );
 
   if (chosen) {
@@ -146,7 +200,12 @@ export function MatchSheet({
             className={styles.pickRow}
             onClick={() => setChosen(match)}
           >
+            {/* The day as well as the hour: a club's list spans the whole
+                season, and "16:00" eighteen times tells nobody which Sunday. */}
             <span className={styles.pickTime}>
+              <span className={styles.pickDay}>
+                {formatDayDate(match.kickoff_at)}
+              </span>
               {formatTime(match.kickoff_at)}
             </span>
             <span className={styles.pickTeams}>
@@ -177,7 +236,43 @@ function Sheet({
   const [scoring, setScoring] = useState<Match["home_team"] | null>(null);
   const queued = useOutboxSize();
   const online = useOnline();
-  const clock = useMatchClock(feed);
+  const clock = useMatchClock(feed, match.kickoff_at);
+
+  // The undo button has to go grey on its own once the minute is up. Without
+  // this it stayed enabled and a tap did nothing, so people kept tapping.
+  // The newest entry by id, not the last in the list: the feed is ordered by
+  // minute, so a correction typed for the 20th minute sits mid-list and
+  // "undo last" was taking back something else.
+  const lastEvent = feed?.events.length
+    ? feed.events.reduce((a, b) => (b.id > a.id ? b : a))
+    : undefined;
+  // Two quick taps read the same `busy` from one render and both went
+  // through — a double yellow from one tap. A ref is read at the moment.
+  const sending = useRef(false);
+  const [refused, setRefused] = useState(() => rejected());
+  // A green flash on the scoreboard, and a buzz, when an entry is taken —
+  // the volunteer is watching the pitch, not the screen.
+  const [flash, setFlash] = useState(0);
+
+  // Where the match is, from its markers: not started, running, or at the
+  // interval. Drives the one big ⏸/▶ button beside the clock.
+  const markers = (feed?.events ?? []).filter((e) =>
+    ["kickoff", "halftime", "second_half", "fulltime"].includes(e.kind),
+  );
+  const phase = markers.length
+    ? markers.reduce((a, b) => (b.id > a.id ? b : a)).kind
+    : null;
+  const waiting = typeof window === "undefined" ? [] : pending().filter((e) => e.match_id === match.id);
+  void queued; // re-render on queue changes so `waiting` stays current
+  const [expiredId, setExpiredId] = useState<number | null>(null);
+  useEffect(() => {
+    if (!lastEvent) return;
+    const left =
+      UNDO_WINDOW_MS - (Date.now() - new Date(lastEvent.created_at).getTime());
+    const timer = setTimeout(() => setExpiredId(lastEvent.id), Math.max(0, left));
+    return () => clearTimeout(timer);
+  }, [lastEvent]);
+  const undoExpired = !!lastEvent && expiredId === lastEvent.id;
 
   // Only the volunteer's own backend has a roster; the editor's dashboard
   // covers every club in the federation and has no single squad to offer.
@@ -192,7 +287,7 @@ function Sheet({
     const retry = async () => {
       const result = await flush();
       if (result.sent > 0) {
-        const fresh = await editorApi.feed(match.id).catch(() => null);
+        const fresh = await backend.feed(match.id).catch(() => null);
         if (fresh) setFeed(fresh);
       }
     };
@@ -203,7 +298,7 @@ function Sheet({
       window.removeEventListener("online", onOnline);
       window.clearInterval(timer);
     };
-  }, [match.id]);
+  }, [match.id, backend]);
 
   useSWR<MatchFeed>(
     [`${backend.key}:feed`, match.id],
@@ -221,7 +316,28 @@ function Sheet({
     teamId?: number,
     extra?: { playerName?: string | null; note?: string | null },
   ) {
-    if (busy) return;
+    if (sending.current) return;
+    const parsedMinute = minute === "" ? null : Number.parseInt(minute, 10);
+    if (parsedMinute !== null && (parsedMinute < 0 || parsedMinute > 130)) {
+      setError("Το λεπτό πρέπει να είναι από 0 έως 130.");
+      return;
+    }
+    // The log is the score: the first entry recomputes it from the entries,
+    // and a result typed earlier by the desk or read from the federation
+    // would vanish without a word. Say so before it happens.
+    const existing = (feed?.home_score ?? 0) + (feed?.away_score ?? 0);
+    if (
+      feed &&
+      feed.events.length === 0 &&
+      existing > 0 &&
+      !window.confirm(
+        `Ο αγώνας έχει ήδη σκορ ${feed.home_score}–${feed.away_score} χωρίς καταγεγραμμένα γκολ. ` +
+          "Από το πρώτο γεγονός το σκορ θα μετράει μόνο όσα καταχωρήσεις εδώ. Συνέχεια;",
+      )
+    ) {
+      return;
+    }
+    sending.current = true;
     setBusy(true);
     setError(null);
     // The typed minute wins over the clock: somebody correcting an entry from
@@ -242,27 +358,40 @@ function Sheet({
       // Tagged now, not at flush time: the queue can outlive this session.
       via: backend.via,
     });
+    // One entry per typed minute: left in the box, every later event was
+    // filed at the same minute.
+    setMinute("");
 
     try {
       const result = await flush();
       if (result.blocked) setError(result.blocked);
-      if (result.sent > 0) setFeed(await backend.feed(match.id));
+      if (result.sent > 0) {
+        setFeed(await backend.feed(match.id));
+        setFlash((n) => n + 1);
+        navigator.vibrate?.(40);
+      }
     } catch (err) {
-      setError(err instanceof EditorError ? err.message : "Παραμένει σε αναμονή.");
+      setError(err instanceof ApiError ? err.message : "Παραμένει σε αναμονή.");
     } finally {
+      setRefused(rejected());
+      sending.current = false;
       setBusy(false);
     }
   }
 
   async function undo() {
-    const last = feed?.events.at(-1);
-    if (!last || busy || !undoable(last)) return;
+    const last = lastEvent;
+    if (!last || sending.current) return;
+    if (!undoable(last)) {
+      setError(UNDO_EXPIRED);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       setFeed(await backend.undo(match.id, last.id));
     } catch (err) {
-      setError(err instanceof EditorError ? err.message : "Απέτυχε.");
+      setError(err instanceof ApiError ? err.message : "Απέτυχε.");
     } finally {
       setBusy(false);
     }
@@ -284,6 +413,31 @@ function Sheet({
     });
   }
 
+  /** Σέντρα — now, or at the time it really happened.
+   *
+   *  Pressed well after the scheduled start, it asks. Otherwise every minute
+   *  after it is counted from the moment somebody found the button. */
+  function kickOff() {
+    const late =
+      match.kickoff_at !== null &&
+      Date.now() - new Date(match.kickoff_at).getTime() > 5 * 60_000;
+    if (!late) {
+      void send("kickoff");
+      return;
+    }
+    const answer = window.prompt(
+      "Ο αγώνας έχει ήδη ξεκινήσει; Γράψε την ώρα της σέντρας (π.χ. 16:05) ή άφησέ το κενό για «τώρα».",
+      formatTime(match.kickoff_at),
+    );
+    if (answer === null) return;
+    const typed = answer.trim();
+    if (typed && !CLOCK_NOTE.test(typed)) {
+      setError("Η ώρα γράφεται ως ΗΗ:ΛΛ, π.χ. 16:05.");
+      return;
+    }
+    void send("kickoff", undefined, { note: typed || null });
+  }
+
   /** Call the match off. The reason is the point: "ΑΝΑΒΟΛΗ" alone sends
    *  everybody to ask the same question in the same group chat. */
   function callOff(kind: "postponed" | "abandoned") {
@@ -302,15 +456,57 @@ function Sheet({
         ← Άλλος αγώνας
       </button>
 
-      <div className={styles.board}>
+      <div
+        // Remounted on every accepted entry, which replays the flash.
+        key={flash}
+        className={`${styles.board} ${flash > 0 ? styles.boardFlash : ""}`}
+      >
         <span className={styles.boardTeam}>{home.short_name ?? home.name}</span>
         <span className={styles.boardScore}>
           {feed?.home_score ?? 0}–{feed?.away_score ?? 0}
         </span>
         <span className={styles.boardTeam}>{away.short_name ?? away.name}</span>
+
+        {/* The clock, big, and the one control that moves it on. */}
+        <div className={styles.clockRow}>
+          <span className={styles.clock} aria-label="Λεπτό αγώνα">
+            {phase === "halftime"
+              ? "ΗΜΙΧΡΟΝΟ"
+              : phase === "fulltime"
+                ? "ΤΕΛΙΚΟ"
+                : clock !== null
+                  ? `${clock}′`
+                  : "—"}
+          </span>
+          {phase !== "fulltime" && (
+            <button
+              type="button"
+              className={styles.clockButton}
+              disabled={busy}
+              onClick={() =>
+                phase === null
+                  ? kickOff()
+                  : phase === "halftime"
+                    ? send("second_half")
+                    : phase === "kickoff" || phase === "second_half"
+                      ? send(phase === "kickoff" ? "halftime" : "fulltime")
+                      : undefined
+              }
+            >
+              {phase === null
+                ? "▶ Σέντρα"
+                : phase === "halftime"
+                  ? "▶ Β΄ μέρος"
+                  : phase === "kickoff"
+                    ? "⏸ Ημίχρονο"
+                    : "⏹ Τελικό"}
+            </button>
+          )}
+        </div>
       </div>
 
       {(!online || queued > 0) && (
+        // Sticky: it has to stay in sight while the volunteer scrolls the log.
         <p className={styles.queue} role="status">
           {online ? "Αποστολή" : "Χωρίς σήμα"}
           {queued > 0 ? ` · ${queued} σε αναμονή` : ""}
@@ -343,7 +539,7 @@ function Sheet({
           type="button"
           className={styles.goal}
           disabled={busy}
-          onClick={() => (backend.roster ? setScoring(home) : send("goal", home.id))}
+          onClick={() => setScoring(home)}
         >
           +1 ΓΚΟΛ
           <span className={styles.goalTeam}>{home.short_name ?? home.name}</span>
@@ -352,7 +548,7 @@ function Sheet({
           type="button"
           className={styles.goal}
           disabled={busy}
-          onClick={() => (backend.roster ? setScoring(away) : send("goal", away.id))}
+          onClick={() => setScoring(away)}
         >
           +1 ΓΚΟΛ
           <span className={styles.goalTeam}>{away.short_name ?? away.name}</span>
@@ -367,7 +563,7 @@ function Sheet({
       </div>
 
       <div className={styles.markers}>
-        <button type="button" className={styles.marker} disabled={busy} onClick={() => send("kickoff")}>
+        <button type="button" className={styles.marker} disabled={busy} onClick={kickOff}>
           ▶ Σέντρα
         </button>
         <button type="button" className={styles.marker} disabled={busy} onClick={() => send("halftime")}>
@@ -405,8 +601,9 @@ function Sheet({
       {scoring && (
         <GoalSheet
           team={scoring.short_name ?? scoring.name}
-          roster={roster ?? []}
-          loading={rosterLoading}
+          // Our players only for our goals; the opponent's scorer is typed.
+          roster={scoring.slug === backend.ownTeamSlug ? (roster ?? []) : []}
+          loading={scoring.slug === backend.ownTeamSlug && rosterLoading}
           onPick={(choice) => scored(scoring, choice)}
           onClose={() => setScoring(null)}
         />
@@ -415,16 +612,65 @@ function Sheet({
       <button
         type="button"
         className={styles.undo}
-        disabled={busy || !feed?.events.length}
+        disabled={busy || !feed?.events.length || undoExpired}
         onClick={undo}
       >
-        ↶ Αναίρεση τελευταίου
+        ↶ Αναίρεση
+        {lastEvent && (
+          <span className={styles.undoWhat}>
+            {EVENT_LABELS[lastEvent.kind].label}
+            {lastEvent.team ? ` ${lastEvent.team.short_name ?? lastEvent.team.name}` : ""}
+            {lastEvent.minute !== null ? ` ${lastEvent.minute}′` : ""}
+          </span>
+        )}
       </button>
+      {undoExpired && !error && <p className={styles.hint}>{UNDO_EXPIRED}</p>}
 
       {error && (
         <p className={styles.error} role="alert">
           {error}
         </p>
+      )}
+
+      {refused
+        .filter((e) => e.match_id === match.id)
+        .map((e) => (
+          <p key={e.client_id} className={styles.error} role="alert">
+            Δεν καταχωρήθηκε: {EVENT_LABELS[e.kind as EventKind]?.label ?? e.kind}
+            {e.minute !== undefined ? ` (${e.minute}′)` : ""} — {e.reason}{" "}
+            <button
+              type="button"
+              className={styles.dismiss}
+              onClick={() => {
+                dismissRejected(e.client_id);
+                setRefused(rejected());
+              }}
+            >
+              Εντάξει
+            </button>
+          </p>
+        ))}
+
+      {/* Waiting for a signal: shown in the log so the volunteer sees the
+          goal was taken, not only a counter. */}
+      {waiting.length > 0 && (
+        <ol className={styles.log} aria-label="Σε αναμονή αποστολής">
+          {[...waiting].reverse().map((e) => (
+            <li key={e.client_id} className={`${styles.logRow} ${styles.logWaiting}`}>
+              <span className={styles.logMinute}>
+                {e.minute !== undefined ? `${e.minute}′` : "—"}
+              </span>
+              <span>
+                ⏳ {EVENT_LABELS[e.kind as EventKind]?.label ?? e.kind}
+                {e.team_id === home.id
+                  ? ` — ${home.short_name ?? home.name}`
+                  : e.team_id === away.id
+                    ? ` — ${away.short_name ?? away.name}`
+                    : ""}
+              </span>
+            </li>
+          ))}
+        </ol>
       )}
 
       {feed && feed.events.length > 0 && (

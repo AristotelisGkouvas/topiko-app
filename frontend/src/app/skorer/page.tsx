@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { leagueLabel, resolveLeague, type SearchParams } from "@/lib/leagues";
 import type { Scorer } from "@/lib/types";
 import pageStyles from "../page.module.css";
+import { LiveScorers } from "./LiveScorers";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -129,6 +130,12 @@ export default async function ScorersPage({
           title="Χωρίς σκόρερ"
           body="Η λίστα εμφανίζεται μόλις η ένωση δημοσιεύσει τα πρώτα γκολ της περιόδου."
         />
+      )}
+
+      {/* The live log belongs to the current season; an archived one has only
+          the federation's table. */}
+      {(!season || seasons.find((s) => s.slug === season)?.is_current) && (
+        <LiveScorers leagueSlug={league.slug} />
       )}
     </div>
   );

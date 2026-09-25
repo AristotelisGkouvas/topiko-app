@@ -17,6 +17,7 @@ from app.api.deps import CurrentAssociation, DbSession
 from app.core.config import settings
 from app.core.security import decode_access_token
 from app.models import Association, User, UserAssociation
+from app.services.sessions import is_revoked
 
 #: One message for every way authentication can fail. Telling the caller
 #: whether the account exists, is disabled or simply mistyped its password
@@ -50,7 +51,7 @@ async def get_current_user(request: Request, db: DbSession) -> User:
         raise _UNAUTHENTICATED
 
     claims = decode_access_token(token)
-    if claims is None:
+    if claims is None or await is_revoked(db, claims):
         raise _UNAUTHENTICATED
 
     try:

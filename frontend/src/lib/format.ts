@@ -59,6 +59,12 @@ export function formatShortKickoff(iso: string | null): string {
   return `${day} ${timeFmt.format(d)}`;
 }
 
+/** The word for a count: plural(1, "ψήφος", "ψήφοι") is "ψήφος", anything
+ *  else "ψήφοι". Greek, like English, has one form for one and one for the
+ *  rest — zero included ("0 ψήφοι"). */
+export const plural = (n: number, one: string, many: string) =>
+  n === 1 ? one : many;
+
 /**
  * "πριν 4 λεπτά". Rendered from a timestamp rather than baked on the server, so
  * the label keeps ticking while the page sits open on someone's phone.
@@ -71,13 +77,13 @@ export function formatRelative(iso: string | null, now = Date.now()): string {
   if (seconds < 45) return "μόλις τώρα";
 
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `πριν ${minutes} ${minutes === 1 ? "λεπτό" : "λεπτά"}`;
+  if (minutes < 60) return `πριν ${minutes} ${plural(minutes, "λεπτό", "λεπτά")}`;
 
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `πριν ${hours} ${hours === 1 ? "ώρα" : "ώρες"}`;
+  if (hours < 24) return `πριν ${hours} ${plural(hours, "ώρα", "ώρες")}`;
 
   const days = Math.round(hours / 24);
-  if (days < 7) return `πριν ${days} ${days === 1 ? "ημέρα" : "ημέρες"}`;
+  if (days < 7) return `πριν ${days} ${plural(days, "ημέρα", "ημέρες")}`;
 
   return formatLongDate(iso);
 }

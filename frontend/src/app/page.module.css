@@ -35,9 +35,17 @@
   min-width: 0;
 }
 
-/* Below the breakpoint the right-hand column is folded into the flow; above it
-   the copy inside .main is hidden and the aside carries it. */
+/* Below the breakpoint the right-hand column simply follows .main in the one
+   column; above it, it becomes the third column. One copy in the DOM either
+   way — two would mean duplicate ids and every heading read out twice. */
 .side {
+  display: grid;
+  gap: 22px;
+  align-items: start;
+}
+
+/* The freshness line sits under the numbers only beside them. */
+.wideOnly {
   display: none;
 }
 
@@ -47,10 +55,7 @@
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  composes: card from "../styles/primitives.module.css";
 }
 
 .fixtureList {
@@ -73,19 +78,31 @@
   gap: 10px;
 }
 
+/* Every other page borrows .page for its spacing and is one column of
+   content. Given the home screen's three columns, their children were dealt
+   into the cells one by one: a dashboard's match list in the 200px rail with
+   the team names cut off, a records card alone with the rest of the screen
+   empty. So the three columns belong to .home, and the rest get one column at
+   a width that still reads. */
 @media (min-width: 1040px) {
   .page {
-    grid-template-columns: 200px minmax(0, 1fr) 320px;
     padding: 4px 0 0;
+    max-width: 820px;
+    width: 100%;
+    margin: 0 auto;
   }
 
-  .side {
-    display: grid;
-    gap: 22px;
-    align-items: start;
+  .home {
+    grid-template-columns: 200px minmax(0, 1fr) 320px;
+    max-width: none;
   }
 
-  .narrowOnly {
-    display: none;
+  /* Tools that need the whole width: the editors' dashboard. */
+  .wide {
+    max-width: none;
+  }
+
+  .wideOnly {
+    display: block;
   }
 }

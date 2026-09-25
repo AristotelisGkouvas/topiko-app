@@ -5,7 +5,7 @@ See `app.models.volunteer` for what a code is and why it looks the way it does.
 
 from __future__ import annotations
 
-import re
+import asyncio
 import secrets
 from datetime import UTC, datetime, timedelta
 
@@ -21,18 +21,32 @@ DIGITS = 6
 
 #: Shared with the short-name derivation: the same Latin lookalikes that break
 #: a club's name also break a code typed on an English keyboard layout.
-from app.services.greek import LATIN_LOOKALIKE as _LOOKALIKE, words as _words  # noqa: E402
+from app.services.greek import (  # noqa: E402
+    LATIN_LOOKALIKE as _LOOKALIKE,
+    upper_bare as _upper_bare,
+    words as _words,
+)
+
+
+#: Every dash a phone keyboard offers: an iPhone turns "--" into an en or em
+#: dash, and a pasted code may carry a minus sign or a non-breaking hyphen.
+_DASHES = str.maketrans({c: "-" for c in "‐‑‒–—―−_"})
 
 
 def normalise(raw: str) -> str:
     """What the reader typed, as the code was issued.
 
-    Case, spaces and the Latin lookalikes are all forgiven — none of them is
-    the secret, and every one of them is a way to be told your correct code is
-    wrong.
+    Case, accents, spaces, the Latin lookalikes, the kind of dash — and the
+    dash itself — are all forgiven. None of them is the secret, and every one
+    of them is a way to be told your correct code is wrong.
     """
-    cleaned = raw.strip().upper().replace(" ", "")
-    return cleaned.translate(_LOOKALIKE)
+    cleaned = raw.strip().replace(" ", "").translate(_DASHES).translate(_LOOKALIKE)
+    cleaned = _upper_bare(cleaned)
+    if "-" not in cleaned and len(cleaned) > DIGITS:
+        # "ΚΟΝ313887": the code always ends in DIGITS digits, so that is where
+        # the dash goes — which also keeps a numbered prefix ("ΚΟΝ2") whole.
+        cleaned = f"{cleaned[:-DIGITS]}-{cleaned[-DIGITS:]}"
+    return cleaned
 
 
 def _candidates(name: str) -> list[str]:
@@ -42,7 +56,10 @@ def _candidates(name: str) -> list[str]:
     the club: "Α.Ε. ΓΙΑΝΝΕΝΑ 2004" is Γιάννενα, not ΑΕΓ. Initial-only forms
     like Α.Ε. and Π.Α.Ο. are shared by dozens of clubs and identify none.
     """
-    letters = _words(name)
+    # Without accents: "Κόνιτσας" gives ΚΟΝ, not ΚΌΝ. A capital with a tonos
+    # takes three taps on a phone and half the people holding the card do not
+    # know it can be typed at all.
+    letters = [_upper_bare(w) for w in _words(name)]
     long_enough = [w for w in letters if len(w) >= 4]
 
     out: list[str] = []
@@ -61,8 +78,11 @@ def _candidates(name: str) -> list[str]:
 
 async def pick_prefix(db: AsyncSession, *, association_id: int, team: Team) -> str:
     """A prefix for this club that nobody else in the federation holds."""
-    taken = set(
-        (
+    # Compared bare, because codes issued before accents were dropped still
+    # carry them, and ΚΌΝ and ΚΟΝ are the same prefix to the person typing.
+    taken = {
+        _upper_bare(p)
+        for p in (
             await db.execute(
                 select(ClubAccessCode.prefix).where(
                     ClubAccessCode.association_id == association_id
@@ -71,7 +91,7 @@ async def pick_prefix(db: AsyncSession, *, association_id: int, team: Team) -> s
         )
         .scalars()
         .all()
-    )
+    }
 
     for candidate in _candidates(team.name):
         if candidate not in taken:
@@ -129,11 +149,14 @@ async def issue(
         await db.flush()
 
     plaintext = generate(prefix)
+    # Argon2 is deliberately slow; run inline it would stall every other
+    # request on the event loop for as long as it takes.
+    code_hash = await asyncio.to_thread(hash_password, plaintext)
     code = ClubAccessCode(
         association_id=association_id,
         team_id=team.id,
         prefix=prefix,
-        code_hash=hash_password(plaintext),
+        code_hash=code_hash,
         label=label,
         created_by_id=created_by_id,
     )
@@ -153,27 +176,32 @@ async def authenticate(
     to keep working on.
     """
     cleaned = normalise(raw)
-    prefix, _, _rest = cleaned.partition("-")
-    if not prefix or not _rest:
+    prefix, _, rest = cleaned.partition("-")
+    if not prefix or not rest:
         return None
 
-    code = (
+    # Matched bare in Python rather than in SQL: codes issued before accents
+    # were dropped are stored as "ΚΌΝ", and a federation has a few hundred
+    # active codes at most.
+    active = (
         await db.execute(
             select(ClubAccessCode).where(
                 ClubAccessCode.association_id == association_id,
-                ClubAccessCode.prefix == prefix,
                 ClubAccessCode.is_active.is_(True),
             )
         )
-    ).scalar_one_or_none()
+    ).scalars()
+    code = next((c for c in active if _upper_bare(c.prefix) == prefix), None)
     if code is None:
         return None
+    # The hash covers the prefix exactly as it was issued.
+    cleaned = f"{code.prefix}-{rest}"
 
     now = datetime.now(UTC)
     if code.locked_until is not None and code.locked_until > now:
         return None
 
-    if not verify_password(cleaned, code.code_hash):
+    if not await asyncio.to_thread(verify_password, cleaned, code.code_hash):
         code.failures += 1
         if code.failures >= MAX_FAILURES:
             code.locked_until = now + timedelta(minutes=LOCKOUT_MINUTES)

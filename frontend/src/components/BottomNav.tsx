@@ -17,6 +17,12 @@ import styles from "./BottomNav.module.css";
 export function BottomNav({ liveCount = 0 }: { liveCount?: number }) {
   const pathname = usePathname();
 
+  // The welcome is the whole screen, and its own "Όχι τώρα" and "‹ Πίσω" sit
+  // exactly where the bar would cover them.
+  if (pathname.startsWith("/kalosorisma")) return null;
+  // Inside somebody else's page, in an iframe: the table and nothing else.
+  if (pathname.startsWith("/embed")) return null;
+
   return (
     <nav className={styles.bar} aria-label="Πλοήγηση">
       {PRIMARY_NAV_ITEMS.map((item) => {
@@ -33,9 +39,19 @@ export function BottomNav({ liveCount = 0 }: { liveCount?: number }) {
           >
             <span className={styles.icon}>
               <NavIcon item={item} />
-              {showBadge && <span className={styles.badge} />}
+              {showBadge && (
+                // The dot alone meant nothing to anybody who had not been
+                // told; the words are there for the ones who ask.
+                <span
+                  className={styles.badge}
+                  title={`${liveCount} ${liveCount === 1 ? "αγώνας" : "αγώνες"} σε εξέλιξη`}
+                />
+              )}
             </span>
-            <span className={styles.label}>{item.label}</span>
+            <span className={styles.label}>
+              {item.label}
+              {showBadge && <span className="srOnly"> · {liveCount} σε εξέλιξη</span>}
+            </span>
           </Link>
         );
       })}

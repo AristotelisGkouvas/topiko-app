@@ -12,21 +12,24 @@ Read-only and tenant-scoped, exactly like public.py.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from email.utils import format_datetime
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
-from sqlalchemy import case, extract, func, select
+from sqlalchemy import ColumnElement, case, extract, func, select
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import CurrentAssociation, DbSession
+from app.api.deps import CurrentAssociation, CurrentLeague, DbSession
+from app.api.lookups import MATCH_LOADS, team_in
 from app.core.config import settings
-from app.models.enums import LeagueKind
+from app.models.enums import LeagueKind, MatchEventKind, MatchStatus
 from app.models import (
     Announcement,
     Association,
     League,
     Match,
+    MatchEvent,
     Player,
     PlayerStat,
     PlayerSuspension,
@@ -59,15 +62,9 @@ _ATHENS = ZoneInfo("Europe/Athens")
 
 router = APIRouter(prefix="/api/v1", tags=["archive"])
 
-_MATCH_LOADS = (
-    selectinload(Match.home_team),
-    selectinload(Match.away_team),
-    selectinload(Match.field),
-)
-
 #: A decided match with both scores on it. Every question here is about results
 #: that happened, so this filter opens nearly every query below.
-def _played() -> object:
+def _played() -> ColumnElement[bool]:
     return Match.home_score.is_not(None) & Match.away_score.is_not(None)
 
 
@@ -204,11 +201,21 @@ async def get_player(
             seen.add(line.team.id)
             clubs.append(line.team)
 
+    live_goals = (
+        await db.execute(
+            select(func.count(MatchEvent.id)).where(
+                MatchEvent.player_id == player.id,
+                MatchEvent.kind.in_((MatchEventKind.GOAL, MatchEventKind.PENALTY_GOAL)),
+            )
+        )
+    ).scalar_one()
+
     return PlayerDetailOut(
         id=player.id,
         slug=player.slug,
         name=player.name,
         birth_year=player.birth_year,
+        live_goals=live_goals,
         seasons=seasons,
         total_goals=sum(line.goals or 0 for line in seasons),
         seasons_scored=len({line.season.slug for line in seasons if line.goals}),
@@ -285,7 +292,7 @@ async def head_to_head(
     matches = list(
         (
             await db.execute(
-                base.options(*_MATCH_LOADS)
+                base.options(*MATCH_LOADS)
                 .order_by(Match.kickoff_at.desc().nulls_last(), Match.id.desc())
                 .limit(limit)
             )
@@ -308,19 +315,7 @@ async def head_to_head(
 
 
 async def _team_or_404(association: Association, slug: str, db: DbSession) -> Team:
-    team = (
-        await db.execute(
-            select(Team).where(
-                Team.association_id == association.id, Team.slug == slug
-            )
-        )
-    ).scalar_one_or_none()
-    if team is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Δεν βρέθηκε σωματείο '{slug}'.",
-        )
-    return team
+    return await team_in(db, association.id, slug)
 
 
 # ---------------------------------------------------------------------------
@@ -351,13 +346,16 @@ async def on_this_day(
 
     result = await db.execute(
         select(Match)
-        .options(*_MATCH_LOADS)
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
             Match.kickoff_at.is_not(None),
             extract("day", local_kickoff) == day,
             extract("month", local_kickoff) == month,
+            # Earlier years only: today's match, still being played, is not
+            # an anniversary and read like a final score beside 2016's.
+            extract("year", local_kickoff) < today.year,
             _played(),
         )
         # Biggest first: with a dozen slots, a 7-0 earns one before a goalless
@@ -534,7 +532,7 @@ async def team_calendar(
 
     stmt = (
         select(Match)
-        .options(*_MATCH_LOADS)
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
@@ -564,6 +562,112 @@ async def team_calendar(
             "Content-Disposition": f'inline; filename="{team.slug}.ics"',
             "Cache-Control": "public, max-age=1800",
         },
+    )
+
+
+@router.get(
+    "/{association_slug}/leagues/{league_slug}/imerologio.ics",
+    response_class=Response,
+    responses={200: {"content": {"text/calendar": {}}}},
+)
+async def league_calendar(
+    association: CurrentAssociation, league: CurrentLeague, db: DbSession
+) -> Response:
+    """A whole division as a subscribable calendar — for the reporter or the
+    referee who follows a division rather than a club."""
+    matches = list(
+        (
+            await db.execute(
+                select(Match)
+                .options(*MATCH_LOADS)
+                .where(Match.league_id == league.id, Match.kickoff_at.is_not(None))
+                .order_by(Match.kickoff_at)
+            )
+        ).scalars()
+    )
+    body = build_calendar(
+        league, matches, association_slug=association.slug, site_url=settings.site_url
+    )
+    return Response(
+        content=body,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": f'inline; filename="{league.slug}.ics"',
+            "Cache-Control": "public, max-age=1800",
+        },
+    )
+
+
+def _xml(text: str) -> str:
+    return (
+        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    )
+
+
+@router.get(
+    "/{association_slug}/apotelesmata.rss",
+    response_class=Response,
+    responses={200: {"content": {"application/rss+xml": {}}}},
+)
+async def results_feed(
+    association: CurrentAssociation,
+    db: DbSession,
+    limit: Annotated[int, Query(ge=1, le=200)] = 60,
+) -> Response:
+    """Final scores as RSS, newest first, every division — for newsrooms and
+    feed readers that want results without scraping the site."""
+    matches = list(
+        (
+            await db.execute(
+                select(Match)
+                .options(*MATCH_LOADS, selectinload(Match.league))
+                .join(League, Match.league_id == League.id)
+                .where(
+                    League.association_id == association.id,
+                    Match.status.in_((MatchStatus.FINISHED, MatchStatus.AWARDED)),
+                    Match.home_score.is_not(None),
+                    Match.away_score.is_not(None),
+                    Match.kickoff_at.is_not(None),
+                )
+                .order_by(Match.kickoff_at.desc(), Match.id.desc())
+                .limit(limit)
+            )
+        ).scalars()
+    )
+    site = (settings.site_url or "").rstrip("/")
+    items = []
+    for m in matches:
+        title = (
+            f"{m.home_team.name} - {m.away_team.name} {m.home_score}-{m.away_score}"
+        )
+        league_name = m.league.short_name or m.league.name
+        link = f"{site}/agones/{m.id}" if site else ""
+        items.append(
+            "<item>"
+            f"<title>{_xml(title)}</title>"
+            + (f"<link>{_xml(link)}</link>" if link else "")
+            + f"<guid isPermaLink=\"false\">match-{m.id}-{m.home_score}-{m.away_score}</guid>"
+            f"<category>{_xml(league_name)}</category>"
+            f"<description>{_xml(league_name)}"
+            + (f" · {m.matchday}η αγωνιστική" if m.matchday else "")
+            + "</description>"
+            + (f"<pubDate>{format_datetime(m.kickoff_at)}</pubDate>" if m.kickoff_at else "")
+            + "</item>"
+        )
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<rss version="2.0"><channel>'
+        f"<title>{_xml('Αποτελέσματα · ' + association.name)}</title>"
+        f"<link>{_xml(site or '')}</link>"
+        f"<description>{_xml('Τελικά αποτελέσματα όλων των κατηγοριών · Πάμε Σέντρα')}</description>"
+        "<language>el</language>"
+        + "".join(items)
+        + "</channel></rss>"
+    )
+    return Response(
+        content=body,
+        media_type="application/rss+xml; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=600"},
     )
 
 
@@ -658,13 +762,13 @@ async def records(
 
     biggest = (
         await db.execute(
-            scoped.options(*_MATCH_LOADS).order_by(margin.desc(), Match.id).limit(limit)
+            scoped.options(*MATCH_LOADS).order_by(margin.desc(), Match.id).limit(limit)
         )
     ).scalars()
 
     highest = (
         await db.execute(
-            scoped.options(*_MATCH_LOADS).order_by(total.desc(), Match.id).limit(limit)
+            scoped.options(*MATCH_LOADS).order_by(total.desc(), Match.id).limit(limit)
         )
     ).scalars()
 

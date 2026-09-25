@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 import { Logo, Wordmark } from "@/components/Logo";
-import { VolunteerError, volunteerApi, type Volunteer } from "@/lib/volunteerApi";
+import { ApiError } from "@/lib/api";
+import { volunteerApi, type Volunteer } from "@/lib/volunteerApi";
 import { CodeInput } from "./CodeInput";
 import styles from "./page.module.css";
 
@@ -27,7 +28,7 @@ export function CodeForm({ onIn }: { onIn: (who: Volunteer) => void }) {
       if (who) onIn(who);
     } catch (problem) {
       setError(
-        problem instanceof VolunteerError
+        problem instanceof ApiError
           ? problem.message
           : "Δεν έγινε η σύνδεση. Δοκίμασε ξανά.",
       );

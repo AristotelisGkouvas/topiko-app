@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup, Tag
 
 from app.models.enums import MatchStatus
+from app.scraper.labels import LeagueLabel, describe_league
 from app.scraper.types import (
     ScrapedAnnouncement,
     ScrapedField,
@@ -116,6 +117,11 @@ def _year(value: str) -> int | None:
 
 class EpsipSource:
     key = "epsip"
+
+    def describe_league(self, name: str) -> LeagueLabel:
+        """The generic reader was written against this site's 237 titles, so
+        it is this adapter's reader as it stands."""
+        return describe_league(name)
 
     # --- discovery ------------------------------------------------------
 
