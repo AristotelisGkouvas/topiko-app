@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import UTC, datetime
 
-from app.models import Match, Team
+from app.models import League, Match, Team
 from app.models.enums import MatchStatus
 
 #: RFC 5545 §3.1: content lines end CRLF, not LF. Some clients tolerate LF;
@@ -64,7 +64,7 @@ def _stamp(moment: datetime) -> str:
 
 
 def build_calendar(
-    team: Team,
+    team: Team | League,
     matches: Iterable[Match],
     *,
     association_slug: str,

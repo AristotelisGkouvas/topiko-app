@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Boolean, Date, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Date, ForeignKey, Index, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -73,6 +73,14 @@ class Season(Base, TimestampMixin):
     __table_args__ = (
         UniqueConstraint("association_id", "slug", name="uq_seasons_association_slug"),
         Index("ix_seasons_association_current", "association_id", "is_current"),
+        # One current season per association. Everything that says "this
+        # season" resolves through it, and two would make that a coin toss.
+        Index(
+            "uq_seasons_one_current",
+            "association_id",
+            unique=True,
+            postgresql_where=text("is_current"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

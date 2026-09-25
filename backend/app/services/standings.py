@@ -12,15 +12,31 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import League, LeagueTeam, Match, Standing
 from app.models.enums import MatchStatus, StandingZone
+from app.services.live import effective
 
 # Results that count towards the table. A postponed or cancelled match
 # contributes nothing until it is actually played (or awarded).
 COUNTED_STATUSES = (MatchStatus.FINISHED, MatchStatus.AWARDED)
+
+#: Stored statuses that are a claim about now rather than an outcome.
+_RUNNING = (MatchStatus.LIVE, MatchStatus.HALFTIME)
+
+
+def _effective_status(match: Match) -> MatchStatus:
+    """The status a reader is shown for this match right now."""
+    status, _ = effective(
+        status=match.status,
+        is_live=match.is_live,
+        kickoff_at=match.kickoff_at,
+        home_score=match.home_score,
+        away_score=match.away_score,
+    )
+    return status
 
 # Result letters as shown on the form pills: Νίκη / Ισοπαλία / Ήττα.
 WIN, DRAW, LOSS = "Ν", "Ι", "Η"
@@ -114,7 +130,7 @@ async def _ordered_rows(
                 select(Match)
                 .where(
                     Match.league_id == league.id,
-                    Match.status.in_(statuses),
+                    Match.status.in_(set(statuses) | set(_RUNNING)),
                     Match.home_score.is_not(None),
                     Match.away_score.is_not(None),
                 )
@@ -122,6 +138,12 @@ async def _ordered_rows(
             )
         ).scalars()
     )
+    # Judged by the status the reader is shown, not the stored one. A match
+    # left LIVE by a source that never sent the final whistle is displayed as
+    # FINISHED once its window is over (services/live.py); counting it by the
+    # stored flag instead kept a result the page called "ΤΕΛΙΚΟ" out of the
+    # table the same page printed beside it.
+    matches = [m for m in matches if _effective_status(m) in statuses]
 
     # Head-to-head points, used only to break ties (ΕΠΟ rule: teams level on
     # points are separated by their results against each other first, not by
@@ -150,6 +172,8 @@ async def _ordered_rows(
         away.goals_for += m.away_score
         away.goals_against += m.home_score
 
+        winner: _Row | None
+        loser: _Row | None
         if m.home_score > m.away_score:
             winner, loser = home, away
         elif m.away_score > m.home_score:
@@ -157,7 +181,7 @@ async def _ordered_rows(
         else:
             winner = loser = None
 
-        if winner is None:
+        if winner is None or loser is None:
             home.drawn += 1
             away.drawn += 1
             home.points += league.points_per_draw
@@ -191,9 +215,14 @@ async def _ordered_rows(
             j += 1
         block = ordered[i : j + 1]
         if len(block) > 1:
+            # A copy, not `block` itself: list.sort empties the list it is
+            # sorting until it finishes, so a key that reads it sees nobody —
+            # every head-to-head total came out 0 and goal difference quietly
+            # decided every tie the page says head-to-head decides.
+            tied = list(block)
             block.sort(
                 key=lambda r: (
-                    -_mini_league_points(r, block),
+                    -_mini_league_points(r, tied),
                     -r.goal_difference,
                     -r.goals_for,
                 )
@@ -206,6 +235,10 @@ async def _ordered_rows(
 
 async def recompute_standings(db: AsyncSession, league: League) -> list[Standing]:
     """Rebuild every Standing row for `league` and return them, ordered."""
+    # Flushed first. The sessions here do not autoflush, and the fixtures are
+    # read back by a query that filters on status in SQL: a result typed a
+    # moment ago, still only in memory, would be left out of its own table.
+    await db.flush()
     resolved, rows = await _ordered_rows(db, league, COUNTED_STATUSES)
 
     existing = {
@@ -277,17 +310,18 @@ async def project_live_standings(
         ).scalars()
     }
 
-    live_count = (
+    # Counted through the clock like everything else live: a match whose
+    # window has closed is not "in progress", whatever the row still says.
+    running = (
         await db.execute(
-            select(func.count())
-            .select_from(Match)
-            .where(
+            select(Match).where(
                 Match.league_id == league.id,
-                Match.status.in_((MatchStatus.LIVE, MatchStatus.HALFTIME)),
+                Match.status.in_(_RUNNING),
                 Match.home_score.is_not(None),
             )
         )
-    ).scalar_one()
+    ).scalars()
+    live_count = sum(1 for m in running if _effective_status(m) in _RUNNING)
 
     out: list[LiveRow] = []
     for position, row in enumerate(resolved, start=1):

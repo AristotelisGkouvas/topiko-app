@@ -125,3 +125,20 @@ class AuditLog(Base):
 
     def __repr__(self) -> str:
         return f"<AuditLog {self.action} {self.entity_type}#{self.entity_id}>"
+
+
+class RevokedToken(Base):
+    """A session token that was logged out before it expired.
+
+    A signed token is valid until its `exp` whatever the server thinks; logging
+    out only deleted the cookie, so a copy taken before that kept working for
+    up to twelve hours. Listing the token's `jti` here is what ends it. Rows
+    are useless once the token would have expired anyway, and are swept then.
+    """
+
+    __tablename__ = "revoked_tokens"
+
+    jti: Mapped[str] = mapped_column(String(64), primary_key=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )

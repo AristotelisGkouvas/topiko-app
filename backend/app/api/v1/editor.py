@@ -17,18 +17,20 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
-from pydantic import BaseModel, Field as PydanticField
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy import exists, or_, select
+from sqlalchemy.orm import aliased, selectinload
 
 from app.api.auth_deps import CurrentUser, EditableAssociation, may_edit_live
 from app.api.deps import CurrentSeason, DbSession
+from app.api.lookups import MATCH_LOADS, match_in
 from app.models import (
+    ScrapeRun,
     AuditLog,
     ClubAccessCode,
     Field,
     League,
     Match,
+    MatchEvent,
     MvpCandidate,
     MvpPoll,
     Player,
@@ -36,65 +38,23 @@ from app.models import (
 )
 from app.models.enums import DataSource, FieldSurface, MatchStatus
 from app.schemas import FieldOut, MatchOut
+from app.services import search as search_service
 from app.services import volunteer as volunteer_service
 from app.services.audit import changed_fields, record
+from app.services.live import LIVE_LEAD, LIVE_WINDOW, live_window
 from app.services.standings import recompute_standings
+from app.schemas.polls import MvpPollCreatedOut, MvpPollIn
+from app.schemas.editor import (
+    AuditEntryOut,
+    ClubCodeOut,
+    FieldEdit,
+    IssueCodeIn,
+    IssuedCodeOut,
+    MatchEdit,
+    ScrapeRunOut,
+)
 
 router = APIRouter(prefix="/api/v1", tags=["editor"])
-
-#: How close to kickoff an edit counts as "live". Wider than the match itself,
-#: because the minutes before kickoff are when a postponement gets typed in.
-LIVE_WINDOW_BEFORE = timedelta(minutes=30)
-LIVE_WINDOW_AFTER = timedelta(hours=3)
-
-
-class MatchEdit(BaseModel):
-    """What an editor may change on a match.
-
-    Every field is optional and `None` is a real value — clearing a score is
-    how a result entered by mistake is taken back — so the difference between
-    "leave alone" and "set to nothing" is whether the key was sent at all.
-    """
-
-    home_score: int | None = PydanticField(default=None, ge=0, le=99)
-    away_score: int | None = PydanticField(default=None, ge=0, le=99)
-    home_score_ht: int | None = PydanticField(default=None, ge=0, le=99)
-    away_score_ht: int | None = PydanticField(default=None, ge=0, le=99)
-    status: MatchStatus | None = None
-    minute: int | None = PydanticField(default=None, ge=0, le=130)
-    referee: str | None = PydanticField(default=None, max_length=120)
-    note: str | None = None
-    #: True while the match is being played. Drives the LIVE badge.
-    is_live: bool | None = None
-    #: Marks the score as checked against the official sheet, which ends the
-    #: scraper's 48-hour deference early.
-    confirmed: bool | None = None
-
-
-class FieldEdit(BaseModel):
-    """Venue details. The federation publishes almost none of this, and
-    coordinates not at all — a ground gets a map only if somebody types one."""
-
-    address: str | None = PydanticField(default=None, max_length=255)
-    city: str | None = PydanticField(default=None, max_length=120)
-    postal_code: str | None = PydanticField(default=None, max_length=16)
-    latitude: float | None = PydanticField(default=None, ge=-90, le=90)
-    longitude: float | None = PydanticField(default=None, ge=-180, le=180)
-    surface: FieldSurface | None = None
-    capacity: int | None = PydanticField(default=None, ge=0, le=200_000)
-    has_floodlights: bool | None = None
-    notes: str | None = None
-
-
-class AuditEntryOut(BaseModel):
-    id: int
-    user_email: str | None
-    action: str
-    entity_type: str
-    entity_id: int | None
-    old_value: dict[str, Any] | None
-    new_value: dict[str, Any] | None
-    created_at: datetime
 
 
 def _is_live_window(match: Match, now: datetime) -> bool:
@@ -103,10 +63,31 @@ def _is_live_window(match: Match, now: datetime) -> bool:
     if match.kickoff_at is None:
         return False
     return (
-        match.kickoff_at - LIVE_WINDOW_BEFORE
+        match.kickoff_at - LIVE_LEAD
         <= now
-        <= match.kickoff_at + LIVE_WINDOW_AFTER
+        <= match.kickoff_at + LIVE_WINDOW
     )
+
+
+#: Fields whose change can move a team's points, and so the table.
+_TABLE_FIELDS = ("home_score", "away_score", "status")
+
+_SCORE_FIELDS = ("home_score", "away_score", "home_score_ht", "away_score_ht")
+
+
+def _implied_status(match: Match, changes: dict[str, Any], now: datetime) -> MatchStatus | None:
+    """The status a typed score implies, when the editor did not send one.
+
+    A full-time score on a fixture still marked SCHEDULED would never count:
+    the table only reads finished matches, and nothing else would move it. So a
+    score for both sides on a scheduled match is a result — FINISHED once the
+    clock says it is over, LIVE while it could still be running.
+    """
+    if "status" in changes or match.status is not MatchStatus.SCHEDULED:
+        return None
+    if match.home_score is None or match.away_score is None:
+        return None
+    return MatchStatus.LIVE if live_window(match.kickoff_at, now) else MatchStatus.FINISHED
 
 
 def _snapshot(match: Match) -> dict[str, Any]:
@@ -121,6 +102,8 @@ def _snapshot(match: Match) -> dict[str, Any]:
         "note": match.note,
         "is_live": match.is_live,
         "data_source": match.data_source.value,
+        "kickoff_at": match.kickoff_at.isoformat() if match.kickoff_at else None,
+        "field_id": match.field_id,
     }
 
 
@@ -131,19 +114,21 @@ async def list_editable_matches(
     association: EditableAssociation,
     db: DbSession,
     days: Annotated[int, Query(ge=1, le=30)] = 3,
-    limit: Annotated[int, Query(ge=1, le=200)] = 60,
+    q: Annotated[str | None, Query(max_length=80)] = None,
+    league: Annotated[str | None, Query(max_length=120)] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 500,
 ) -> list[Match]:
     """The matches worth looking at right now: the last few days and the next
     few. An editor opens this to type in a weekend, not to browse the archive.
+
+    `q` narrows to a club (accent-blind), `league` to one division. The cap is
+    generous on purpose: fifteen divisions put ~90 matches in one weekend, and
+    a cap of 60 used to drop the last of them without a word.
     """
     now = datetime.now(UTC)
-    result = await db.execute(
+    stmt = (
         select(Match)
-        .options(
-            selectinload(Match.home_team),
-            selectinload(Match.away_team),
-            selectinload(Match.field),
-        )
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
@@ -151,9 +136,24 @@ async def list_editable_matches(
             Match.kickoff_at >= now - timedelta(days=days),
             Match.kickoff_at <= now + timedelta(days=days),
         )
-        .order_by(Match.kickoff_at, Match.id)
-        .limit(limit)
     )
+    if league:
+        stmt = stmt.where(League.slug == league)
+    needle = search_service.fold(q.strip()) if q else ""
+    if needle:
+        home = aliased(Team)
+        away = aliased(Team)
+        stmt = (
+            stmt.join(home, Match.home_team_id == home.id)
+            .join(away, Match.away_team_id == away.id)
+            .where(
+                or_(
+                    search_service.folded(home.name).contains(needle),
+                    search_service.folded(away.name).contains(needle),
+                )
+            )
+        )
+    result = await db.execute(stmt.order_by(Match.kickoff_at, Match.id).limit(limit))
     return list(result.scalars())
 
 
@@ -168,24 +168,7 @@ async def edit_match(
     request: Request,
     db: DbSession,
 ) -> Match:
-    match = (
-        await db.execute(
-            select(Match)
-            .options(
-                selectinload(Match.home_team),
-                selectinload(Match.away_team),
-                selectinload(Match.field),
-            )
-            .join(League, Match.league_id == League.id)
-            .where(Match.id == match_id, League.association_id == association.id)
-        )
-    ).scalar_one_or_none()
-
-    if match is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Δεν βρέθηκε αγώνας με id {match_id}.",
-        )
+    match = await match_in(db, association.id, match_id, *MATCH_LOADS)
 
     now = datetime.now(UTC)
     if _is_live_window(match, now) and not may_edit_live(user, association):
@@ -204,25 +187,69 @@ async def edit_match(
     changes = payload.model_dump(exclude_unset=True)
     confirmed = changes.pop("confirmed", None)
 
-    scores_touched = any(
-        key in changes
-        for key in ("home_score", "away_score", "home_score_ht", "away_score_ht")
-    )
+    scores_touched = any(key in changes for key in _SCORE_FIELDS)
+
+    if scores_touched:
+        # Once somebody has logged the match, the log is the score: the next
+        # event recomputes it and would silently wipe a typed one. So the two
+        # are not allowed to disagree — the correction goes through the sheet.
+        has_events = (
+            await db.execute(select(exists().where(MatchEvent.match_id == match.id)))
+        ).scalar_one()
+        if has_events:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "Ο αγώνας έχει καταγεγραμμένα γεγονότα και το σκορ βγαίνει "
+                    "από αυτά. Διόρθωσέ το από το φύλλο αγώνα (αναίρεση ή "
+                    "προσθήκη γκολ)."
+                ),
+            )
+
+        typed_a_score = any(changes.get(key) is not None for key in _SCORE_FIELDS)
+        if typed_a_score and match.kickoff_at is not None and match.kickoff_at > now:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ο αγώνας δεν έχει ξεκινήσει ακόμη· δεν μπορεί να έχει σκορ.",
+            )
+
+    rescheduled = "kickoff_at" in changes or "field_id" in changes
+    if changes.get("field_id") is not None:
+        venue = await db.get(Field, changes["field_id"])
+        if venue is None or venue.association_id != association.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Δεν βρέθηκε το γήπεδο.",
+            )
+        # The object as well as the id, so the response shows the new ground.
+        match.field = venue
+    if changes.get("kickoff_at") is not None and changes["kickoff_at"].tzinfo is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Η ώρα έναρξης χρειάζεται ζώνη ώρας.",
+        )
 
     for key, value in changes.items():
         setattr(match, key, value)
 
+    implied = _implied_status(match, changes, now)
+    if implied is not None:
+        match.status = implied
+        match.is_live = implied is MatchStatus.LIVE
+
+    if rescheduled:
+        # Holds the new date against the scraper; see RESCHEDULE in decisions.
+        match.rescheduled_at = now
+
     if scores_touched or confirmed is not None:
         match.last_manual_edit_at = now
-        # A live edit is a claim in progress; a confirmed one has been checked
-        # against the sheet. The scraper defers to both, but only until the
+        # Confirmed means somebody checked it against the sheet and pressed ✓
+        # to say so — nothing else. A plain entry used to become "confirmed"
+        # just because the match was over, and then the public page claimed a
+        # check nobody had made. The scraper defers to both, but only until the
         # window in Match.scraper_may_overwrite runs out.
         match.data_source = (
-            DataSource.MANUAL_CONFIRMED
-            if confirmed
-            else DataSource.MANUAL_LIVE
-            if _is_live_window(match, now)
-            else DataSource.MANUAL_CONFIRMED
+            DataSource.MANUAL_CONFIRMED if confirmed else DataSource.MANUAL_LIVE
         )
 
     old, new = changed_fields(before, _snapshot(match))
@@ -242,8 +269,10 @@ async def edit_match(
     )
 
     # The table is derived, never typed, so it is rebuilt from the fixtures
-    # rather than adjusted by hand.
-    if scores_touched:
+    # rather than adjusted by hand. A status change alone counts too: a result
+    # that becomes AWARDED, or a scored match that turns out POSTPONED, moves
+    # points without any score being touched.
+    if any(key in new for key in _TABLE_FIELDS):
         league = await db.get(League, match.league_id)
         if league is not None:
             await recompute_standings(db, league)
@@ -295,6 +324,8 @@ async def edit_field(
         "capacity",
         "has_floodlights",
         "notes",
+        "name",
+        "short_name",
     )
     snapshot = lambda: {  # noqa: E731
         key: (
@@ -351,31 +382,23 @@ async def list_audit(
     return list(result.scalars())
 
 
-class ClubCodeOut(BaseModel):
-    """A code as the dashboard lists it. Never the code itself."""
-
-    id: int
-    team_slug: str
-    team_name: str
-    prefix: str
-    label: str | None = None
-    is_active: bool
-    last_used_at: datetime | None = None
-    created_at: datetime
-
-
-class IssuedCodeOut(ClubCodeOut):
-    #: The plaintext, returned exactly once — at the moment it is created and
-    #: never again. It is stored hashed, so there is nowhere to read it back
-    #: from. Write it on the card before closing the dialog.
-    code: str
-
-
-class IssueCodeIn(BaseModel):
-    team_slug: str = PydanticField(min_length=1, max_length=120)
-    #: Who is getting the paper. Worth more in six months than a row that only
-    #: says a code exists.
-    label: str | None = PydanticField(default=None, max_length=120)
+@router.get(
+    "/{association_slug}/editor/scrape-runs", response_model=list[ScrapeRunOut]
+)
+async def list_scrape_runs(
+    association: EditableAssociation,
+    db: DbSession,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[ScrapeRun]:
+    """The scraper's recent runs, newest first — the answer to "why is the
+    site showing Saturday's scores?" without a shell on the server."""
+    result = await db.execute(
+        select(ScrapeRun)
+        .where(ScrapeRun.association_id == association.id)
+        .order_by(ScrapeRun.started_at.desc(), ScrapeRun.id.desc())
+        .limit(limit)
+    )
+    return list(result.scalars())
 
 
 @router.get("/{association_slug}/editor/club-codes", response_model=list[ClubCodeOut])
@@ -510,31 +533,9 @@ async def revoke_club_code(
     await db.commit()
 
 
-class MvpCandidateIn(BaseModel):
-    player_slug: str = PydanticField(min_length=1, max_length=140)
-    team_slug: str | None = PydanticField(default=None, max_length=120)
-    #: Why they are on the list — "3 γκολ", "κράτησε το μηδέν".
-    reason: str | None = PydanticField(default=None, max_length=120)
-
-
-class MvpPollIn(BaseModel):
-    league_slug: str = PydanticField(min_length=1, max_length=120)
-    matchday: int = PydanticField(ge=1, le=60)
-    closes_at: datetime | None = None
-    candidates: list[MvpCandidateIn] = PydanticField(min_length=2, max_length=12)
-
-
-class MvpPollOut(BaseModel):
-    id: int
-    league_slug: str
-    matchday: int
-    closes_at: datetime | None = None
-    candidates: int
-
-
 @router.post(
     "/{association_slug}/editor/mvp",
-    response_model=MvpPollOut,
+    response_model=MvpPollCreatedOut,
     status_code=status.HTTP_201_CREATED,
 )
 async def open_mvp_poll(
@@ -544,7 +545,7 @@ async def open_mvp_poll(
     season: CurrentSeason,
     request: Request,
     db: DbSession,
-) -> MvpPollOut:
+) -> MvpPollCreatedOut:
     """Open — or replace — the vote for one round of one division.
 
     Replacing rather than erroring on a second call: a federation that adds a
@@ -649,7 +650,7 @@ async def open_mvp_poll(
     )
     await db.commit()
 
-    return MvpPollOut(
+    return MvpPollCreatedOut(
         id=poll.id,
         league_slug=league.slug,
         matchday=poll.matchday,

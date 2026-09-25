@@ -16,6 +16,7 @@ from app.schemas.match import (
     MatchDetailOut,
     MatchOut,
     StandingOut,
+    TeamStandingOut,
 )
 from app.schemas.player import (
     PlayerDetailOut,
@@ -23,6 +24,8 @@ from app.schemas.player import (
     PlayerSearchOut,
     PlayerSeasonOut,
     ScorerOut,
+    LiveScorerOut,
+    RosterRowOut,
     SuspensionOut,
 )
 from app.schemas.search import SearchHitOut, SearchOut
@@ -63,10 +66,13 @@ __all__ = [
     "ORMModel",
     "PlayerRef",
     "ScorerOut",
+    "LiveScorerOut",
+    "RosterRowOut",
     "SearchHitOut",
     "SearchOut",
     "SeasonOut",
     "StandingOut",
+    "TeamStandingOut",
     "TeamDetailOut",
     "TeamOut",
     "TeamRef",

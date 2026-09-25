@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, model_validator
+from pydantic import model_validator
 
 from app.models.enums import DataSource, MatchStatus, StandingZone
 from app.services.live import effective
@@ -70,6 +70,13 @@ class StandingOut(ORMModel):
     points: int
     form: str | None = None
     zone: StandingZone | None = None
+
+
+class TeamStandingOut(ORMModel):
+    """Where one club stands, and in which division."""
+
+    league: LeagueOut
+    standing: StandingOut
 
 
 class MatchDetailOut(ORMModel):

@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.club import Team
+    from app.models.league import League
+    from app.models.match import Match
 
 
 class Player(Base, TimestampMixin):
@@ -69,7 +75,8 @@ class PlayerStat(Base, TimestampMixin):
     )
     #: The club the player is listed under in this competition.
     team_id: Mapped[int | None] = mapped_column(
-        ForeignKey("teams.id", ondelete="SET NULL")
+        # Indexed: a club's squad is read by team, not by league.
+        ForeignKey("teams.id", ondelete="SET NULL"), index=True
     )
 
     goals: Mapped[int | None] = mapped_column(Integer)

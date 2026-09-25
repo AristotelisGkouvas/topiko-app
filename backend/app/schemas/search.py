@@ -11,7 +11,7 @@ class SearchHitOut(BaseModel):
     which of three objects it received is a row that renders three ways.
     """
 
-    kind: Literal["team", "player", "field"]
+    kind: Literal["team", "player", "field", "match"]
     slug: str
     name: str
     #: The line under the name — city for a club or ground, last club for a
@@ -27,3 +27,6 @@ class SearchOut(BaseModel):
     teams: list[SearchHitOut] = []
     players: list[SearchHitOut] = []
     fields: list[SearchHitOut] = []
+    #: Matches whose referee matches the query. Referees have no page of
+    #: their own; what a reporter wants is which games they took.
+    matches: list[SearchHitOut] = []

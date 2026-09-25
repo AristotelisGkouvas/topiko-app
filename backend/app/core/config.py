@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     # How often to look when none is. Late results, corrections and next week's
     # programme still arrive, just not by the minute.
     scraper_idle_interval_seconds: int = 21600
+    # The two below mirror LIVE_WINDOW and LIVE_LEAD in app/services/live.py,
+    # which lists every kickoff window side by side. Tunable here because the
+    # scraper's are about load on the federation's site, not about the rules.
     # How long after kickoff a fixture still counts as possibly in play. Ninety
     # minutes plus halftime, stoppages and a referee writing the sheet up.
     scraper_match_window_hours: float = 3.0
@@ -105,7 +108,23 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:3000"]
     )
 
-    @field_validator("cors_origins", mode="before")
+    # Host headers the API answers to. "*" by default because the compose
+    # healthcheck (127.0.0.1) and the web container (api) reach it under names
+    # a production domain list would not include; set it to those plus the
+    # public host to have anything else refused.
+    allowed_hosts: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["*"])
+
+    #: Swagger UI at /docs. Off in production unless asked for: it is a map of
+    #: every write endpoint, handed to whoever looks.
+    expose_docs: bool | None = None
+
+    @property
+    def docs_enabled(self) -> bool:
+        if self.expose_docs is not None:
+            return self.expose_docs
+        return self.environment != "production"
+
+    @field_validator("cors_origins", "allowed_hosts", mode="before")
     @classmethod
     def _split_origins(cls, v: object) -> object:
         if isinstance(v, str):

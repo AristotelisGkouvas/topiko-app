@@ -14,7 +14,7 @@ from datetime import datetime, time, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
@@ -45,7 +45,7 @@ from app.scraper import naming
 from app.scraper.decisions import Action, plan_match
 from app.scraper.http import Fetcher
 from app.scraper.labels import LeagueLabel, describe_league, unique_label
-from app.scraper.sources.base import CatalogSource, PeopleSource, Source
+from app.scraper.sources.base import CatalogSource, PeopleSource, Source, TitleReader
 from app.scraper.types import ScrapedField, ScrapedMatch
 from app.services.home_fields import infer_home_fields
 from app.services.standings import recompute_standings
@@ -396,6 +396,8 @@ class Syncer:
         self.resolver = Resolver(db, association, self.stats)
         #: external player id -> row, filled by _load_players.
         self._players: dict[str, Player] = {}
+        #: Set by sync(). A dry run never commits, so nothing it wrote survives.
+        self._dry_run = False
 
     async def sync(
         self,
@@ -412,6 +414,7 @@ class Syncer:
         thing you do once.
         """
         config = self.association.scraper_config or {}
+        self._dry_run = dry_run
         run = ScrapeRun(
             association_id=self.association.id,
             source_key=getattr(self.source, "key", "unknown"),
@@ -467,12 +470,8 @@ class Syncer:
                     # narrowing does not apply.
                     use_league_filter=not (all_seasons or bool(seasons)),
                 )
-                if not dry_run and len(targets) > 1:
-                    # A backfill is half an hour of requests. Committing each
-                    # season as it lands means an interruption costs the season
-                    # in progress rather than all twelve. A single-season run
-                    # keeps its one commit at the end, where the whole update
-                    # is atomic.
+                if not dry_run:
+                    # The season row and anything written outside a league.
                     await self.db.commit()
 
             # Derived from the fixtures that were just written, so it stays
@@ -615,6 +614,21 @@ class Syncer:
         ]
 
     async def _ensure_season(self, slug: str, is_current: bool) -> Season:
+        if is_current:
+            # Handed over before it is taken. A routine run only visits the
+            # newest period, so the season it replaces is never revisited to
+            # be marked old — and the partial unique index allows one current
+            # season per association, which would fail the rollover run.
+            await self.db.execute(
+                update(Season)
+                .where(
+                    Season.association_id == self.association.id,
+                    Season.slug != slug,
+                    Season.is_current.is_(True),
+                )
+                .values(is_current=False)
+            )
+
         season = (
             await self.db.execute(
                 select(Season).where(
@@ -684,6 +698,14 @@ class Syncer:
             if league_slugs and league.slug not in league_slugs:
                 continue
             await self._sync_league(league, scraped_league.external_id)
+            if not self._dry_run:
+                # One league at a time. A run is sixty requests with polite
+                # delays between them; held open for all of it, the
+                # transaction kept a lock on every match it had touched, and an
+                # editor saving one of those waited minutes on a spinner. Each
+                # league — fixtures and table together — is consistent on its
+                # own, so an interruption costs the league in progress.
+                await self.db.commit()
 
     async def _load_catalog(self) -> None:
         if not isinstance(self.source, CatalogSource):
@@ -829,7 +851,12 @@ class Syncer:
             (l for l in siblings if l.external_id == scraped.external_id), None
         )
 
-        described = describe_league(scraped.name)
+        reader = (
+            self.source.describe_league
+            if isinstance(self.source, TitleReader)
+            else describe_league
+        )
+        described = reader(scraped.name)
         category = naming.strip_accents(scraped.category or "").upper()
         kind = (
             LeagueKind.CUP if "ΚΥΠΕΛΛΟ" in category else described.kind
@@ -981,26 +1008,26 @@ class Syncer:
             ).scalars()
         }
 
-        for item in scraped_bans:
-            player = self._players.get(item.player_external_id)
+        for ban_row in scraped_bans:
+            player = self._players.get(ban_row.player_external_id)
             if player is None:
                 continue
-            key = (player.id, item.matchday, item.decided_on)
+            key = (player.id, ban_row.matchday, ban_row.decided_on)
             ban = existing_bans.get(key)
             if ban is None:
                 ban = PlayerSuspension(
                     league_id=league.id,
                     player_id=player.id,
-                    matchday=item.matchday,
-                    decided_on=item.decided_on,
-                    matches=item.matches,
+                    matchday=ban_row.matchday,
+                    decided_on=ban_row.decided_on,
+                    matches=ban_row.matches,
                 )
                 self.db.add(ban)
                 existing_bans[key] = ban
                 self.stats.suspensions += 1
-            ban.matches = item.matches
-            ban.fixture = item.fixture
-            ban.match_id = by_game.get(item.match_external_id or "")
+            ban.matches = ban_row.matches
+            ban.fixture = ban_row.fixture
+            ban.match_id = by_game.get(ban_row.match_external_id or "")
 
         await self.db.flush()
 

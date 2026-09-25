@@ -35,7 +35,7 @@ from app.models.mvp import MvpCandidate, MvpPoll, MvpVote
 from app.models.push import PushSubscription
 from app.models.volunteer import ClubAccessCode
 from app.models.scraping import ScrapeRun, TeamAlias
-from app.models.user import AuditLog, User, UserAssociation
+from app.models.user import AuditLog, RevokedToken, User, UserAssociation
 
 __all__ = [
     "Announcement",
@@ -64,6 +64,7 @@ __all__ = [
     "MvpPoll",
     "MvpVote",
     "PushSubscription",
+    "RevokedToken",
     "ClubAccessCode",
     "ScrapeRun",
     "ScrapeRunStatus",

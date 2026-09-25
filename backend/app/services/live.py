@@ -21,11 +21,37 @@ from datetime import UTC, datetime, timedelta
 
 from app.models.enums import MatchStatus
 
+# --- Windows around kickoff -------------------------------------------------
+#
+# Every "is this match happening around now?" rule in the app, in one place so
+# they can be read side by side. They differ on purpose — each answers a
+# different question — but they should differ because somebody decided to,
+# not because two files drifted.
+#
+#   reader sees LIVE         kickoff .............. +LIVE_WINDOW
+#   editor needs can_edit    kickoff -LIVE_LEAD ... +LIVE_WINDOW
+#   club code may report     kickoff -REPORT_FROM . +REPORT_UNTIL
+#   scraper polls fast       settings.scraper_lead_minutes /
+#                            settings.scraper_match_window_hours (env-tunable,
+#                            defaults equal to LIVE_LEAD / LIVE_WINDOW)
+
 #: How long after kickoff a live claim is still believable. Ninety minutes plus
 #: half time plus stoppages plus the delay before somebody records the final
 #: whistle. Generous on purpose: cutting a genuine live match off at 105
 #: minutes would be a worse failure than carrying a stale one for an extra hour.
 LIVE_WINDOW = timedelta(hours=3)
+
+#: How far before kickoff an edit already counts as live. The minutes before
+#: kickoff are when a postponement gets typed in.
+LIVE_LEAD = timedelta(minutes=30)
+
+#: How long before kickoff a club representative may start reporting, and how
+#: long after it they may still be doing so. Wider than LIVE_WINDOW because a
+#: late kickoff and a sheet finished in the car park are both ordinary. Outside
+#: it they are looking at history, and a live log written over a finished match
+#: replaces the official score with whatever the log happens to contain.
+REPORT_FROM = timedelta(hours=3)
+REPORT_UNTIL = timedelta(hours=6)
 
 #: Statuses that are a live claim rather than an outcome.
 LIVE_STATUSES = (MatchStatus.LIVE, MatchStatus.HALFTIME)

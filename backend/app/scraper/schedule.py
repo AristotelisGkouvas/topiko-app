@@ -21,7 +21,7 @@ import logging
 import signal
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 
 from app.core.config import settings
 from app.core.console import use_utf8_stdout

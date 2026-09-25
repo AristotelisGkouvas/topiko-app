@@ -13,7 +13,7 @@ dashboard.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -23,18 +23,16 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, CurrentSeason, DbSession
 from app.core.config import settings
+from app.core.ratelimit import code_login_limit
 from app.core.security import create_access_token, decode_access_token
 from app.models import ClubAccessCode, League, Match, Player, PlayerStat
-from app.api.v1.events import (
-    EventIn,
-    MatchFeedOut,
-    _feed,
-    _load,
-    record_event,
-    remove_event,
-)
+from app.schemas.events import EventIn, MatchFeedOut
+from app.services.events import feed_of, load_match, record_event, remove_event
+from app.api.lookups import MATCH_LOADS
 from app.schemas import MatchOut
 from app.services import volunteer as service
+from app.services.live import REPORT_FROM, REPORT_UNTIL
+from app.services.sessions import is_revoked, revoke
 
 router = APIRouter(prefix="/api/v1", tags=["volunteer"])
 
@@ -45,13 +43,6 @@ COOKIE = f"{settings.session_cookie}_ethelontis"
 #: side can never be mistaken for the other even if the cookies were swapped.
 SCOPE = "club"
 
-#: How long before kickoff a representative may start reporting, and how long
-#: after it they may still be doing so. Outside this they are looking at
-#: history, and a live log written over a finished match replaces the official
-#: score with whatever the log happens to contain — which for an empty log is
-#: no score at all.
-REPORT_FROM = timedelta(hours=3)
-REPORT_UNTIL = timedelta(hours=6)
 
 _UNAUTHENTICATED = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,7 +60,11 @@ class VolunteerOut(BaseModel):
     label: str | None = None
 
 
-@router.post("/{association_slug}/ethelontis/login", response_model=VolunteerOut)
+@router.post(
+    "/{association_slug}/ethelontis/login",
+    response_model=VolunteerOut,
+    dependencies=[Depends(code_login_limit)],
+)
 async def login(
     association: CurrentAssociation,
     payload: CodeIn,
@@ -123,7 +118,12 @@ async def login(
     status_code=status.HTTP_204_NO_CONTENT,
     response_model=None,
 )
-async def logout(response: Response) -> None:
+async def logout(request: Request, response: Response, db: DbSession) -> None:
+    # Revoked as well as deleted: a copy of the cookie taken on a shared phone
+    # must stop working now, not when it expires.
+    token = request.cookies.get(COOKIE)
+    await revoke(db, decode_access_token(token) if token else None)
+    await db.commit()
     response.delete_cookie(
         key=COOKIE,
         path="/",
@@ -144,7 +144,7 @@ async def get_current_code(
     claims = decode_access_token(token)
     # The role claim is checked, not assumed: a token minted for an account
     # must not open this door even if it arrives in this cookie.
-    if claims is None or claims.get("role") != SCOPE:
+    if claims is None or claims.get("role") != SCOPE or await is_revoked(db, claims):
         raise _UNAUTHENTICATED
 
     try:
@@ -173,8 +173,20 @@ async def get_current_code(
 CurrentCode = Annotated[ClubAccessCode, Depends(get_current_code)]
 
 
-@router.get("/{association_slug}/ethelontis/me", response_model=VolunteerOut)
-async def me(code: CurrentCode) -> VolunteerOut:
+@router.get("/{association_slug}/ethelontis/me", response_model=VolunteerOut | None)
+async def me(
+    request: Request, association: CurrentAssociation, db: DbSession
+) -> VolunteerOut | None:
+    """Who this browser is acting as — or null if it has never signed in.
+
+    No cookie at all is an ordinary first visit, not an error: answering 401
+    put a red line in the console of every volunteer who opened the page. A
+    cookie that is there but no longer good (revoked, withdrawn, forged) is
+    still a 401.
+    """
+    if not request.cookies.get(COOKIE):
+        return None
+    code = await get_current_code(request, association, db)
     return VolunteerOut(
         team_slug=code.team.slug, team_name=code.team.name, label=code.label
     )
@@ -196,11 +208,7 @@ async def my_matches(
     """
     result = await db.execute(
         select(Match)
-        .options(
-            selectinload(Match.home_team),
-            selectinload(Match.away_team),
-            selectinload(Match.field),
-        )
+        .options(*MATCH_LOADS)
         .join(League, Match.league_id == League.id)
         .where(
             League.association_id == association.id,
@@ -224,7 +232,7 @@ async def _own_match(
     code holder that some other match id is real, just not theirs, hands them a
     way to enumerate the federation's fixtures from a club code.
     """
-    match = await _load(association_id, match_id, db)
+    match = await load_match(association_id, match_id, db)
     if code.team_id not in (match.home_team_id, match.away_team_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -272,7 +280,7 @@ async def my_feed(
     match_id: int,
     db: DbSession,
 ) -> MatchFeedOut:
-    return _feed(await _own_match(association.id, code, match_id, db))
+    return feed_of(await _own_match(association.id, code, match_id, db))
 
 
 @router.post(

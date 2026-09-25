@@ -19,3 +19,8 @@ class Meta(BaseModel):
     source_url: str | None = None
     last_scraped_at: datetime | None = None
     live_matches: int = 0
+    #: How the most recent finished scraper run ended — "success", "partial"
+    #: or "failed". `last_scraped_at` alone cannot tell a quiet federation
+    #: from a scraper that has been failing since Tuesday.
+    last_run_status: str | None = None
+    last_run_at: datetime | None = None

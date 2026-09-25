@@ -33,6 +33,10 @@ assert len(ACCENTED) == len(PLAIN), "ο πίνακας πτυχώσεως ξέφ
 
 _FOLD = str.maketrans(ACCENTED, PLAIN)
 
+#: Python's str.upper() keeps the tonos ("κόν".upper() == "ΚΌΝ"), which Greek
+#: capitals never carry and no phone keyboard offers without a long press.
+_UPPER_BARE = str.maketrans("ΆΈΉΊΌΎΏΪΫ", "ΑΕΗΙΟΥΩΙΥ")
+
 #: Anything that is not a Greek letter separates words. The dots matter:
 #: "Α.Ε.Δ.ΠΩΓΩΝΑΤΟΣ" is one run of characters and four words.
 NOT_GREEK = re.compile(r"[^Α-ΩΆΈΉΊΌΎΏΪΫα-ωάέήίόύώϊϋΐΰς]+")
@@ -60,6 +64,11 @@ def latin_to_greek(text: str) -> str:
         return run.translate(LATIN_LOOKALIKE) if _HAS_GREEK.search(run) else run
 
     return _RUN.sub(repair, text)
+
+
+def upper_bare(text: str) -> str:
+    """Upper case the way Greek writes it: no accents on capitals."""
+    return text.upper().translate(_UPPER_BARE)
 
 
 def fold(text: str) -> str:

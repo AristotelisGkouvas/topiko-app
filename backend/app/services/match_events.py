@@ -108,7 +108,12 @@ def apply_events(match: Match, events: Iterable[MatchEvent]) -> None:
         # The whole log was undone. Leaving a score behind would leave a
         # result nobody can point at an event for.
         match.home_score = match.away_score = None
+        match.home_score_ht = match.away_score_ht = None
         match.is_live = False
+        # And the state the markers put it in. FINISHED with no score is a
+        # result nobody played; the fixture goes back to waiting for one.
+        if match.status in _STATUS_MARKERS.values():
+            match.status = MatchStatus.SCHEDULED
 
     # The last minute anybody recorded, which is what the badge shows.
     minutes = [e.minute for e in ordered if e.minute is not None]
