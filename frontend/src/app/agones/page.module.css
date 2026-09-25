@@ -31,21 +31,25 @@
 }
 
 .note {
-  margin: 0 2px 0;
+  margin: 0 2px;
   font-family: var(--font-body);
   font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--color-text-muted);
 }
 
-.note a {
-  color: var(--color-accent-ink);
-  font-weight: 600;
-  text-decoration: none;
+.links {
+  composes: card from "../../styles/primitives.module.css";
 }
 
-.note a:hover {
-  text-decoration: underline;
+.linkRow {
+  composes: listRow from "../../styles/primitives.module.css";
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-nav-idle);
+  font-size: var(--text-xl);
 }
 
 @media (min-width: 860px) {
