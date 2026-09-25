@@ -5,7 +5,7 @@
 .wrap {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -19,7 +19,7 @@
   border-collapse: collapse;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text);
 }
 
@@ -27,7 +27,7 @@
   padding: 8px 12px;
   border-bottom: 1px solid var(--color-hairline);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--color-text-muted);
   text-align: left;
@@ -140,16 +140,8 @@
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
-  /* The crest is 18px here — small enough that the club name, not the badge,
-     is what the eye reads down the column. */
-  --crest: 18px;
 }
 
-.teamLink :global(span[aria-hidden]) {
-  width: 18px;
-  height: 18px;
-  font-size: 0.375rem;
-}
 
 .teamName {
   overflow: hidden;
@@ -162,30 +154,10 @@
 
 /* --- form dots ------------------------------------------------------ */
 
-.form {
-  display: flex;
-  justify-content: center;
-  gap: 3px;
-}
 
-.pill {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: none;
-}
 
-.pillWin {
-  background: var(--color-green-600);
-}
 
-.pillDraw {
-  background: var(--color-draw-dot);
-}
 
-.pillLoss {
-  background: var(--color-loss);
-}
 
 /* --- zones ---------------------------------------------------------- */
 
@@ -214,7 +186,7 @@
 }
 
 .zone_relegation_playoff td {
-  background: color-mix(in srgb, var(--color-draw-surface) 40%, transparent);
+  background: color-mix(in srgb, var(--color-highlight-surface) 70%, transparent);
 }
 
 .zone_relegation_playoff td:first-child {
@@ -222,11 +194,11 @@
 }
 
 .zone_relegation td {
-  background: color-mix(in srgb, var(--color-loss-surface) 30%, transparent);
+  background: var(--color-loss-zone);
 }
 
 .zone_relegation td:first-child {
-  box-shadow: inset 3px 0 0 var(--color-loss);
+  box-shadow: inset 3px 0 0 var(--color-loss-mark);
 }
 
 /* The reader's own club. After the zones, so it wins over their tint. */
@@ -251,7 +223,7 @@
   padding: 8px 12px 10px;
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -264,7 +236,7 @@
   padding: 10px 12px;
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -297,7 +269,7 @@
 }
 
 .swatch_relegation {
-  background: var(--color-loss);
+  background: var(--color-loss-mark);
 }
 
 .sortButton {

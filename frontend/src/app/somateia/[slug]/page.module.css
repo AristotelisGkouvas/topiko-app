@@ -8,12 +8,32 @@
 }
 
 .hero {
+  position: relative;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  /* Full bleed past <main>'s 1180px: the band's colour runs to both edges
+     of the window, so there is no seam where it meets the app bar. The
+     content stays in the column. */
+  box-shadow: 0 0 0 100vmax var(--color-surface);
+  clip-path: inset(0 -100vmax -1px);
   padding: 18px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* The band's bottom rule, as wide as the band. Widened with a shadow and
+   not with left/right offsets: a shadow paints past the column without
+   adding to the page's scroll width. */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--color-border);
+  box-shadow: 0 0 0 100vmax var(--color-border);
+  clip-path: inset(0 -100vmax);
 }
 
 .identity {
@@ -39,7 +59,7 @@
 .meta {
   margin: 4px 0 0;
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.45;
   color: var(--color-text-muted);
 }
@@ -49,7 +69,7 @@
 .official {
   margin: 3px 0 0;
   font-family: var(--font-body);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-nav-idle);
 }
 
@@ -87,7 +107,7 @@
   margin-top: 2px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -119,20 +139,7 @@
 /* --- form ------------------------------------------------------------ */
 
 .share {
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--color-chip-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-heading);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.share:hover {
-  background: var(--color-grey-100);
+  composes: buttonSecondary from "../../../styles/primitives.module.css";
 }
 
 .formRow {
@@ -144,39 +151,9 @@
 .formLabel {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
-}
-
-.form {
-  display: flex;
-  gap: 4px;
-}
-
-.pill {
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.625rem;
-  color: #fff;
-}
-
-.win {
-  background: var(--color-green-600);
-}
-
-.draw {
-  background: var(--color-draw-dot);
-  color: var(--color-grey-800);
-}
-
-.loss {
-  background: var(--color-loss);
 }
 
 /* --- body ------------------------------------------------------------ */
@@ -199,6 +176,17 @@
   gap: 0;
   align-items: start;
   min-width: 0;
+}
+
+.aside {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+  min-width: 0;
+}
+
+.linkRow {
+  composes: listRow from "../../../styles/primitives.module.css";
 }
 
 .seasons {
@@ -231,12 +219,12 @@
   flex: none;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--color-badge-surface);
   display: grid;
   place-items: center;
   color: var(--color-heading);
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 }
 
 .venueText {
@@ -250,7 +238,7 @@
 .venueName {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-heading);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -259,27 +247,37 @@
 
 .venueMeta {
   font-family: var(--font-body);
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
 .chevron {
   flex: none;
   color: var(--color-nav-idle);
-  font-size: 1.125rem;
+  font-size: var(--text-xl);
 }
 
 .leagueLink {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   padding: 12px 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-heading);
   text-decoration: none;
+}
+
+.leagueMeta {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
 }
 
 .leagueLink:hover {
@@ -293,7 +291,7 @@
   padding-top: 14px;
   border-top: 1px solid var(--color-border);
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   max-width: 1200px;
 }
@@ -339,9 +337,12 @@
     grid-area: actions;
   }
 
+  /* Tucked under the numbers it summarises. Centred in its row, it floated
+     halfway down the calendar card with nothing around it. */
   .formRow {
     grid-area: form;
     justify-self: end;
+    align-self: start;
   }
 
   .body {
@@ -356,17 +357,6 @@
   }
 }
 
-.nextH2h {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 2px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-link);
-  text-decoration: none;
-}
-
-.nextH2h:hover {
-  text-decoration: underline;
+.nextCard {
+  margin-top: 8px;
 }

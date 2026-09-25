@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 
+import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { formatGoalDifference, listName } from "@/lib/format";
 import type { League, Standing } from "@/lib/types";
 import styles from "./MiniStandings.module.css";
+import { FormGuide } from "@/components/FormGuide";
 
 /** The home page's table preview.
  *
@@ -101,23 +103,14 @@ function Row({ row, mine }: { row: Standing; mine: boolean }) {
     >
       <span className={styles.pos}>{row.position}</span>
       <span className={styles.team}>
-        <span className={styles.crest} aria-hidden="true">
-          {row.team.initials ?? row.team.name.slice(0, 2)}
-        </span>
+        <Crest team={row.team} size="xs" />
         <span className={styles.name}>{listName(row.team)}</span>
       </span>
       <span className={styles.num}>
         {formatGoalDifference(row.goal_difference)}
       </span>
       <span className={styles.form}>
-        {form.map((r, i) => (
-          <span
-            key={i}
-            className={`${styles.dot} ${
-              r === "Ν" ? styles.win : r === "Ι" ? styles.draw : styles.loss
-            }`}
-          />
-        ))}
+        <FormGuide form={form} />
       </span>
       <span className={styles.points}>{row.points}</span>
     </Link>

@@ -20,7 +20,7 @@
 
 .sub {
   margin: 4px 0 16px;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -46,7 +46,7 @@
 
 .totalLabel {
   margin: 4px 0 0;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -69,8 +69,8 @@
   padding: 5px 11px 5px 6px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
-  font-size: 0.7812rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-text);
   text-decoration: none;
@@ -90,14 +90,14 @@
 }
 
 .table {
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   min-width: 100%;
   border-collapse: collapse;
 }
 
 .table thead th {
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.1px;
   text-transform: uppercase;
   color: var(--color-grey-600);
@@ -156,13 +156,13 @@
 .goals {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
 }
 
 .note {
   margin: 12px 2px 0;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--color-text-muted);
 }

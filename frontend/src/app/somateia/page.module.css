@@ -35,14 +35,14 @@
 .name {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.9062rem;
+  font-size: var(--text-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .meta {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -50,6 +50,6 @@
 }
 
 .subtitle {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }

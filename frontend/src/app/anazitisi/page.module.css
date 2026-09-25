@@ -28,13 +28,13 @@
   padding: 5px 12px;
   /* 14px, not 999px: the design's chips are rounded rectangles, and at this
      height a pill capsule reads noticeably rounder than the mock-up. */
-  border-radius: 14px;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--color-chip-border);
   background: var(--color-surface);
   color: var(--color-text);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   line-height: 1.5;
   text-decoration: none;
   white-space: nowrap;
@@ -56,7 +56,7 @@
 
 .count {
   font-variant-numeric: tabular-nums;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   opacity: 0.7;
 }
 
@@ -73,7 +73,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
 }
@@ -108,14 +108,14 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--color-green-600);
+  background: var(--color-crest-surface);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   line-height: 1;
-  color: var(--color-grey-50);
+  color: var(--color-crest-ink);
 }
 
 /* A ground: a tinted tile, not a disc. It has no initials, and a circle with
@@ -124,13 +124,13 @@
   flex: none;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--color-badge-surface);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1;
   color: var(--color-heading);
 }
@@ -146,7 +146,7 @@
 .name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9062rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,7 +156,7 @@
 .subtitle {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,11 +167,11 @@
   flex: none;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   background: var(--color-badge-surface);
   color: var(--color-heading);
-  border-radius: 4px;
+  border-radius: var(--radius-tag);
   padding: 3px 6px;
   white-space: nowrap;
 }
@@ -184,7 +184,7 @@
 
 .note {
   margin: 0 2px;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--color-text-muted);
 }

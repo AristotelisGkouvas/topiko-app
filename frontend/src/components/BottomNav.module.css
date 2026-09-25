@@ -27,7 +27,7 @@
   min-height: 44px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   line-height: 1;
   color: var(--color-nav-idle);
   text-decoration: none;

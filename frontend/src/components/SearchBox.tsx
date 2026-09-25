@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import styles from "./SearchBox.module.css";
+import { Icon } from "@/components/Icon";
 
 /** Filter box for the long catalogue pages, kept in the URL as ?anazitisi=.
  *
@@ -57,7 +58,7 @@ export function SearchBox({
   return (
     <div className={styles.wrap}>
       <span className={styles.icon} aria-hidden="true">
-        ⌕
+        <Icon name="search" size={18} />
       </span>
       <input
         type="search"

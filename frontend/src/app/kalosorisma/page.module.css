@@ -20,6 +20,9 @@
     var(--color-green-600) 0 45px,
     var(--color-green-700) 45px 90px
   );
+  /* Centred, so the field ends on a whole stripe at both edges instead of
+     a sliver on the right. */
+  background-position: center;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -71,12 +74,15 @@
   background: #fff;
 }
 
+/* White on the lighter stripe is 4.3:1 — short of AA for body text, fine for
+   large text. So the line is set large (19px bold clears the 3:1 bar for
+   large text on both stripes) rather than darkening the grass. */
 .heroText {
   margin: 26px 0 0;
   font-family: var(--font-body);
-  font-weight: 500;
-  font-size: 0.9375rem;
-  line-height: 1.5;
+  font-weight: 700;
+  font-size: 1.1875rem;
+  line-height: 1.4;
   color: #fff;
   text-align: center;
   text-wrap: pretty;
@@ -102,7 +108,7 @@
 .dot {
   width: 7px;
   height: 7px;
-  border-radius: 4px;
+  border-radius: var(--radius-tag);
   background: var(--color-grey-400);
   opacity: 0.55;
   transition: width 0.18s ease;
@@ -137,14 +143,14 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
 
 .small {
   margin: 0;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -179,7 +185,7 @@
   width: 100%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 12px 4px 10px;
   display: flex;
   flex-direction: column;
@@ -208,13 +214,13 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--color-green-600);
+  background: var(--color-action);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
-  color: #fff;
+  font-size: var(--text-xs);
+  color: var(--color-action-ink);
 }
 
 .tileCrest {
@@ -226,7 +232,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   line-height: 1;
   color: #fff;
   flex: none;
@@ -236,7 +242,7 @@
 .tileName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.15;
   color: var(--color-heading);
   text-align: center;
@@ -254,44 +260,19 @@
   padding-top: 4px;
 }
 
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  /* 50px, not 44 — the design gives the one action on an onboarding screen
-     more height than an ordinary button. */
-  height: 50px;
-  padding: 0 16px;
-  box-sizing: border-box;
-  border-radius: 10px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.875rem;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
+/* 50px, not 44 — the design gives the one action on an onboarding screen
+   more height than an ordinary button. */
 .primary {
-  background: var(--color-green-600);
-  border: 1px solid var(--color-green-600);
-  color: #fff;
-}
-
-.primary:hover {
-  filter: brightness(1.05);
+  composes: buttonPrimary buttonLarge buttonBlock from "../../styles/primitives.module.css";
 }
 
 .secondary {
-  background: var(--color-surface);
-  border: 1px solid var(--color-chip-border);
-  color: var(--color-heading);
+  composes: buttonSecondary buttonLarge buttonBlock from "../../styles/primitives.module.css";
 }
 
-.secondary:hover {
-  background: var(--color-grey-100);
-}
+
+
+
 
 .skip {
   display: grid;
@@ -300,7 +281,7 @@
   color: var(--color-text);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--text-lg);
   text-decoration: none;
 }
 
@@ -312,7 +293,7 @@
 .back {
   margin: 0;
   padding: 8px 20px 24px;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
 }
 
 .back a {

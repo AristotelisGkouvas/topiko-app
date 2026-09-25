@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function MorePage() {
   return (
     <>
-      <PageHeader title="Περισσότερα" />
+      <PageHeader column="narrow" title="Περισσότερα" />
 
       <div className={styles.page}>
         <nav className={styles.card} aria-label="Περισσότερες σελίδες">
@@ -85,15 +85,10 @@ export default function MorePage() {
               ›
             </span>
           </Link>
-          <Link href="/diaxeirisi" className={styles.row}>
-            <span className={styles.icon}>
-              <NavIcon item={{ icon: "M4 6h16M4 12h16M4 18h10" }} size={20} />
-            </span>
-            <span className={styles.label}>Διαχείριση ένωσης</span>
-            <span className={styles.chevron} aria-hidden="true">
-              ›
-            </span>
-          </Link>
+          {/* The association's own tool is not listed here: every reader
+              opens this menu, and a login page for staff among the reader's
+              pages reads as something they are locked out of. The secretary
+              reaches it from the foot of "Σχετικά". */}
         </div>
 
         <p className={styles.sectionLabel}>ΠΛΗΡΟΦΟΡΙΕΣ</p>

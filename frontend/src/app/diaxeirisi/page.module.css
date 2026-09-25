@@ -15,14 +15,14 @@
 
 .who {
   margin: 2px 0 0;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
 .relogin {
   margin-bottom: 14px;
   padding: 12px 14px;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-terra-300);
   background: var(--color-live-surface);
   color: var(--color-live-ink);
@@ -30,7 +30,7 @@
 
 .relogin p {
   margin: 0 0 10px;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
 }
 
 .warn {
@@ -44,13 +44,13 @@
 .submit {
   font-family: var(--font-display);
   font-weight: 600;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   cursor: pointer;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
   padding: 8px 12px;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   min-height: 38px;
 }
 
@@ -60,11 +60,11 @@
   color: var(--color-grey-50);
   width: 100%;
   min-height: 44px;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 }
 
 .save {
-  background: var(--color-green-100);
+  background: var(--color-soft);
   border-color: var(--color-green-300);
 }
 
@@ -91,7 +91,7 @@
   background: none;
   padding: 9px 12px;
   font-family: var(--font-display);
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -116,7 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -125,9 +125,9 @@
 .small,
 .score {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   padding: 8px 10px;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   font-family: inherit;
   background: var(--color-surface);
   color: var(--color-text);
@@ -140,7 +140,7 @@
 }
 
 .counter {
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-terra-700);
   font-weight: 600;
 }
@@ -168,7 +168,7 @@
 .when {
   display: flex;
   flex-direction: column;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   min-width: 62px;
 }
@@ -182,7 +182,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   font-weight: 600;
   min-width: 0;
 }
@@ -205,7 +205,7 @@
   text-align: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
 }
 
 .actions {
@@ -218,7 +218,7 @@
 .ok,
 .missing {
   grid-column: 1 / -1;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -230,7 +230,7 @@
 
 .venue {
   font-weight: 400;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -246,7 +246,7 @@
 
 .rowError {
   grid-column: 1 / -1;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-loss);
 }
 
@@ -266,7 +266,7 @@
 
 .venueName {
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
 }
 
 .missing {
@@ -287,7 +287,7 @@
 .preview {
   display: inline-block;
   margin-top: 8px;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-link);
   text-decoration: none;
 }
@@ -313,28 +313,28 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
 .error {
   margin: 0;
   padding: 8px 10px;
-  border-radius: var(--radius-md, 8px);
-  background: #f6dcd8;
-  color: var(--color-grey-800);
-  font-size: 0.7812rem;
+  border-radius: var(--radius-md);
+  background: var(--color-loss-tint);
+  color: var(--color-loss-tint-ink);
+  font-size: var(--text-md);
 }
 
 .hint {
   margin: 0;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   line-height: 1.5;
 }
 
 .loading {
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -355,12 +355,12 @@
 .auditAction {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   color: var(--color-heading);
 }
 
 .auditWho {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
@@ -371,7 +371,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
 }
 
 .diff li {
@@ -451,7 +451,7 @@
   padding: 8px 12px;
   text-align: left;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;

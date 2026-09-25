@@ -1,7 +1,8 @@
 .date {
   margin: 2px 0 0;
   font-family: var(--font-display);
-  font-size: 0.875rem;
+  font-weight: 600;
+  font-size: var(--text-base);
   color: var(--color-text-muted);
 }
 
@@ -47,7 +48,7 @@
 }
 
 .team {
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   font-weight: 600;
   line-height: 1.25;
   overflow: hidden;
@@ -59,21 +60,21 @@
   flex: none;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: var(--text-lg);
   font-variant-numeric: tabular-nums;
   color: var(--color-heading);
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-grey-100);
 }
 
 /* Five clear is the sort of afternoon people still bring up. */
 .thrashing {
-  background: var(--color-amber-200);
+  background: var(--color-highlight-surface);
 }
 
 .note {
   margin: 4px 2px 0;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }

@@ -61,7 +61,7 @@
 .sub {
   margin: 2px 0 0;
   font-family: var(--font-body);
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -82,7 +82,7 @@
   color: var(--color-heading);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 
@@ -99,7 +99,7 @@
   background: var(--color-canvas);
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
 }
 
 .search:focus-visible {
@@ -144,7 +144,7 @@
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -157,7 +157,7 @@
   text-align: right;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-accent-ink);
   font-variant-numeric: tabular-nums;
 }
@@ -166,7 +166,7 @@
   margin: 0;
   padding: 16px 14px;
   font-family: var(--font-body);
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -180,7 +180,7 @@
   color: var(--color-text-muted);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   cursor: pointer;
 }
 

@@ -10,7 +10,7 @@
 
 .header {
   --focus-ring: var(--color-on-navy-accent);
-  background: var(--color-navy-900);
+  background: var(--color-bar);
   /* Full bleed: cancels the padding <main> applies, so the band reaches both
      edges the way the design draws it. */
   margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
@@ -47,7 +47,7 @@
   min-width: 0;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-on-navy-muted);
 }
 
@@ -61,11 +61,11 @@
   justify-content: space-between;
   gap: 10px;
   background: var(--color-on-navy-fill);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-on-navy);
 }
 
@@ -118,6 +118,24 @@
     gap: 14px;
   }
 
+  /* Same box as the column below it — max width, centring and the 14px
+     inset of primitives .page — so the title and the first card share one
+     left edge. */
+  .wide .inner,
+  .narrow .inner {
+    margin: 0 auto;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .wide .inner {
+    max-width: 1200px;
+  }
+
+  .narrow .inner {
+    max-width: 720px;
+  }
+
   .title {
     font-size: 1.875rem;
     color: var(--color-heading);
@@ -125,7 +143,7 @@
 
   .aside {
     color: var(--color-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--text-md);
   }
 
   .controls {

@@ -1,4 +1,5 @@
 import { HomeTeasers } from "@/components/HomeTeasers";
+import { Intro } from "@/components/Intro";
 import { LastUpdated } from "@/components/LastUpdated";
 import { LiveMatches } from "@/components/LiveMatches";
 import { MyClub } from "@/components/MyClub";
@@ -66,6 +67,7 @@ export default async function HomePage({
 
   return (
     <div className={`${styles.page} ${styles.home}`}>
+      <Intro />
       <h1 className="srOnly">Πάμε Σέντρα · {league.name}</h1>
       {/* Screen D01's three columns: division rail, the page, the numbers.
           One column on a phone, where the rail's job belongs to the header

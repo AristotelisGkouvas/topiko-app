@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import styles from "./States.module.css";
+import { Icon } from "@/components/Icon";
 
 /** Empty state. Always says what will fill the space and when — an empty box
  *  that only says "nothing here" makes the reader wonder if it is broken. */
@@ -16,7 +17,7 @@ export function Empty({
   return (
     <div className={styles.empty}>
       <span className={styles.emptyMark} aria-hidden="true">
-        ⚑
+        <Icon name="flag" size={22} />
       </span>
       <p className={styles.emptyTitle}>{title}</p>
       {body && <p className={styles.emptyBody}>{body}</p>}

@@ -6,28 +6,48 @@ import { apiUrl, jsonFetcher } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 import type { EventKind, MatchFeed } from "@/lib/types";
 import styles from "./MatchTicker.module.css";
+import { Icon, type IconName } from "@/components/Icon";
 import { pollEvery } from "@/lib/network";
 
-/** Glyph and wording per kind. A single map, because the ticker, the
- *  secretary's screen and the share card all have to call the same thing the
- *  same name. */
-export const EVENT_LABELS: Record<EventKind, { glyph: string; label: string }> = {
-  goal: { glyph: "⚽", label: "Γκολ" },
-  penalty_goal: { glyph: "⚽", label: "Γκολ από πέναλτι" },
-  own_goal: { glyph: "⚽", label: "Αυτογκόλ" },
-  penalty_miss: { glyph: "✖", label: "Χαμένο πέναλτι" },
-  yellow: { glyph: "🟨", label: "Κίτρινη" },
-  second_yellow: { glyph: "🟨", label: "Δεύτερη κίτρινη" },
-  red: { glyph: "🟥", label: "Κόκκινη" },
-  substitution: { glyph: "⇄", label: "Αλλαγή" },
-  kickoff: { glyph: "▶", label: "Σέντρα" },
-  halftime: { glyph: "⏸", label: "Ημίχρονο" },
-  second_half: { glyph: "▶", label: "Β΄ ημίχρονο" },
-  fulltime: { glyph: "⏹", label: "Τελικό" },
-  postponed: { glyph: "⌛", label: "Αναβολή" },
-  abandoned: { glyph: "⛔", label: "Διακοπή" },
-  note: { glyph: "✎", label: "Σημείωση" },
+/** Icon and wording per kind. A single map, because the ticker and the
+ *  secretary's screen have to call the same thing the same name.
+ *
+ *  Icons, not emoji: ⚽ 🟨 🟥 are drawn by the phone's emoji font, at its
+ *  size and in its colours, and on older Android as boxes. Cards keep their
+ *  colour through a class, since that colour is the whole meaning. */
+export const EVENT_LABELS: Record<
+  EventKind,
+  { icon: IconName; tone?: "yellow" | "red"; label: string }
+> = {
+  goal: { icon: "ball", label: "Γκολ" },
+  penalty_goal: { icon: "ball", label: "Γκολ από πέναλτι" },
+  own_goal: { icon: "ball", label: "Αυτογκόλ" },
+  penalty_miss: { icon: "miss", label: "Χαμένο πέναλτι" },
+  yellow: { icon: "card", tone: "yellow", label: "Κίτρινη" },
+  second_yellow: { icon: "card", tone: "yellow", label: "Δεύτερη κίτρινη" },
+  red: { icon: "card", tone: "red", label: "Κόκκινη" },
+  substitution: { icon: "swap", label: "Αλλαγή" },
+  kickoff: { icon: "play", label: "Σέντρα" },
+  halftime: { icon: "pause", label: "Ημίχρονο" },
+  second_half: { icon: "play", label: "Β΄ ημίχρονο" },
+  fulltime: { icon: "stop", label: "Τελικό" },
+  postponed: { icon: "hourglass", label: "Αναβολή" },
+  abandoned: { icon: "abandoned", label: "Διακοπή" },
+  note: { icon: "note", label: "Σημείωση" },
 };
+
+/** The icon for one event kind, cards filled in their colour. */
+export function EventGlyph({ kind, size = 16 }: { kind: EventKind; size?: number }) {
+  const { icon, tone } = EVENT_LABELS[kind];
+  return (
+    <span
+      className={`${styles.eventIcon} ${tone ? styles[tone] : ""}`}
+      aria-hidden="true"
+    >
+      <Icon name={icon} size={size} filled={Boolean(tone)} />
+    </span>
+  );
+}
 
 const REPORTERS = { club: "εθελοντής σωματείου", association: "ένωση" } as const;
 
@@ -105,7 +125,7 @@ export function MatchTicker({
 
       <ol className={styles.list}>
         {events.map((event) => {
-          const { glyph, label } = EVENT_LABELS[event.kind];
+          const { label } = EVENT_LABELS[event.kind];
           const scoring =
             event.kind === "goal" ||
             event.kind === "penalty_goal" ||
@@ -118,8 +138,8 @@ export function MatchTicker({
               <span className={styles.minute}>
                 {event.minute !== null ? `${event.minute}′` : "—"}
               </span>
-              <span className={styles.glyph} aria-hidden="true">
-                {glyph}
+              <span className={styles.glyph}>
+                <EventGlyph kind={event.kind} />
               </span>
               <span className={styles.detail}>
                 <span className={styles.what}>

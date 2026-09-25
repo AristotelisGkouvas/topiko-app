@@ -20,7 +20,7 @@ const CONTACT = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
 export default function AboutPage() {
   return (
     <>
-      <PageHeader title="Σχετικά" />
+      <PageHeader column="narrow" title="Σχετικά" />
 
       <div className={styles.page}>
         <section className={styles.card} aria-labelledby="what">
@@ -117,6 +117,9 @@ export default function AboutPage() {
           <p>
             Είσαι από σωματείο και θέλεις να δηλώνεις τα σκορ της ομάδας σου;{" "}
             <Link href="/ethelontis">Δήλωση αγώνα</Link>.
+          </p>
+          <p>
+            Γραμματεία της ένωσης: <Link href="/diaxeirisi">Διαχείριση</Link>.
           </p>
         </section>
       </div>

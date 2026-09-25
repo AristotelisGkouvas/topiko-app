@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 

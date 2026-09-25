@@ -9,7 +9,8 @@
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-display);
-  font-size: 0.8125rem;
+  font-weight: 600;
+  font-size: var(--text-md);
   font-variant-numeric: tabular-nums;
 }
 
@@ -21,7 +22,7 @@
 }
 
 .split thead th {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--color-text-muted);
   font-weight: 600;
@@ -45,7 +46,7 @@
   margin: 0;
   padding: 8px 10px 10px;
   border-top: 1px solid var(--color-hairline);
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 

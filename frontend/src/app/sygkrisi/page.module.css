@@ -14,7 +14,7 @@
 }
 
 .fieldLabel {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -24,10 +24,10 @@
   width: 100%;
   min-height: 42px;
   padding: 9px 10px;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   font-family: inherit;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
 }
@@ -35,7 +35,8 @@
 .vs {
   padding-bottom: 12px;
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-weight: 600;
+  font-size: var(--text-sm);
   color: var(--color-nav-idle);
 }
 
@@ -65,7 +66,7 @@
 .sideName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -75,13 +76,13 @@
 }
 
 .sideLeague {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
 .season {
   padding-top: 18px;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-nav-idle);
   font-variant-numeric: tabular-nums;
 }
@@ -105,7 +106,7 @@
 }
 
 .statLabel {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -117,7 +118,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-variant-numeric: tabular-nums;
   color: var(--color-text);
 }
@@ -135,14 +136,14 @@
 .lead {
   font-weight: 700;
   color: var(--color-heading);
-  background: var(--color-green-100);
-  border-radius: 999px;
+  background: var(--color-soft);
+  border-radius: var(--radius-pill);
   padding: 1px 8px;
 }
 
 .note {
   margin: 10px 2px 0;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--color-text-muted);
 }
@@ -157,13 +158,13 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
 }
 
 .recordLink {
   display: inline-block;
   margin-top: 8px;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-link);
   text-decoration: none;

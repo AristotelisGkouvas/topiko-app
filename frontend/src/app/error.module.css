@@ -40,7 +40,7 @@
   max-width: 34ch;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.8438rem;
+  font-size: var(--text-base);
   line-height: 1.55;
   color: var(--color-text-muted);
   text-wrap: pretty;
@@ -58,45 +58,16 @@
 }
 
 .action {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 44px;
-  padding: 0 16px;
-  box-sizing: border-box;
-  border: 1px solid var(--color-green-600);
-  border-radius: 10px;
-  background: var(--color-green-600);
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.875rem;
-  text-decoration: none;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.action:hover {
-  filter: brightness(1.05);
+  composes: buttonPrimary buttonBlock from "../styles/primitives.module.css";
 }
 
 .quiet {
-  padding: 8px;
-  color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.7812rem;
-  text-decoration: none;
-}
-
-.quiet:hover {
-  color: var(--color-link);
-  text-decoration: underline;
+  composes: buttonGhost from "../styles/primitives.module.css";
 }
 
 .detail {
   margin: 0;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-nav-idle);
   font-variant-numeric: tabular-nums;
 }

@@ -17,6 +17,8 @@ import type { FieldRef, Match, TeamDetail } from "@/lib/types";
 import { HomeAway, splitRecord } from "@/components/HomeAway";
 import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
+import { Icon } from "@/components/Icon";
+import { FormGuide } from "@/components/FormGuide";
 
 export const dynamic = "force-dynamic";
 
@@ -41,27 +43,6 @@ export async function generateMetadata({
   } catch {
     return { title: "Σωματείο" };
   }
-}
-
-function FormPills({ form }: { form: string }) {
-  return (
-    <span className={styles.form}>
-      {form.split("").map((result, i) => (
-        <span
-          key={i}
-          className={`${styles.pill} ${
-            result === "Ν"
-              ? styles.win
-              : result === "Ι"
-                ? styles.draw
-                : styles.loss
-          }`}
-        >
-          {result}
-        </span>
-      ))}
-    </span>
-  );
 }
 
 export default async function TeamPage({
@@ -161,7 +142,7 @@ export default async function TeamPage({
         {standing?.form && (
           <div className={styles.formRow}>
             <span className={styles.formLabel}>ΦΟΡΜΑ</span>
-            <FormPills form={standing.form} />
+            <FormGuide form={standing.form} variant="letter" />
           </div>
         )}
       </header>
@@ -201,30 +182,31 @@ export default async function TeamPage({
           )}
           {/* What a coach opens before Sunday: every past meeting with the
               next opponent, one tap from here. */}
-          {upcoming[0] && (
-            <Link
-              className={styles.nextH2h}
-              href={`/kontra/${upcoming[0].home_team.slug}/${upcoming[0].away_team.slug}`}
-            >
-              Κόντρα με{" "}
-              {upcoming[0].home_team.id === team.id
-                ? upcoming[0].away_team.name
-                : upcoming[0].home_team.name}{" "}
-              ›
-            </Link>
-          )}
-          {upcoming[0] && (
-            <Link
-              className={styles.nextH2h}
-              href={`/somateia/${
-                upcoming[0].home_team.id === team.id
-                  ? upcoming[0].away_team.slug
-                  : upcoming[0].home_team.slug
-              }/analysi?me=${team.slug}`}
-            >
-              Ανάλυση αντιπάλου ›
-            </Link>
-          )}
+          {upcoming[0] && (() => {
+            const next = upcoming[0];
+            const opponent =
+              next.home_team.id === team.id ? next.away_team : next.home_team;
+            return (
+              // One card, not two bare links under the list: they belong to
+              // the next fixture, and a card makes them read as its actions.
+              <nav className={`${styles.card} ${styles.nextCard}`} aria-label="Επόμενος αντίπαλος">
+                <Link
+                  className={styles.linkRow}
+                  href={`/kontra/${next.home_team.slug}/${next.away_team.slug}`}
+                >
+                  <span>Κόντρα με {opponent.name}</span>
+                  <span className={styles.chevron} aria-hidden="true">›</span>
+                </Link>
+                <Link
+                  className={styles.linkRow}
+                  href={`/somateia/${opponent.slug}/analysi?me=${team.slug}`}
+                >
+                  <span>Ανάλυση αντιπάλου</span>
+                  <span className={styles.chevron} aria-hidden="true">›</span>
+                </Link>
+              </nav>
+            );
+          })()}
         </section>
 
         {pending.length > 0 && (
@@ -270,33 +252,40 @@ export default async function TeamPage({
           )}
         </section>
 
-        <aside className={styles.column} aria-label="Έδρα και ιστορικό">
+        {/* Each block owns its label, so the column can space the blocks
+            without also pushing every label away from its own card. */}
+        <aside className={styles.aside} aria-label="Έδρα και ιστορικό">
           {played.length > 0 && (
-            <>
+            <div>
               <SectionHeader title="ΕΝΤΟΣ / ΕΚΤΟΣ" />
               <HomeAway record={splitRecord(team, played)} />
-            </>
+            </div>
           )}
           <GoalMinutes slug={team.slug} title="ΓΚΟΛ ΑΝΑ 15ΛΕΠΤΟ" />
 
-          <SectionHeader
-            title="ΡΟΣΤΕΡ"
-            action={{ href: `/somateia/${team.slug}/roster`, label: "Δες ›" }}
-          />
-          <SectionHeader
-            title="ΠΟΙΝΕΣ"
-            action={{ href: `/poines?somateio=${team.slug}`, label: "Δες ›" }}
-          />
+          <div>
+            <SectionHeader title="ΣΩΜΑΤΕΙΟ" />
+            <nav className={styles.card} aria-label="Ρόστερ και ποινές">
+              <Link href={`/somateia/${team.slug}/roster`} className={styles.linkRow}>
+                <span>Ρόστερ</span>
+                <span className={styles.chevron} aria-hidden="true">›</span>
+              </Link>
+              <Link href={`/poines?somateio=${team.slug}`} className={styles.linkRow}>
+                <span>Ποινές</span>
+                <span className={styles.chevron} aria-hidden="true">›</span>
+              </Link>
+            </nav>
+          </div>
 
           {team.home_field && (
-            <>
+            <div>
               <SectionHeader title="ΕΔΡΑ" />
               <Link
                 href={`/gipeda/${team.home_field.slug}`}
                 className={styles.venue}
               >
                 <span className={styles.venueGlyph} aria-hidden="true">
-                  ⌖
+                  <Icon name="pin" size={18} />
                 </span>
                 <span className={styles.venueText}>
                   <span className={styles.venueName}>
@@ -310,11 +299,11 @@ export default async function TeamPage({
                   ›
                 </span>
               </Link>
-            </>
+            </div>
           )}
 
           {placement && (
-            <>
+            <div>
               <SectionHeader
                 title="ΣΤΗ ΒΑΘΜΟΛΟΓΙΑ"
                 action={{
@@ -326,9 +315,14 @@ export default async function TeamPage({
                 href={`/vathmologia?liga=${placement.league.slug}`}
                 className={styles.leagueLink}
               >
-                {leagueLabel(placement.league)}
+                <span>{leagueLabel(placement.league)}</span>
+                {standing && (
+                  <span className={styles.leagueMeta}>
+                    {standing.position}η θέση · {standing.points} βαθμοί
+                  </span>
+                )}
               </Link>
-            </>
+            </div>
           )}
         </aside>
       </div>
@@ -355,6 +349,9 @@ function stillToCome(matches: Match[]): Match[] {
     (m) =>
       m.home_score === null &&
       m.status !== "cancelled" &&
+      // A postponed match is listed under "Εκκρεμούν"; showing it here too
+      // put the same fixture on the page twice.
+      m.status !== "postponed" &&
       (m.kickoff_at === null || new Date(m.kickoff_at).getTime() >= now),
   );
 }

@@ -18,7 +18,7 @@
 .label {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
 }
@@ -26,7 +26,7 @@
 .more {
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-accent-ink);
   text-decoration: none;
   white-space: nowrap;
@@ -65,7 +65,7 @@
   margin-bottom: 12px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--color-on-navy-muted);
   text-transform: uppercase;
@@ -103,13 +103,13 @@
 .sideCrest > span {
   width: 42px;
   height: 42px;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
 }
 
 .sideName {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-on-navy);
   text-align: center;
   max-width: 100%;
@@ -121,7 +121,7 @@
 .vs {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   color: var(--color-on-navy-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -129,7 +129,7 @@
 
 .none {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-on-navy-muted);
 }
 
@@ -150,17 +150,22 @@
   padding: 12px 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-green-600);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .inviteText {
   flex: 1;
   min-width: 180px;
   margin: 0;
-  font-size: 0.7812rem;
+  font-size: var(--text-md);
   line-height: 1.5;
   color: var(--color-text-muted);
+}
+
+/* The star, drawn as it is on the button it points to. */
+.inlineIcon {
+  display: inline-block;
+  vertical-align: -2px;
 }
 
 .inviteLink {
@@ -170,7 +175,7 @@
   min-height: 44px;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-accent-ink);
   text-decoration: none;
   white-space: nowrap;
@@ -192,7 +197,7 @@
   min-height: 44px;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-accent-ink);
   text-decoration: none;
 }
@@ -207,7 +212,7 @@
   min-height: 44px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-heading);
   text-decoration: none;
 }

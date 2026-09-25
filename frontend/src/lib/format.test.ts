@@ -6,6 +6,7 @@ import {
   formatRelative,
   formatTime,
   freshness,
+  isDecided,
   matchStatusLabel,
 } from "./format";
 
@@ -75,4 +76,19 @@ it("signs a positive goal difference", () => {
   expect(formatGoalDifference(16)).toBe("+16");
   expect(formatGoalDifference(-3)).toBe("-3");
   expect(formatGoalDifference(0)).toBe("0");
+});
+
+describe("isDecided", () => {
+  const base = { home_score: 1, away_score: 0, status: "finished", is_live: false };
+  it("is true for a finished match with both scores", () => {
+    expect(isDecided(base)).toBe(true);
+  });
+  it("is false while the match is live or at half-time", () => {
+    expect(isDecided({ ...base, status: "live", is_live: true })).toBe(false);
+    expect(isDecided({ ...base, status: "halftime" })).toBe(false);
+    expect(isDecided({ ...base, is_live: true })).toBe(false);
+  });
+  it("is false without a score", () => {
+    expect(isDecided({ ...base, away_score: null })).toBe(false);
+  });
 });

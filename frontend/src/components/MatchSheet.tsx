@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 
-import { EVENT_LABELS } from "@/components/MatchTicker";
+import { EVENT_LABELS, EventGlyph } from "@/components/MatchTicker";
 import { GoalSheet, type GoalChoice } from "@/components/GoalSheet";
 import type { EventKind, MatchFeed, RosterPlayer } from "@/lib/types";
 import { Empty } from "@/components/States";
@@ -681,7 +681,7 @@ function Sheet({
                 {event.minute !== null ? `${event.minute}′` : "—"}
               </span>
               <span>
-                {EVENT_LABELS[event.kind].glyph}{" "}
+                <EventGlyph kind={event.kind} size={14} />{" "}
                 {EVENT_LABELS[event.kind].label}
                 {event.team ? ` — ${event.team.short_name ?? event.team.name}` : ""}
               </span>

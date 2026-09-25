@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import useSWR from "swr";
 
-import { Wordmark } from "./Logo";
 import { LeaguePicker, type PickerLeague } from "./LeaguePicker";
 import { NavIcon } from "./NavIcon";
 import { ThemeToggle } from "./ThemeToggle";
@@ -17,6 +17,7 @@ import {
   type NavItem,
 } from "@/lib/nav";
 import styles from "./SiteHeader.module.css";
+import { Icon } from "@/components/Icon";
 
 /** The design file's two headers, which are not the same header.
  *
@@ -75,7 +76,18 @@ export function SiteHeader({
             association ? `Πάμε Σέντρα · ${association.name}` : "Πάμε Σέντρα"
           }
         >
-          <Wordmark />
+          {/* The handoff's header lockup (logo 3b, the ball on the halfway
+              line), drawn as outlines so it needs no font. The bar is navy in
+              both themes, so the on-navy file is the only one used here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- an SVG
+              gains nothing from the image optimiser. */}
+          <img
+            src="/logo/header-on-navy.svg"
+            alt=""
+            width={256}
+            height={120}
+            className={styles.logo}
+          />
           {association && (
             <span className={styles.association} aria-hidden="true">
               {association.short_name ?? association.name}
@@ -126,7 +138,7 @@ export function SiteHeader({
             On a phone it collapses to the icon, where 240px will not fit. */}
         <Link href="/anazitisi" className={styles.search}>
           <span className={styles.searchIcon} aria-hidden="true">
-            ⌕
+            <Icon name="search" size={20} />
           </span>
           <span className={styles.searchText}>Αναζήτηση ομάδας, παίκτη…</span>
           {/* A shortcut nobody is told about is a shortcut nobody uses. */}
@@ -159,9 +171,40 @@ function Menu({
   children?: React.ReactNode;
 }) {
   const here = items.some((item) => isActive(item, pathname));
+  const menu = useRef<HTMLDetailsElement>(null);
+
+  // A <details> stays open until toggled, and the header outlives every
+  // navigation — so a picked item left the panel hanging over the new page.
+  // It closes on a pick, on a click anywhere else (which is also how opening
+  // the other menu closes this one), and on Escape.
+  useEffect(() => {
+    const close = (event: Event) => {
+      const el = menu.current;
+      if (el?.open && !el.contains(event.target as Node)) el.open = false;
+    };
+    const onKey = (event: KeyboardEvent) => {
+      const el = menu.current;
+      if (event.key === "Escape" && el?.open) {
+        el.open = false;
+        el.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("focusin", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("focusin", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  const shut = () => {
+    if (menu.current) menu.current.open = false;
+  };
 
   return (
-    <details className={styles.menu}>
+    <details ref={menu} className={styles.menu}>
       <summary className={`${styles.pill} ${here ? styles.pillActive : ""}`}>
         {label}
         <span className={styles.caret} aria-hidden="true">
@@ -175,6 +218,7 @@ function Menu({
             href={item.href}
             className={styles.menuItem}
             aria-current={isActive(item, pathname) ? "page" : undefined}
+            onClick={shut}
           >
             <span className={styles.menuIcon}>
               <NavIcon item={item} size={17} />

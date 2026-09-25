@@ -10,11 +10,11 @@
 .alert {
   margin: 0;
   padding: 10px 12px;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   background: var(--color-loss-surface);
   color: var(--color-loss-ink);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 }
 
 .list {
@@ -52,22 +52,22 @@
 
 .ban {
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-loss-surface);
   color: var(--color-loss-ink);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .stats {
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .note {
   margin: 0 2px;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 

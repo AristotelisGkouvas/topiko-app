@@ -5,7 +5,6 @@
   margin-bottom: 16px;
   padding: 12px 14px;
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-green-600);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
@@ -18,12 +17,12 @@
 .title {
   margin: 0;
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
 }
 
 .body {
   margin: 2px 0 0;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
   line-height: 1.4;
 }
@@ -36,17 +35,7 @@
 }
 
 .go {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: var(--radius-md);
-  background: var(--color-green-600);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.875rem;
-  text-decoration: none;
-  white-space: nowrap;
+  composes: buttonPrimary from "../styles/primitives.module.css";
 }
 
 .dismiss {
@@ -58,7 +47,7 @@
   border-radius: 50%;
   background: none;
   color: var(--color-text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 

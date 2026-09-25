@@ -163,3 +163,21 @@ export const matchdayGenitive = (matchday: number) =>
 export function listName(team: { name: string; short_name?: string | null }): string {
   return team.short_name ?? team.name;
 }
+
+/** A result that is settled: both scores in and the ball no longer rolling.
+ *  A live 1–0 at 30΄ has scores but no winner yet, so lists must not style
+ *  one side as beaten until the match is over. */
+export function isDecided(match: {
+  home_score: number | null;
+  away_score: number | null;
+  status: string;
+  is_live?: boolean | null;
+}): boolean {
+  return (
+    match.home_score !== null &&
+    match.away_score !== null &&
+    !match.is_live &&
+    match.status !== "live" &&
+    match.status !== "halftime"
+  );
+}

@@ -5,6 +5,7 @@ import useSWR from "swr";
 
 import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import styles from "./NotifyButton.module.css";
+import { Icon } from "@/components/Icon";
 
 interface PushConfig {
   enabled: boolean;
@@ -96,7 +97,14 @@ export function NotifyButton({ slug, name }: { slug: string; name: string }) {
             disabled={state === "working"}
             onClick={enable}
           >
-            {state === "working" ? "…" : `🔔 Ειδοποιήσεις για το ${name}`}
+            {state === "working" ? (
+              "…"
+            ) : (
+              <>
+                <Icon name="bell" size={16} />
+                {`Ειδοποιήσεις για το ${name}`}
+              </>
+            )}
           </button>
           {state === "denied" && (
             <p className={styles.note}>

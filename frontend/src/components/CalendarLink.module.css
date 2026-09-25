@@ -14,7 +14,7 @@
 }
 
 .glyph {
-  font-size: 1.125rem;
+  font-size: var(--text-xl);
   line-height: 1.2;
   color: var(--color-navy-700);
 }
@@ -23,13 +23,13 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.8438rem;
+  font-size: var(--text-base);
   color: var(--color-heading);
 }
 
 .sub {
   margin: 2px 0 0;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   line-height: 1.45;
 }
@@ -45,8 +45,8 @@
 .copy {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.7812rem;
-  border-radius: var(--radius-md, 8px);
+  font-size: var(--text-md);
+  border-radius: var(--radius-md);
   padding: 9px 14px;
   min-height: 44px;
   display: inline-flex;
@@ -74,7 +74,7 @@
 
 .hint {
   margin: 10px 0 0;
-  font-size: 0.7188rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   line-height: 1.5;
 }

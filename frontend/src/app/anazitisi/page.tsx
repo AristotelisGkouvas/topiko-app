@@ -9,6 +9,7 @@ import { readParam, type SearchParams } from "@/lib/leagues";
 import { upper } from "@/lib/format";
 import type { SearchHit, SearchResults } from "@/lib/types";
 import styles from "./page.module.css";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +76,7 @@ function Row({
     >
       {hit.kind === "field" || hit.kind === "match" ? (
         <span className={styles.tile} aria-hidden="true">
-          {hit.kind === "match" ? "⚽" : "⌖"}
+          <Icon name={hit.kind === "match" ? "ball" : "pin"} size={18} />
         </span>
       ) : (
         <span className={styles.crest} aria-hidden="true">
@@ -175,7 +176,7 @@ export default async function SearchPage({
 
   return (
     <>
-      <PageHeader title="Αναζήτηση" />
+      <PageHeader column="narrow" title="Αναζήτηση" />
 
       <div className={styles.page}>
         <SearchBox

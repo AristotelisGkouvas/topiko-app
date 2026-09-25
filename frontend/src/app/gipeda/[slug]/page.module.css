@@ -40,12 +40,12 @@
   align-items: center;
   min-height: 44px;
   padding: 5px 10px;
-  border-radius: 14px;
+  border-radius: var(--radius-xl);
   background: rgb(0 30 60 / 0.6);
   color: #fff;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   text-decoration: none;
   backdrop-filter: blur(2px);
 }
@@ -75,7 +75,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-on-navy-muted);
 }
 
@@ -92,7 +92,7 @@
   margin: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -113,7 +113,7 @@
   flex: none;
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -122,7 +122,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.8438rem;
+  font-size: var(--text-base);
   color: var(--color-text);
 }
 
@@ -133,46 +133,23 @@
   gap: 8px;
 }
 
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  height: 44px;
-  padding: 0 16px;
-  flex: 1;
-  box-sizing: border-box;
-  border-radius: 10px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 .primary {
-  background: var(--color-green-600);
-  border: 1px solid var(--color-green-600);
-  color: #fff;
-}
-
-.primary:hover {
-  filter: brightness(1.05);
+  composes: buttonPrimary buttonBlock from "../../../styles/primitives.module.css";
+  flex: 1;
 }
 
 .secondary {
-  background: var(--color-surface);
-  border: 1px solid var(--color-chip-border);
-  color: var(--color-heading);
+  composes: buttonSecondary buttonBlock from "../../../styles/primitives.module.css";
+  flex: 1;
 }
 
-.secondary:hover {
-  background: var(--color-grey-100);
-}
+
+
+
 
 .noPin {
   margin: 0 2px;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--color-text-muted);
 }
@@ -190,7 +167,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 1.4px;
   color: var(--color-text-muted);
 }
@@ -224,21 +201,21 @@
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9062rem;
+  font-size: var(--text-body);
   color: var(--color-heading);
 }
 
 .chevron {
   flex: none;
   color: var(--color-nav-idle);
-  font-size: 1.125rem;
+  font-size: var(--text-xl);
   line-height: 1;
 }
 
 .none {
   margin: 0;
   padding: 16px 14px;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -247,7 +224,7 @@
   padding: 12px 14px;
   border-left: 3px solid var(--color-border);
   color: var(--color-text-muted);
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   line-height: 1.6;
 }
 

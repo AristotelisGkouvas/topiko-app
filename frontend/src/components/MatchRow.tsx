@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 
+import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 
-import { formatDayDate, formatTime, listName, matchStatusLabel } from "@/lib/format";
+import { formatDayDate, formatTime, isDecided, listName, matchStatusLabel } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchRow.module.css";
 
@@ -39,8 +40,11 @@ export function MatchRow({
     hydrated && (following(match.home_team.slug) || following(match.away_team.slug));
 
   const played = match.home_score !== null && match.away_score !== null;
-  const homeWon = played && match.home_score! > match.away_score!;
-  const awayWon = played && match.away_score! > match.home_score!;
+  // Winner and loser styling waits for the final whistle: a live 1–0 is a
+  // score, not a result.
+  const decided = isDecided(match);
+  const homeWon = decided && match.home_score! > match.away_score!;
+  const awayWon = decided && match.away_score! > match.home_score!;
 
   return (
     <Link
@@ -51,13 +55,13 @@ export function MatchRow({
         team={match.home_team}
         score={match.home_score}
         won={homeWon}
-        lost={played && awayWon}
+        lost={awayWon}
       />
       <Side
         team={match.away_team}
         score={match.away_score}
         won={awayWon}
-        lost={played && homeWon}
+        lost={homeWon}
       />
 
       {/* Kickoff time for a fixture, status for anything that is not simply
@@ -107,9 +111,7 @@ function Side({
     <span
       className={`${styles.side} ${won ? styles.won : ""} ${lost ? styles.lost : ""}`}
     >
-      <span className={styles.crest} aria-hidden="true">
-        {team.initials ?? team.name.slice(0, 2)}
-      </span>
+      <Crest team={team} size="xs" />
       <span className={styles.name}>{listName(team)}</span>
       {score !== null && <span className={styles.score}>{score}</span>}
     </span>

@@ -51,24 +51,19 @@
 @media (min-width: 1040px) {
   .page {
     grid-template-columns: minmax(0, 1fr) 320px;
-    padding: 0 26px;
   }
 
 }
 
+/* The two export buttons: a real gap between them, not a text space. */
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .imageLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--color-chip-border);
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-surface);
-  color: var(--color-heading);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.875rem;
-  text-decoration: none;
+  composes: buttonSecondary from "../../styles/primitives.module.css";
 }
 
 .venueTabs {
@@ -83,12 +78,12 @@
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--color-chip-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-surface);
   color: var(--color-heading);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--text-md);
   text-decoration: none;
 }
 
