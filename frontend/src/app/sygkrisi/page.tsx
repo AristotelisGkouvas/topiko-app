@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 
+import { LeagueChips } from "@/components/LeagueChips";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { readParam, type SearchParams } from "@/lib/leagues";
@@ -24,7 +25,18 @@ export default async function ComparePage({
   const left = readParam(params, "a");
   const right = readParam(params, "b");
 
-  const teams = await api.listTeams();
+  // 177 clubs in one dropdown is a scroll nobody finishes; narrowing to one
+  // division makes it a dozen.
+  const liga = readParam(params, "liga");
+  const [allTeams, leagues] = await Promise.all([api.listTeams(), api.listLeagues()]);
+  const league = leagues.find((l) => l.slug === liga);
+  const inLeague = league
+    ? new Set((await api.getStandings(league.slug)).map((row) => row.team.slug))
+    : null;
+  const teams =
+    inLeague && inLeague.size > 0
+      ? allTeams.filter((t) => inLeague.has(t.slug) || t.slug === left || t.slug === right)
+      : allTeams;
   const comparison =
     left && right && left !== right
       ? await api.compareTeams(left, right).catch(() => null)
@@ -34,7 +46,14 @@ export default async function ComparePage({
     <div className={pageStyles.page}>
       <PageHeader title="Σύγκριση" />
 
-      <ComparisonPicker teams={teams} left={left} right={right} />
+      <LeagueChips
+        leagues={leagues}
+        active={league?.slug ?? "oles"}
+        basePath="/sygkrisi"
+        withAll
+      />
+
+      <ComparisonPicker teams={teams} left={left} right={right} league={league?.slug} />
 
       {comparison ? (
         <ComparisonTable comparison={comparison} />

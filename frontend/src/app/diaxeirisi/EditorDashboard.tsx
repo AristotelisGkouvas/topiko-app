@@ -1,29 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 
 import { Empty } from "@/components/States";
-import { EditorError, editorApi, type EditorUser } from "@/lib/editorApi";
+import { ApiError } from "@/lib/api";
+import { editorApi, type EditorUser } from "@/lib/editorApi";
 import { AuditList } from "./AuditList";
+import { CodesEditor } from "./CodesEditor";
+import { MvpEditor } from "./MvpEditor";
 import { LoginForm } from "./LoginForm";
 import { MatchEditor } from "./MatchEditor";
+import { ScrapeRuns } from "./ScrapeRuns";
 import { MatchSheet } from "@/components/MatchSheet";
 import { VenueEditor } from "./VenueEditor";
+import { SESSION_LOST } from "./session";
 import styles from "./page.module.css";
 
-type Tab = "sheet" | "matches" | "venues" | "audit";
+type Tab = "sheet" | "matches" | "codes" | "mvp" | "venues" | "audit" | "runs";
 
 const TABS: { id: Tab; label: string }[] = [
   // First, and the default: on a Sunday this is the only screen that matters.
   { id: "sheet", label: "Φύλλο αγώνα" },
   { id: "matches", label: "Αγώνες" },
+  { id: "codes", label: "Σωματεία" },
+  { id: "mvp", label: "MVP" },
   { id: "venues", label: "Γήπεδα" },
   { id: "audit", label: "Ιστορικό" },
+  { id: "runs", label: "Ενημερώσεις" },
 ];
 
 export function EditorDashboard() {
   const [tab, setTab] = useState<Tab>("sheet");
+  const [lostOnSave, setLostOnSave] = useState(false);
+
+  useEffect(() => {
+    const lost = () => setLostOnSave(true);
+    window.addEventListener(SESSION_LOST, lost);
+    return () => window.removeEventListener(SESSION_LOST, lost);
+  }, []);
 
   // The session is a cookie this page cannot read, so whether anyone is logged
   // in is a question only the API can answer.
@@ -35,10 +50,15 @@ export function EditorDashboard() {
 
   if (isLoading) return <p className={styles.loading}>Έλεγχος σύνδεσης…</p>;
 
-  if (error instanceof EditorError && error.status === 401) {
+  const expired = error instanceof ApiError && error.status === 401;
+  // Signed out before anything was shown: the plain login form. Signed out
+  // *while working* — a 401 on a save, or on the focus recheck with the user
+  // still in hand — keeps the dashboard mounted below a login banner.
+  if (expired && !user) {
     return <LoginForm onSignedIn={() => mutate()} />;
   }
-  if (error) {
+  const sessionLost = lostOnSave || expired;
+  if (error && !expired) {
     return (
       <Empty
         title="Το API δεν απαντά"
@@ -71,6 +91,8 @@ export function EditorDashboard() {
           type="button"
           className={styles.logout}
           onClick={async () => {
+            // One click away from the tabs, on a Sunday, with scores typed.
+            if (!window.confirm("Αποσύνδεση από τη διαχείριση;")) return;
             await editorApi.logout();
             mutate(undefined, { revalidate: true });
           }}
@@ -78,6 +100,21 @@ export function EditorDashboard() {
           Αποσύνδεση
         </button>
       </header>
+
+      {sessionLost && (
+        <section className={styles.relogin} role="alert">
+          <p>
+            Η σύνδεση έληξε. Συνδέσου ξανά — ό,τι έχεις γράψει παρακάτω μένει
+            στη θέση του· μετά πάτα ξανά Καταχώρηση.
+          </p>
+          <LoginForm
+            onSignedIn={() => {
+              setLostOnSave(false);
+              mutate();
+            }}
+          />
+        </section>
+      )}
 
       <nav className={styles.tabs} aria-label="Ενότητες διαχείρισης">
         {TABS.map((t) => (
@@ -95,8 +132,11 @@ export function EditorDashboard() {
 
       {tab === "sheet" && <MatchSheet />}
       {tab === "matches" && <MatchEditor />}
+      {tab === "codes" && <CodesEditor />}
+      {tab === "mvp" && <MvpEditor />}
       {tab === "venues" && <VenueEditor />}
       {tab === "audit" && <AuditList />}
+      {tab === "runs" && <ScrapeRuns />}
     </>
   );
 }

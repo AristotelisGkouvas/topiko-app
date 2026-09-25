@@ -25,7 +25,14 @@ export default async function Image({
   try {
     const { match, league } = await api.getMatch(id);
     const played = match.home_score !== null && match.away_score !== null;
-    footer = [league.short_name ?? league.name, formatDayDate(match.kickoff_at)]
+    // A live match says so: a card with 1–0 and no LIVE reads as a final
+    // score in the group chat.
+    const state = match.is_live
+      ? match.status === "halftime"
+        ? "ΗΜΙΧΡΟΝΟ"
+        : `LIVE${match.minute ? ` · ${match.minute}΄` : ""}`
+      : null;
+    footer = [state, league.short_name ?? league.name, formatDayDate(match.kickoff_at)]
       .filter(Boolean)
       .join(" · ");
 

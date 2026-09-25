@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { readParam, type SearchParams } from "@/lib/leagues";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
+import { plural } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,8 @@ export default async function ClubsPage({
         <h1>Σωματεία</h1>
         <p className={styles.subtitle}>
           {query
-            ? `${teams.length} ${teams.length === 1 ? "σωματείο" : "σωματεία"} για «${query}».`
-            : `${teams.length} ${teams.length === 1 ? "σωματείο" : "σωματεία"} στην ένωση.`}
+            ? `${teams.length} ${plural(teams.length, "σωματείο", "σωματεία")} για «${query}».`
+            : `${teams.length} ${plural(teams.length, "σωματείο", "σωματεία")} στην ένωση.`}
         </p>
       </div>
 

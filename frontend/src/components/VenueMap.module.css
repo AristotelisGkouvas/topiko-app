@@ -20,5 +20,48 @@
 }
 
 .map :global(.leaflet-control-attribution) {
-  font-size: 10px;
+  font-size: 0.6875rem;
+}
+
+/* The marker: a navy teardrop with a white core, tip on the point. */
+.pin {
+  background: none;
+  border: none;
+}
+
+.pin > span {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-navy-900);
+  border: 2px solid #fff;
+  transform: rotate(-45deg);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 35%);
+}
+
+.pin > span::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.reveal {
+  width: 100%;
+  min-height: 56px;
+  margin-bottom: 16px;
+  border: 1px dashed var(--color-chip-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.reveal:hover {
+  border-style: solid;
 }

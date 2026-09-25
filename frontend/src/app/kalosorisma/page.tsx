@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { readParam, type SearchParams } from "@/lib/leagues";
 import { ClubPicker, type PickableClub } from "./ClubPicker";
 import { Finish } from "./Finish";
+import { Skip } from "./Skip";
 import { Steps } from "./Steps";
 import styles from "./page.module.css";
 
@@ -65,9 +66,7 @@ export default async function WelcomePage({
           <Link href="/kalosorisma?vima=2" className={styles.primary}>
             Ξεκίνα
           </Link>
-          <Link href="/" className={styles.skip}>
-            Όχι τώρα
-          </Link>
+          <Skip />
         </div>
       </div>
     );

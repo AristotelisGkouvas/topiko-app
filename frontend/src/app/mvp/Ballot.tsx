@@ -7,6 +7,7 @@ import { Empty } from "@/components/States";
 import { castVote, readPoll, voterToken } from "@/lib/mvpApi";
 import type { MvpPoll } from "@/lib/types";
 import styles from "./page.module.css";
+import { plural } from "@/lib/format";
 
 /** Screens M1 and M3: the ballot, and the result once you have used it.
  *
@@ -136,9 +137,9 @@ export function Ballot() {
 
       <p className={styles.note}>
         {!poll.open
-          ? `Η ψηφοφορία έκλεισε. ${total} ${total === 1 ? "ψήφος" : "ψήφοι"}.`
+          ? `Η ψηφοφορία έκλεισε. ${total} ${plural(total, "ψήφος", "ψήφοι")}.`
           : voted
-            ? `Ψήφισες. ${total} ${total === 1 ? "ψήφος" : "ψήφοι"} ως τώρα — μπορείς να αλλάξεις γνώμη όσο είναι ανοιχτή.`
+            ? `Ψήφισες. ${total} ${plural(total, "ψήφος", "ψήφοι")} ως τώρα — μπορείς να αλλάξεις γνώμη όσο είναι ανοιχτή.`
             : "Διάλεξε έναν. Τα αποτελέσματα φαίνονται μόλις ψηφίσεις."}
       </p>
 

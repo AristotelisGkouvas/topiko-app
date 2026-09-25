@@ -11,9 +11,12 @@ import { useState } from "react";
  */
 export function ShareButton({
   title,
+  text,
   className,
 }: {
   title: string;
+  /** A ready sentence for the chat — "Ζίτσα–Πωγώνι, Πέμ 16:00, Δημ. Στάδιο". */
+  text?: string;
   className?: string;
 }) {
   const [said, setSaid] = useState<string | null>(null);
@@ -22,14 +25,18 @@ export function ShareButton({
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title, url });
+        await navigator.share({ title, text, url });
         return;
       }
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(text ? `${text}
+${url}` : url);
       setSaid("Αντιγράφηκε");
-    } catch {
-      // Cancelled, or both APIs blocked. Nothing failed that the reader needs
-      // told about — they simply did not share.
+    } catch (error) {
+      // Closing the share sheet is not a failure.
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      // Neither API available: hand the link over to copy by hand, rather
+      // than a button that silently does nothing.
+      window.prompt("Αντέγραψε τον σύνδεσμο:", url);
     }
   }
 

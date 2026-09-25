@@ -22,7 +22,7 @@
   color: var(--color-text-muted);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-decoration: none;
   font-variant-numeric: tabular-nums;
 }

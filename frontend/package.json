@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "types": "cd ../backend && python -m scripts.openapi > ../frontend/openapi.json && cd ../frontend && openapi-typescript openapi.json -o src/lib/api-schema.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",
@@ -18,11 +21,15 @@
     "swr": "2.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "22.10.5",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
+    "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.4",
-    "typescript": "5.7.3"
+    "openapi-typescript": "^7.13.0",
+    "typescript": "5.7.3",
+    "vitest": "^3.2.7"
   }
 }

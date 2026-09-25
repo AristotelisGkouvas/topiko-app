@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
 import { HeadToHeadBar, tally } from "@/components/HeadToHeadBar";
+import { LastUpdated } from "@/components/LastUpdated";
+import { LiveRefresh } from "@/components/LiveRefresh";
 import { ShareButton } from "@/components/ShareButton";
 import { MatchTicker } from "@/components/MatchTicker";
 import { Prediction } from "@/components/Prediction";
@@ -12,6 +14,7 @@ import { ApiError, api } from "@/lib/api";
 import {
   formatDayDate,
   formatTime,
+  listName,
   matchStatusLabel,
 } from "@/lib/format";
 import { leagueLabel } from "@/lib/leagues";
@@ -34,6 +37,10 @@ async function load(id: string): Promise<MatchDetail> {
   }
 }
 
+/** Where "Αναφορά λάθους" writes to. Set at deploy time; without it the link
+ *  is not shown rather than pointing nowhere. */
+const REPORT_TO = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
+
 export async function generateMetadata({
   params,
 }: {
@@ -41,9 +48,34 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const { match } = await load(id);
+    const { match, league } = await load(id);
+    const played = match.home_score !== null && match.away_score !== null;
+    // What the unfurled link says under the title: the state and score, the
+    // division, the ground — so a stranger from Άρτα knows what this is.
+    const description = [
+      match.is_live
+        ? `LIVE ${match.home_score ?? 0}–${match.away_score ?? 0}`
+        : played
+          ? `Τελικό ${match.home_score}–${match.away_score}`
+          : [formatDayDate(match.kickoff_at), formatTime(match.kickoff_at)]
+              .filter(Boolean)
+              .join(" "),
+      league.name,
+      match.field?.name,
+    ]
+      .filter(Boolean)
+      .join(" · ");
     return {
       title: `${match.home_team.name} - ${match.away_team.name}`,
+      description,
+      // Next replaces, not merges, a child's openGraph — so the root's
+      // fields are restated.
+      openGraph: {
+        type: "website",
+        locale: "el_GR",
+        siteName: "Πάμε Σέντρα",
+        description,
+      },
     };
   } catch {
     return { title: "Αγώνας" };
@@ -75,6 +107,18 @@ export default async function MatchPage({
           and the score. Screens 03 and D03 spend the page's whole block of
           brand colour here — it is the one thing the reader came for. */}
       <div className={styles.hero}>
+        {live && <LiveRefresh />}
+        {/* The page's heading, for screen readers: the visual one is a
+            scoreboard, and a bare "3" means nothing read out alone. */}
+        <h1 className="srOnly">
+          {played
+            ? `${match.home_team.name} ${match.home_score}, ${match.away_team.name} ${match.away_score}`
+            : `${match.home_team.name} – ${match.away_team.name}`}
+          {" — "}
+          {live && match.minute
+            ? `σε εξέλιξη, ${match.minute}ο λεπτό`
+            : matchStatusLabel(match.status, match.kickoff_at)}
+        </h1>
         <nav className={styles.breadcrumb} aria-label="Διαδρομή">
           <Link href={`/agones?liga=${league.slug}`}>‹ Αγώνες</Link>
           <span>
@@ -125,7 +169,7 @@ export default async function MatchPage({
           label="Γήπεδο"
           value={
             match.field ? (
-              <Link href={`/gipeda?anazitisi=${encodeURIComponent(match.field.name)}`}>
+              <Link href={`/gipeda/${match.field.slug}`}>
                 {match.field.name}
               </Link>
             ) : null
@@ -149,8 +193,29 @@ export default async function MatchPage({
             )}
             <ShareButton
               title={`${match.home_team.name} – ${match.away_team.name}`}
+              text={[
+                `${listName(match.home_team)}–${listName(match.away_team)}${
+                  played ? ` ${match.home_score}–${match.away_score}` : ""
+                }${live ? " (LIVE)" : ""}`,
+                played
+                  ? null
+                  : [formatDayDate(match.kickoff_at), formatTime(match.kickoff_at)]
+                      .filter(Boolean)
+                      .join(" "),
+                match.field?.name,
+              ]
+                .filter(Boolean)
+                .join(", ")}
               className={styles.secondary}
             />
+            {/* 9:16, for a story — the link card is the wrong shape for one. */}
+            <a
+              href={`/agones/${match.id}/istoria?lipsi=1`}
+              download
+              className={styles.secondary}
+            >
+              Λήψη εικόνας
+            </a>
           </div>
 
           {match.note && <p className={styles.note}>{match.note}</p>}
@@ -158,17 +223,46 @@ export default async function MatchPage({
           {/* Where the number came from. A score an editor typed during the
               match is a different claim from one lifted off the federation's
               own page, and this is the one screen with room to say so. */}
+          {/* "Who" names the kind of source, not the person: a live score
+              may come from the club's volunteer or from the federation's
+              desk, and saying "editor" for both was wrong half the time. */}
           {played && match.data_source !== "scraper" && (
             <p className={styles.provenance}>
               {match.data_source === "manual_live"
-                ? "Καταχωρήθηκε από συντάκτη κατά τη διάρκεια του αγώνα· εκκρεμεί η επιβεβαίωση από την ένωση."
-                : "Καταχωρήθηκε από συντάκτη και επιβεβαιώθηκε."}
+                ? "Καταχωρήθηκε χειροκίνητα· εκκρεμεί η επιβεβαίωση με το φύλλο αγώνα."
+                : "Καταχωρήθηκε χειροκίνητα και ελέγχθηκε με το φύλλο αγώνα."}
+            </p>
+          )}
+          {/* When, so that a score can be quoted with a time on it. */}
+          <LastUpdated timestamp={match.updated_at} />
+
+          {/* Pre-filled, so the report names the match without anybody having
+              to describe it. Only where there is an address to send it to. */}
+          {REPORT_TO && (
+            <p className={styles.report}>
+              <a
+                href={`mailto:${REPORT_TO}?subject=${encodeURIComponent(
+                  `Λάθος: ${match.home_team.name} – ${match.away_team.name}`,
+                )}&body=${encodeURIComponent(
+                  `Αγώνας #${match.id} (${formatDayDate(match.kickoff_at)})
+` +
+                    `Στη σελίδα: ${played ? `${match.home_score}–${match.away_score}` : "χωρίς σκορ"}
+` +
+                    "Το σωστό είναι: ",
+                )}`}
+              >
+                Αναφορά λάθους
+              </a>
             </p>
           )}
         </div>
 
         <div className={styles.centre}>
-          <MatchTicker matchId={match.id} />
+          <MatchTicker
+            matchId={match.id}
+            homeName={match.home_team.short_name ?? match.home_team.name}
+            awayName={match.away_team.short_name ?? match.away_team.name}
+          />
 
           <Prediction
             matchId={match.id}

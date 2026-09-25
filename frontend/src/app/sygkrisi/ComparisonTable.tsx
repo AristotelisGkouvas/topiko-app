@@ -98,7 +98,8 @@ export function ComparisonTable({ comparison }: { comparison: Comparison }) {
         <section className={styles.record}>
           <SectionHeader title="Μεταξύ τους" />
           <p className={styles.recordLine}>
-            <strong>{record.played}</strong> συναντήσεις · {record.home_wins}
+            <strong>{record.played}</strong>{" "}
+            {record.played === 1 ? "συνάντηση" : "συναντήσεις"} · {record.home_wins}
             –{record.draws}–{record.away_wins} · γκολ {record.home_goals}–
             {record.away_goals}
           </p>

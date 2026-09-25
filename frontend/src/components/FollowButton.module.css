@@ -2,18 +2,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   /* 44px: the kit's hit target, and the smallest thing a thumb finds. */
-  width: 44px;
-  height: 44px;
-  padding: 0;
+  min-height: 44px;
+  padding: 0 16px 0 12px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface);
-  color: var(--color-grey-400);
-  font-size: 22px;
+  color: var(--color-grey-600);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.875rem;
   line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   transition: color 120ms ease, border-color 120ms ease;
+}
+
+.star {
+  font-size: 1.25rem;
+}
+
+.text {
+  color: var(--color-heading);
+}
+
+.on .text {
+  color: var(--color-grey-800);
 }
 
 .button:hover {

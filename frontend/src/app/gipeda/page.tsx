@@ -12,6 +12,7 @@ import { readParam, type SearchParams } from "@/lib/leagues";
 import type { Field } from "@/lib/types";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
+import { plural } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Γήπεδα" };
 
@@ -101,13 +102,15 @@ export default async function FieldsPage({
 
       <p className={styles.subtitle}>
         {query
-        ? `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} για «${query}».`
-        : `${fields.length} ${fields.length === 1 ? "γήπεδο" : "γήπεδα"} της ένωσης.`}
+        ? `${fields.length} ${plural(fields.length, "γήπεδο", "γήπεδα")} για «${query}».`
+        : `${fields.length} ${plural(fields.length, "γήπεδο", "γήπεδα")} της ένωσης.`}
       </p>
 
       <SearchBox placeholder="Αναζήτηση γηπέδου…" label="Αναζήτηση γηπέδου" />
 
-      <VenueMap fields={fields} />
+      {/* No pins, no map: the component (and on a slow line, the tiles it
+          would ask for) stays off the page until there is something to show. */}
+      {located > 0 && <VenueMap fields={fields} />}
 
       {located === 0 && (
         <p className={styles.noPins}>

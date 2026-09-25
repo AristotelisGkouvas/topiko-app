@@ -19,25 +19,25 @@
 .sm {
   width: 24px;
   height: 24px;
-  font-size: 9.5px;
+  font-size: 0.5938rem;
 }
 
 /* The size the design uses in every list row. */
 .md {
   width: 30px;
   height: 30px;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .lg {
   width: 64px;
   height: 64px;
-  font-size: 23px;
+  font-size: 1.4375rem;
 }
 
 /* On the navy bar and inside navy cards the green disc all but disappears, so
    it inverts: off-white disc, navy monogram. Screen S2 does exactly this. */
 .onNavy {
-  background: var(--color-grey-100);
+  background: var(--color-on-navy);
   color: var(--color-navy-900);
 }

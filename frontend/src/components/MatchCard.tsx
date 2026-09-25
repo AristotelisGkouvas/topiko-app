@@ -149,17 +149,31 @@ export function MatchCard({ match }: { match: Match }) {
   );
 }
 
-/** One line per fixture — the compact form used in "Επόμενη αγωνιστική". */
+/** One line per fixture — the compact form used in "Επόμενη αγωνιστική".
+ *
+ *  The whole line links to the match. On the right: the score once there is
+ *  one, LIVE while it is being played, the kickoff otherwise. */
 export function FixtureRow({ match }: { match: Match }) {
-  const shortName = listName;
+  const scored = isPlayed(match);
   return (
-    <li className={styles.fixtureRow}>
-      <span className={styles.fixtureRowTeams}>
-        {shortName(match.home_team)} — {shortName(match.away_team)}
-      </span>
-      <span className={styles.fixtureRowTime}>
-        {formatShortKickoff(match.kickoff_at)}
-      </span>
+    <li>
+      <Link href={`/agones/${match.id}`} className={styles.fixtureRow}>
+        <span className={styles.fixtureRowTeams}>
+          {listName(match.home_team)} — {listName(match.away_team)}
+        </span>
+        {match.is_live && (
+          <span className={styles.fixtureRowLive}>LIVE</span>
+        )}
+        <span
+          className={scored ? styles.fixtureRowScore : styles.fixtureRowTime}
+        >
+          {scored
+            ? `${match.home_score}–${match.away_score}`
+            : match.status === "scheduled"
+              ? formatShortKickoff(match.kickoff_at)
+              : matchStatusLabel(match.status, match.kickoff_at)}
+        </span>
+      </Link>
     </li>
   );
 }

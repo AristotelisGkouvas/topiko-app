@@ -38,8 +38,8 @@
 .go {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--radius-md);
   background: var(--color-green-600);
   color: #fff;
@@ -50,15 +50,15 @@
 }
 
 .dismiss {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: none;
   border-radius: 50%;
   background: none;
   color: var(--color-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   cursor: pointer;
 }
 

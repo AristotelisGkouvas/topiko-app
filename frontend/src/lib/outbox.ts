@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { API_URL, ASSOCIATION } from "./api";
+import { apiUrl, errorDetail } from "./api";
 
 /** Events recorded with no signal, waiting to be sent.
  *
@@ -83,7 +83,7 @@ function drop(clientId: string) {
 async function send(event: QueuedEvent): Promise<Response> {
   const base = event.via === "ethelontis" ? "ethelontis" : "editor";
   return fetch(
-    `${API_URL}/api/v1/${ASSOCIATION}/${base}/matches/${event.match_id}/events`,
+    apiUrl(`/${base}/matches/${event.match_id}/events`),
     {
       method: "POST",
       credentials: "include",
@@ -98,6 +98,49 @@ async function send(event: QueuedEvent): Promise<Response> {
       }),
     },
   );
+}
+
+// --- what the server refused ----------------------------------------------
+
+const REJECTED_KEY = "pamesentra:outbox:rejected";
+
+export interface RejectedEvent extends QueuedEvent {
+  /** The server's own words for why. */
+  reason: string;
+  rejected_at: number;
+}
+
+/** Events the server would not accept, newest last, so the screen can show
+ *  what was lost and let somebody enter it again correctly. */
+export function rejected(): RejectedEvent[] {
+  try {
+    const raw = window.localStorage.getItem(REJECTED_KEY);
+    return raw ? (JSON.parse(raw) as RejectedEvent[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function reject(event: QueuedEvent, reason: string) {
+  // The last twenty are plenty for one afternoon; older ones are history.
+  const kept = [...rejected(), { ...event, reason, rejected_at: Date.now() }].slice(-20);
+  try {
+    window.localStorage.setItem(REJECTED_KEY, JSON.stringify(kept));
+  } catch {
+    // Storage full or blocked: the message from flush() still says why.
+  }
+}
+
+/** Forget a rejected event once somebody has dealt with it. */
+export function dismissRejected(clientId: string) {
+  try {
+    window.localStorage.setItem(
+      REJECTED_KEY,
+      JSON.stringify(rejected().filter((e) => e.client_id !== clientId)),
+    );
+  } catch {
+    // Nothing to do: the list simply stays.
+  }
 }
 
 export interface FlushResult {
@@ -139,16 +182,26 @@ export async function flush(): Promise<FlushResult> {
       return { sent, remaining: read().length, blocked: "Χρειάζεται σύνδεση." };
     }
 
+    if (response.status === 408 || response.status === 429) {
+      // Timed out or throttled: nothing wrong with the event, only with the
+      // moment. Kept in place and retried on the next flush.
+      break;
+    }
+
     if (response.status >= 400 && response.status < 500) {
-      // The server will never accept this one — a match that no longer
-      // exists, a team that is not in it. Dropped rather than retried for
-      // ever, because a queue that can never empty blocks everything behind
-      // it.
+      // The server will never accept this one — a minute of 450, a match
+      // whose window has closed. Taken out of the queue, because a queue that
+      // can never empty blocks everything behind it; but kept, with the
+      // server's reason, rather than thrown away: "a goal was rejected" with
+      // no word of which one left a volunteer unable to put it right.
+      const reason = await errorDetail(response);
       drop(event.client_id);
+      reject(event, reason);
+      const minute = event.minute === undefined ? "" : ` (${event.minute}′)`;
       return {
         sent,
         remaining: read().length,
-        blocked: "Ένα γεγονός απορρίφθηκε και αφαιρέθηκε.",
+        blocked: `Δεν καταχωρήθηκε${minute}: ${reason}`,
       };
     }
 

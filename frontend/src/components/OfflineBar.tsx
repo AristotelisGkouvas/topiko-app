@@ -31,13 +31,18 @@ export function OfflineBar() {
   const pathname = usePathname();
   const savedAtMs = useSavedAt(pathname);
   const [retrying, setRetrying] = useState(false);
+  const [stillOffline, setStillOffline] = useState(false);
 
   useEffect(() => {
     // Stamped on arrival, while the connection is up — that is when what is on
     // screen actually came from the network. Reading the clock at the moment
     // it drops would print the time of the failure and call it the time of the
     // data, which is the one thing this must not do.
-    if (online) markSeen(pathname);
+    //
+    // The radio is asked directly as well: `online` is true during hydration
+    // whatever the phone says (it is the server's answer), so a page reloaded
+    // from the service worker with no signal was stamped "saved just now".
+    if (online && navigator.onLine) markSeen(pathname);
   }, [online, pathname]);
 
   if (online) return null;
@@ -45,6 +50,14 @@ export function OfflineBar() {
   const savedAt = savedAtMs === null ? null : clockTime(savedAtMs);
 
   async function retry() {
+    // Still no signal: say so and leave the saved page alone. A refresh that
+    // cannot reach the server swapped the page for an error screen, and the
+    // bar that explained why went with it.
+    if (!navigator.onLine) {
+      setStillOffline(true);
+      window.setTimeout(() => setStillOffline(false), 3000);
+      return;
+    }
     setRetrying(true);
     try {
       // Both: anything waiting in the queue goes out, and the page asks the
@@ -69,7 +82,7 @@ export function OfflineBar() {
         onClick={retry}
         disabled={retrying}
       >
-        {retrying ? "…" : "Δοκίμασε ξανά"}
+        {retrying ? "…" : stillOffline ? "Ακόμη χωρίς σύνδεση" : "Δοκίμασε ξανά"}
       </button>
     </div>
   );

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function EditorPage() {
   return (
-    <div className={pageStyles.page}>
+    <div className={`${pageStyles.page} ${pageStyles.wide}`}>
       <EditorDashboard />
     </div>
   );

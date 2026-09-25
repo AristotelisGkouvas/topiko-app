@@ -34,11 +34,15 @@ export function CodeInput({
 
   // The dash is drawn, not stored: the reader may or may not type it, and the
   // server forgives either way. What is stored is what they typed.
-  const clean = value.replace(/-/g, "");
+  const clean = value.replace(/[-‐-―−\s]/g, "");
+  // Most prefixes are three letters, but a club that collided with another
+  // gets ΚΟΝΙ or ΚΟΝ2. Whatever precedes the last six characters is the
+  // prefix, so the boxes grow with it instead of pushing a letter past the dash.
+  const lead = Math.max(letters, Math.min(5, clean.length - digits));
   const boxes = [
-    ...Array.from({ length: letters }, (_, i) => clean[i] ?? ""),
+    ...Array.from({ length: lead }, (_, i) => clean[i] ?? ""),
     null, // the dash
-    ...Array.from({ length: digits }, (_, i) => clean[letters + i] ?? ""),
+    ...Array.from({ length: digits }, (_, i) => clean[lead + i] ?? ""),
   ];
 
   return (
@@ -84,7 +88,7 @@ export function CodeInput({
           spellCheck={false}
           autoComplete="off"
           inputMode="text"
-          maxLength={letters + digits + 2}
+          maxLength={5 + digits + 2}
           aria-invalid={invalid || undefined}
           required
         />

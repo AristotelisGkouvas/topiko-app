@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Crest } from "@/components/Crest";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
-import { formatDayDate } from "@/lib/format";
+import { formatDayDate, plural } from "@/lib/format";
 import type { HeadToHead, Match } from "@/lib/types";
 import pageStyles from "../../../page.module.css";
 import styles from "./page.module.css";
@@ -33,7 +33,7 @@ export async function generateMetadata({
     const record = await load(home, away);
     return {
       title: `${record.home.name} — ${record.away.name}`,
-      description: `${record.played} συναντήσεις: ${record.home_wins}-${record.draws}-${record.away_wins}`,
+      description: `${record.played} ${plural(record.played, "συνάντηση", "συναντήσεις")}: ${record.home_wins}-${record.draws}-${record.away_wins}`,
     };
   } catch {
     return { title: "Κόντρα" };
@@ -69,7 +69,9 @@ export default async function HeadToHeadPage({ params }: { params: Params }) {
           <ClubSide slug={record.home.slug} team={record.home} />
           <div className={styles.versus}>
             <span className={styles.played}>{record.played}</span>
-            <span className={styles.playedLabel}>συναντήσεις</span>
+            <span className={styles.playedLabel}>
+              {plural(record.played, "συνάντηση", "συναντήσεις")}
+            </span>
           </div>
           <ClubSide slug={record.away.slug} team={record.away} />
         </div>
@@ -77,7 +79,7 @@ export default async function HeadToHeadPage({ params }: { params: Params }) {
         <div
           className={styles.bar}
           role="img"
-          aria-label={`${record.home_wins} νίκες ${record.home.name}, ${record.draws} ισοπαλίες, ${record.away_wins} νίκες ${record.away.name}`}
+          aria-label={`${record.home_wins} ${record.home_wins === 1 ? "νίκη" : "νίκες"} ${record.home.name}, ${record.draws} ${record.draws === 1 ? "ισοπαλία" : "ισοπαλίες"}, ${record.away_wins} ${record.away_wins === 1 ? "νίκη" : "νίκες"} ${record.away.name}`}
         >
           <span className={styles.barHome} style={{ width: share(record.home_wins) }} />
           <span className={styles.barDraw} style={{ width: share(record.draws) }} />
@@ -85,9 +87,9 @@ export default async function HeadToHeadPage({ params }: { params: Params }) {
         </div>
 
         <div className={styles.tally}>
-          <span>{record.home_wins} νίκες</span>
-          <span>{record.draws} ισοπαλίες</span>
-          <span>{record.away_wins} νίκες</span>
+          <span>{record.home_wins} {record.home_wins === 1 ? "νίκη" : "νίκες"}</span>
+          <span>{record.draws} {record.draws === 1 ? "ισοπαλία" : "ισοπαλίες"}</span>
+          <span>{record.away_wins} {record.away_wins === 1 ? "νίκη" : "νίκες"}</span>
         </div>
 
         <p className={styles.goals}>

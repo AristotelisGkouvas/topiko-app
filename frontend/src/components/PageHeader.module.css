@@ -9,10 +9,11 @@
    the light canvas. Stacking two navy bars reads as a bug. */
 
 .header {
+  --focus-ring: var(--color-on-navy-accent);
   background: var(--color-navy-900);
   /* Full bleed: cancels the padding <main> applies, so the band reaches both
      edges the way the design draws it. */
-  margin: -18px -16px 0;
+  margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
 }
 
 .inner {
@@ -24,27 +25,30 @@
 
 .top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 4px 10px;
 }
 
 .title {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 24px;
+  font-size: 1.5rem;
   line-height: 1;
   color: var(--color-on-navy);
 }
 
 .aside {
-  flex: none;
+  /* Wraps under the title rather than pushing the page sideways when the
+     reader's text is set large. */
+  flex: 0 1 auto;
+  min-width: 0;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: 0.75rem;
   color: var(--color-on-navy-muted);
-  white-space: nowrap;
 }
 
 .controls {
@@ -61,7 +65,7 @@
   padding: 8px 12px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-on-navy);
 }
 
@@ -81,7 +85,7 @@
   display: grid;
   place-items: center;
   color: var(--color-on-navy-muted);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
   text-decoration: none;
 }
@@ -115,13 +119,13 @@
   }
 
   .title {
-    font-size: 30px;
+    font-size: 1.875rem;
     color: var(--color-heading);
   }
 
   .aside {
     color: var(--color-text-muted);
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   .controls {
@@ -139,7 +143,7 @@
 
   .arrow,
   .arrowOff {
-    color: var(--color-grey-400);
+    color: var(--color-nav-idle);
   }
 
   .arrow:hover {

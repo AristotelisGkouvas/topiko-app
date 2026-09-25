@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import useSWR from "swr";
 
 import { Wordmark } from "./Logo";
 import { LeaguePicker, type PickerLeague } from "./LeaguePicker";
 import { NavIcon } from "./NavIcon";
 import { ThemeToggle } from "./ThemeToggle";
+import { apiUrl, jsonFetcher } from "@/lib/api";
+import type { Association } from "@/lib/types";
 import {
   PRIMARY_NAV_ITEMS,
   SECONDARY_NAV_ITEMS,
@@ -31,7 +34,7 @@ import styles from "./SiteHeader.module.css";
 /** "Στατιστικά ▾" — the pages that answer a question about numbers. */
 const STATS_MENU = ["/skorer", "/paiktes", "/rekor", "/sygkrisi", "/poines"];
 /** "Ένωση ▾" — the pages about the federation rather than the football. */
-const UNION_MENU = ["/gipeda", "/anakoinoseis", "/san-simera"];
+const UNION_MENU = ["/gipeda", "/anakoinoseis", "/san-simera", "/sxetika"];
 
 const bySlug = (hrefs: string[]): NavItem[] =>
   hrefs
@@ -47,13 +50,37 @@ export function SiteHeader({
 }) {
   const pathname = usePathname();
   const stats = bySlug(STATS_MENU);
-  const union = bySlug(UNION_MENU);
+  const union = [
+    ...bySlug(UNION_MENU.filter((href) => href !== "/sxetika")),
+    { href: "/sxetika", label: "Σχετικά", icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h.01" },
+  ];
+  // Which federation this is, under the logo. A visitor from a shared link
+  // otherwise has no way of telling that the site covers one ΕΠΣ and not
+  // Greece. Fetched once and kept; it does not change during a visit.
+  const { data: association } = useSWR<Association>(apiUrl(""), jsonFetcher, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+  });
+
+  // Embedded in another site's iframe: no chrome around the table.
+  if (pathname.startsWith("/embed")) return null;
 
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.brand} aria-label="Πάμε Σέντρα">
+        <Link
+          href="/"
+          className={styles.brand}
+          aria-label={
+            association ? `Πάμε Σέντρα · ${association.name}` : "Πάμε Σέντρα"
+          }
+        >
           <Wordmark />
+          {association && (
+            <span className={styles.association} aria-hidden="true">
+              {association.short_name ?? association.name}
+            </span>
+          )}
         </Link>
 
         {/* Wide screens only: the phone has these at the bottom. */}
@@ -81,6 +108,10 @@ export function SiteHeader({
             <span className={styles.menuTheme}>
               <span>Θέμα</span>
               <ThemeToggle className={styles.theme} />
+            </span>
+            {/* Said where a visitor from elsewhere looks for their own ΕΠΣ. */}
+            <span className={styles.menuNote}>
+              {association?.name ?? "Μία ένωση"} προς το παρόν · άλλες ενώσεις σύντομα
             </span>
           </Menu>
         </nav>

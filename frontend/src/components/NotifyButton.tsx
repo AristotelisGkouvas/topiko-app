@@ -3,19 +3,13 @@
 import { useState } from "react";
 import useSWR from "swr";
 
-import { API_URL, ASSOCIATION, apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import styles from "./NotifyButton.module.css";
 
 interface PushConfig {
   enabled: boolean;
   public_key: string | null;
 }
-
-const fetcher = async (url: string): Promise<PushConfig> => {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(String(response.status));
-  return response.json();
-};
 
 /** The browser wants the application server key as bytes, not base64url. */
 function toKeyBytes(base64url: string): Uint8Array {
@@ -38,7 +32,7 @@ type State = "idle" | "working" | "on" | "denied" | "unsupported";
 export function NotifyButton({ slug, name }: { slug: string; name: string }) {
   const { data: config } = useSWR<PushConfig>(
     apiUrl("/push/config"),
-    fetcher,
+    jsonFetcher<PushConfig>,
   );
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -70,20 +64,15 @@ export function NotifyButton({ slug, name }: { slug: string; name: string }) {
       });
 
       const json = subscription.toJSON();
-      const response = await fetch(
-        `${API_URL}/api/v1/${ASSOCIATION}/push/subscribe`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            endpoint: subscription.endpoint,
-            p256dh: json.keys?.p256dh,
-            auth: json.keys?.auth,
-            team_slug: slug,
-          }),
+      await apiFetch<unknown>(apiUrl("/push/subscribe"), {
+        method: "POST",
+        json: {
+          endpoint: subscription.endpoint,
+          p256dh: json.keys?.p256dh,
+          auth: json.keys?.auth,
+          team_slug: slug,
         },
-      );
-      if (!response.ok) throw new Error(String(response.status));
+      });
       setState("on");
     } catch {
       setError("Δεν ήταν δυνατή η ενεργοποίηση.");

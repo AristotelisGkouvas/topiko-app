@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { EditorError, editorApi } from "@/lib/editorApi";
+import { ApiError } from "@/lib/api";
+import { editorApi } from "@/lib/editorApi";
 import styles from "./page.module.css";
 
 export function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
@@ -23,7 +24,7 @@ export function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
           onSignedIn();
         } catch (err) {
           setError(
-            err instanceof EditorError ? err.message : "Κάτι πήγε στραβά.",
+            err instanceof ApiError ? err.message : "Κάτι πήγε στραβά.",
           );
         } finally {
           setBusy(false);

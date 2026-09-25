@@ -92,7 +92,9 @@ export function Wordmark({
         : "var(--color-green-600)";
   const ink =
     on === "navy"
-      ? "var(--color-grey-100)"
+      ? // Not grey-100: that one goes dark with the theme, and ΣΕΝΤΡΑ
+        // vanished into the navy bar.
+        "var(--color-on-navy)"
       : on === "grass"
         ? "#fff"
         : "var(--color-heading)";

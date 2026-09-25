@@ -72,6 +72,11 @@ export function ClubPicker({ teams }: { teams: PickableClub[] }) {
               ? `Συνέχεια με ${favourite.name}`
               : `Συνέχεια με ${clubs.length} ομάδες`}
         </Link>
+        {clubs.length === 1 && (
+          <p className={styles.small}>
+            Πάτα την ξανά αν θέλεις να την αφαιρέσεις.
+          </p>
+        )}
         {clubs.length > 1 && (
           <p className={styles.small}>
             Πρώτη είναι ο <strong>{favourite!.name}</strong> — αυτή ανοίγει η

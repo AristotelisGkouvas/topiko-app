@@ -4,8 +4,10 @@ import { useState } from "react";
 import useSWR from "swr";
 
 import { Empty } from "@/components/States";
-import { EditorError, editorApi } from "@/lib/editorApi";
+import { ApiError } from "@/lib/api";
+import { editorApi } from "@/lib/editorApi";
 import type { Field } from "@/lib/types";
+import { noteAuthError } from "./session";
 import styles from "./page.module.css";
 
 /** Filling in the grounds.
@@ -58,25 +60,58 @@ export function VenueEditor() {
   );
 }
 
+/** A coordinate as typed, or undefined when it is not a number at all.
+ *
+ *  A Greek keyboard types "39,6683". Number() makes that NaN, JSON makes NaN
+ *  null, and the pin was wiped without a word. */
+function coordinate(raw: string | number): number | null | undefined {
+  const text = String(raw).trim().replace(",", ".");
+  if (text === "") return null;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : undefined;
+}
+
 function VenueRow({ field, onSaved }: { field: Field; onSaved: () => void }) {
   const [lat, setLat] = useState(field.latitude ?? "");
   const [lng, setLng] = useState(field.longitude ?? "");
   const [city, setCity] = useState(field.city ?? "");
+  const [name, setName] = useState(field.name);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
+    const latitude = coordinate(lat);
+    const longitude = coordinate(lng);
+    if (latitude === undefined || longitude === undefined) {
+      setError("Οι συντεταγμένες πρέπει να είναι αριθμοί, π.χ. 39.6683.");
+      return;
+    }
+    if (
+      (latitude !== null && Math.abs(latitude) > 90) ||
+      (longitude !== null && Math.abs(longitude) > 180)
+    ) {
+      setError("Εκτός ορίων: πλάτος έως ±90, μήκος έως ±180.");
+      return;
+    }
+    if (name.trim().length < 2) {
+      setError("Το όνομα του γηπέδου χρειάζεται τουλάχιστον δύο γράμματα.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       await editorApi.saveField(field.slug, {
-        latitude: lat === "" ? null : Number(lat),
-        longitude: lng === "" ? null : Number(lng),
+        latitude,
+        longitude,
         city: city.trim() || null,
+        // Only when changed: the audit log should not record a rename that
+        // did not happen every time a pin is placed.
+        ...(name.trim() !== field.name ? { name: name.trim() } : {}),
       });
       onSaved();
     } catch (err) {
-      setError(err instanceof EditorError ? err.message : "Απέτυχε.");
+      noteAuthError(err);
+      setError(err instanceof ApiError ? err.message : "Απέτυχε.");
     } finally {
       setBusy(false);
     }
@@ -92,6 +127,13 @@ function VenueRow({ field, onSaved }: { field: Field; onSaved: () => void }) {
       </div>
 
       <div className={styles.venueFields}>
+        <input
+          className={styles.small}
+          placeholder="Όνομα γηπέδου"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          aria-label={`Όνομα γηπέδου, ${field.name}`}
+        />
         <input
           className={styles.small}
           placeholder="Γεωγρ. πλάτος"

@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 
-import { formatTime, listName, matchStatusLabel } from "@/lib/format";
+import { useFavourite, useHydrated } from "@/lib/favourite";
+
+import { formatDayDate, formatTime, listName, matchStatusLabel } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchRow.module.css";
 
@@ -14,8 +18,26 @@ import styles from "./MatchRow.module.css";
  *  The winner is set in 800 navy and the loser in 600 muted. That, rather than
  *  reading the two numbers, is what makes a column of fourteen results legible
  *  at a glance.
+ *
+ *  `showDate` is for lists that span weeks — a club's fixtures, a volunteer's
+ *  matches — where "16:00" alone does not say which Sunday. It adds a third
+ *  line with the day and the ground.
  */
-export function MatchRow({ match, last = false }: { match: Match; last?: boolean }) {
+export function MatchRow({
+  match,
+  last = false,
+  showDate = false,
+}: {
+  match: Match;
+  last?: boolean;
+  showDate?: boolean;
+}) {
+  // The reader's own club stands out in every list, not just the home page.
+  const { following } = useFavourite();
+  const hydrated = useHydrated();
+  const mine =
+    hydrated && (following(match.home_team.slug) || following(match.away_team.slug));
+
   const played = match.home_score !== null && match.away_score !== null;
   const homeWon = played && match.home_score! > match.away_score!;
   const awayWon = played && match.away_score! > match.home_score!;
@@ -23,7 +45,7 @@ export function MatchRow({ match, last = false }: { match: Match; last?: boolean
   return (
     <Link
       href={`/agones/${match.id}`}
-      className={`${styles.row} ${last ? styles.rowLast : ""}`}
+      className={`${styles.row} ${last ? styles.rowLast : ""} ${match.is_live ? styles.rowLive : ""} ${mine ? styles.rowMine : ""}`}
     >
       <Side
         team={match.home_team}
@@ -43,9 +65,26 @@ export function MatchRow({ match, last = false }: { match: Match; last?: boolean
           board is the one a reader most needs told about. */}
       {!played && (
         <span className={styles.time}>
-          {match.status === "scheduled"
-            ? formatTime(match.kickoff_at)
-            : matchStatusLabel(match.status, match.kickoff_at)}
+          {(() => {
+            // A kickoff that has passed with no score says so, rather than
+            // showing "21:00" as if it were still to come.
+            const state = matchStatusLabel(match.status, match.kickoff_at);
+            return match.status === "scheduled" && state !== "ΧΩΡΙΣ ΑΠΟΤΕΛΕΣΜΑ"
+              ? formatTime(match.kickoff_at)
+              : state;
+          })()}
+        </span>
+      )}
+      {showDate && (
+        <span className={styles.meta}>
+          {[
+            match.kickoff_at
+              ? `${formatDayDate(match.kickoff_at)} · ${formatTime(match.kickoff_at)}`
+              : "Χωρίς ημερομηνία",
+            match.field?.short_name ?? match.field?.name,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       )}
       {match.is_live && <span className={styles.live}>LIVE</span>}

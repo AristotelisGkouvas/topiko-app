@@ -3,6 +3,7 @@
    padding 0 26px, gap 28px, with a 34px mark and 8px/14px nav pills. */
 
 .header {
+  --focus-ring: var(--color-on-navy-accent);
   background: var(--color-navy-900);
   position: sticky;
   top: 0;
@@ -19,9 +20,20 @@
 /* Drives every size inside the lockup; see Logo.tsx. */
 .brand {
   --logo-size: 34px;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   text-decoration: none;
   flex: none;
+}
+
+.association {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.6px;
+  color: var(--color-on-navy-muted);
+  white-space: nowrap;
 }
 
 /* --- the desktop nav ------------------------------------------------ */
@@ -35,10 +47,12 @@
   align-items: center;
   gap: 4px;
   padding: 8px 14px;
+  min-height: 44px;
+  box-sizing: border-box;
   border-radius: 8px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1;
   color: var(--color-on-navy-idle);
   text-decoration: none;
@@ -67,7 +81,7 @@
 }
 
 .caret {
-  font-size: 11px;
+  font-size: 0.6875rem;
   opacity: 0.8;
 }
 
@@ -99,7 +113,7 @@
   border-radius: 8px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-heading);
   text-decoration: none;
 }
@@ -109,13 +123,13 @@
 }
 
 .menuItem[aria-current="page"] {
-  color: var(--color-green-600);
+  color: var(--color-accent-ink);
 }
 
 .menuIcon {
   display: grid;
   place-items: center;
-  color: var(--color-grey-400);
+  color: var(--color-nav-idle);
   flex: none;
 }
 
@@ -129,7 +143,7 @@
   border-top: 1px solid var(--color-hairline);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
 }
 
@@ -143,7 +157,7 @@
   border-radius: 999px;
   background: none;
   color: var(--color-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   cursor: pointer;
 }
 
@@ -164,7 +178,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 36px;
+  height: 44px;
   border-radius: 8px;
   background: var(--color-on-navy-fill);
   color: var(--color-on-navy-muted);
@@ -173,14 +187,14 @@
 }
 
 /* On a phone the 240px field will not fit beside the wordmark, so it is the
-   icon alone — a 36px target, not a shrunken text field nobody can read. */
+   icon alone — a 44px target, not a shrunken text field nobody can read. */
 .search {
-  width: 36px;
+  width: 44px;
   justify-content: center;
 }
 
 .searchIcon {
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1;
 }
 
@@ -236,11 +250,11 @@
     padding: 0 12px;
     font-family: var(--font-body);
     font-weight: 400;
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   .searchIcon {
-    font-size: 15px;
+    font-size: 0.9375rem;
   }
 
   .searchText {
@@ -261,7 +275,7 @@
     color: var(--color-on-navy-idle);
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 11px;
+    font-size: 0.6875rem;
     line-height: 1;
   }
 }
@@ -288,7 +302,7 @@
   color: var(--color-on-navy);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -335,7 +349,7 @@
   color: var(--color-text);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 0.8438rem;
   text-align: left;
   cursor: pointer;
   min-height: 40px;
@@ -357,4 +371,11 @@
   .leagueWrap {
     display: none;
   }
+}
+
+.menuNote {
+  display: block;
+  padding: 8px 12px 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }

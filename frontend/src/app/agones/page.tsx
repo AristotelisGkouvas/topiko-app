@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AllLeagues } from "./AllLeagues";
+import { ApiLink } from "@/components/ApiLink";
+import { CopyText } from "@/components/CopyText";
 import { LeagueChips } from "@/components/LeagueChips";
 import { MatchRow } from "@/components/MatchRow";
 import { MatchdayStrip } from "@/components/MatchdayStrip";
@@ -8,7 +11,14 @@ import { PageHeader, PageHeaderStepper } from "@/components/PageHeader";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { formatDayDate, upper } from "@/lib/format";
-import { resolveLeague, resolveMatchday, type SearchParams } from "@/lib/leagues";
+import {
+  leagueLabel,
+  readParam,
+  resolveLeague,
+  resolveMatchday,
+  type SearchParams,
+} from "@/lib/leagues";
+import { roundText } from "@/lib/shareText";
 import type { Match } from "@/lib/types";
 import styles from "./page.module.css";
 
@@ -33,6 +43,20 @@ export default async function MatchesPage({
 }) {
   const params = await searchParams;
   const { leagues, league } = await resolveLeague(params);
+
+  // Every division for the weekend — what a reporter needs on a Sunday night
+  // instead of fifteen separate pages.
+  if (readParam(params, "liga") === "oles" && leagues.length > 1) {
+    return (
+      <>
+        <PageHeader title="Αγώνες" aside="Όλες οι κατηγορίες · Σαββατοκύριακο" />
+        <div className={styles.page}>
+          <LeagueChips leagues={leagues} active="oles" basePath="/agones" withAll />
+          <AllLeagues leagues={leagues} />
+        </div>
+      </>
+    );
+  }
 
   if (!league) {
     return (
@@ -80,7 +104,7 @@ export default async function MatchesPage({
       />
 
       <div className={styles.page}>
-        <LeagueChips leagues={leagues} active={league.slug} basePath="/agones" />
+        <LeagueChips leagues={leagues} active={league.slug} basePath="/agones" withAll />
 
         {/* Wide screens get the whole season at once. The stepper still works,
             but walking from the 2nd round to the 24th two taps at a time is
@@ -118,9 +142,24 @@ export default async function MatchesPage({
           </div>
         )}
 
+        {matches.length > 0 && (
+          <div>
+            <CopyText
+              text={roundText(
+                `${leagueLabel(league)} · ${matchday}η αγωνιστική`,
+                matches,
+              )}
+            />
+          </div>
+        )}
+
         <p className={styles.note}>
           Οι διαιτητές φαίνονται στη σελίδα του κάθε αγώνα.{" "}
-          <Link href={`/vathmologia?liga=${league.slug}`}>Βαθμολογία ›</Link>
+          <Link href={`/vathmologia?liga=${league.slug}`}>Βαθμολογία ›</Link>{" "}
+          ·{" "}
+          <ApiLink path={`/leagues/${league.slug}/imerologio.ics`}>
+            Όλη η κατηγορία στο ημερολόγιό σου (.ics)
+          </ApiLink>
         </p>
       </div>
     </>

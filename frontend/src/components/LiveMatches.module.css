@@ -11,7 +11,7 @@
 }
 
 .heading {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 1.8px;
   text-transform: uppercase;
@@ -19,12 +19,12 @@
 }
 
 .count {
-  font-size: 11.5px;
+  font-size: 0.7188rem;
   color: var(--color-text-muted);
 }
 
 .error {
-  font-size: 11.5px;
+  font-size: 0.7188rem;
   color: var(--color-terra-700);
   background: var(--color-amber-200);
   padding: 6px 10px;
@@ -33,7 +33,14 @@
 
 .grid {
   display: grid;
+  /* minmax(0, …), not 1fr: a grid track's minimum is otherwise its content,
+     and one long club name set nowrap pushed every card past a 320px screen. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+}
+
+.grid > * {
+  min-width: 0;
 }
 
 @media (min-width: 720px) {

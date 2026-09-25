@@ -14,15 +14,19 @@ export function ComparisonPicker({
   teams,
   left,
   right,
+  league,
 }: {
   teams: Team[];
   left?: string;
   right?: string;
+  /** The division the lists are narrowed to, kept in the URL. */
+  league?: string;
 }) {
   const router = useRouter();
 
   const go = (a?: string, b?: string) => {
     const params = new URLSearchParams();
+    if (league) params.set("liga", league);
     if (a) params.set("a", a);
     if (b) params.set("b", b);
     const query = params.toString();

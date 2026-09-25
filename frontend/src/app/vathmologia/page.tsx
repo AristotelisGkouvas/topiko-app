@@ -7,7 +7,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { ScorerRail } from "@/components/ScorerRail";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SeasonPicker } from "@/components/SeasonPicker";
+import { CopyText } from "@/components/CopyText";
 import { StandingsTable } from "@/components/StandingsTable";
+import { tableText } from "@/lib/shareText";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
@@ -77,26 +79,33 @@ export default async function StandingsPage({
           <LiveStandings leagueSlug={league.slug} />
 
           {standings.length > 0 ? (
-            <StandingsTable standings={standings} league={league} />
+            <>
+              <StandingsTable standings={standings} league={league} />
+              <div>
+                <CopyText
+                  text={tableText(`Βαθμολογία ${leagueLabel(league)}`, standings)}
+                />{" "}
+                {/* A picture for the group chat — read by all, where a link
+                    is opened by few. */}
+                <a
+                  href={`/vathmologia/eikona?liga=${league.slug}&lipsi=1`}
+                  download
+                  className={styles.imageLink}
+                >
+                  Λήψη εικόνας
+                </a>
+              </div>
+            </>
           ) : (
             <Empty
               title="Χωρίς βαθμολογία"
               body="Η βαθμολογία εμφανίζεται μόλις παιχτεί η πρώτη αγωνιστική."
             />
           )}
-
-          {/* Phone only: on a wide screen these sit in the rail beside the
-              table rather than a screen below it. */}
-          <div className={styles.narrowOnly}>
-            <Rail
-              scorers={scorers}
-              fixtures={fixtures}
-              leagueSlug={league.slug}
-              round={round}
-            />
-          </div>
         </div>
 
+        {/* Rendered once: under the table on a phone, beside it above
+            1040px. */}
         <aside className={styles.side} aria-label={`Σκόρερ ${leagueLabel(league)}`}>
           <Rail
             scorers={scorers}
@@ -110,8 +119,7 @@ export default async function StandingsPage({
   );
 }
 
-/** The same two blocks in both layouts, so the phone and the desktop cannot
- *  drift apart. */
+/** The scorers and the round's fixtures. */
 function Rail({
   scorers,
   fixtures,

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { clockTime, useSavedAt } from "@/lib/freshness";
@@ -32,11 +32,17 @@ export default function Error({
     console.error(error);
   }, [error]);
 
+  const wasOnline = useRef(online);
   useEffect(() => {
     // Retried by itself the moment the signal returns. Somebody who has put
     // the phone back in their pocket should find the page loaded, not a
     // button waiting to be pressed.
-    if (online) reset();
+    //
+    // Only on the transition, never on mount: with the API down and the phone
+    // online, a reset on mount re-renders children that throw again, which
+    // mounts this again — a tight loop against a server that is already down.
+    if (online && !wasOnline.current) reset();
+    wasOnline.current = online;
   }, [online, reset]);
 
   if (!online) {

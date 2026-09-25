@@ -34,7 +34,14 @@ export function FollowButton({
       }
       title={isFollowing ? "Η ομάδα σου" : "Όρισε ως ομάδα σου"}
     >
-      <span aria-hidden="true">{isFollowing ? "★" : "☆"}</span>
+      <span className={styles.star} aria-hidden="true">
+        {isFollowing ? "★" : "☆"}
+      </span>
+      {/* A word beside the star: on its own it read as decoration, and first
+          visitors did not guess it was the way to pick their club. */}
+      <span className={styles.text} aria-hidden="true">
+        {isFollowing ? "Η ομάδα μου" : "Η ομάδα μου;"}
+      </span>
     </button>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Field } from "@/lib/types";
 import styles from "./VenueMap.module.css";
+import { plural } from "@/lib/format";
 
 /** Grounds on a map.
  *
@@ -17,11 +18,20 @@ import styles from "./VenueMap.module.css";
 export function VenueMap({ fields }: { fields: Field[] }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<import("leaflet").Map | null>(null);
+  // Loaded on a tap, not on arrival: the tiles are ~190 KB on every cold
+  // visit, a real cost on a 2 GB/month plan, and OpenStreetMap's tile policy
+  // asks sites not to pull tiles nobody looks at.
+  const [open, setOpen] = useState(false);
 
-  const located = fields.filter((f) => f.latitude !== null && f.longitude !== null);
+  // Memoised: it is the effect's dependency, and a fresh array every render
+  // would tear the map down and rebuild it whenever the parent re-renders.
+  const located = useMemo(
+    () => fields.filter((f) => f.latitude !== null && f.longitude !== null),
+    [fields],
+  );
 
   useEffect(() => {
-    if (!container.current || located.length === 0) return;
+    if (!open || !container.current || located.length === 0) return;
 
     let cancelled = false;
 
@@ -41,6 +51,17 @@ export function VenueMap({ fields }: { fields: Field[] }) {
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(instance);
 
+      // Drawn in CSS rather than Leaflet's default PNGs, which the bundler
+      // does not serve: the stock marker came up as a broken image.
+      const pin = L.divIcon({
+        className: styles.pin,
+        html: "<span></span>",
+        iconSize: [26, 26],
+        iconAnchor: [13, 26],
+        popupAnchor: [0, -24],
+        tooltipAnchor: [0, -20],
+      });
+
       const points: [number, number][] = [];
       for (const field of located) {
         const lat = Number(field.latitude);
@@ -49,7 +70,7 @@ export function VenueMap({ fields }: { fields: Field[] }) {
         points.push([lat, lng]);
 
         const label = [field.name, field.city].filter(Boolean).join(" · ");
-        L.marker([lat, lng])
+        L.marker([lat, lng], { icon: pin })
           .addTo(instance)
           .bindPopup(
             `<strong>${escapeHtml(field.name)}</strong>` +
@@ -70,9 +91,18 @@ export function VenueMap({ fields }: { fields: Field[] }) {
       map.current?.remove();
       map.current = null;
     };
-  }, [located]);
+  }, [located, open]);
 
   if (located.length === 0) return null;
+
+  if (!open) {
+    return (
+      <button type="button" className={styles.reveal} onClick={() => setOpen(true)}>
+        Εμφάνιση χάρτη ({located.length}{" "}
+        {plural(located.length, "γήπεδο", "γήπεδα")})
+      </button>
+    );
+  }
 
   return (
     <div
@@ -80,7 +110,7 @@ export function VenueMap({ fields }: { fields: Field[] }) {
       className={styles.map}
       // Without a role a div full of tiles is announced as nothing at all.
       role="img"
-      aria-label={`Χάρτης με ${located.length} ${located.length === 1 ? "γήπεδο" : "γήπεδα"}`}
+      aria-label={`Χάρτης με ${located.length} ${plural(located.length, "γήπεδο", "γήπεδα")}`}
     />
   );
 }

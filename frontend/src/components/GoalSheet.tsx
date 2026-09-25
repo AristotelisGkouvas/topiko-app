@@ -2,14 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { useFocusTrap } from "@/lib/focusTrap";
 import { fold } from "@/lib/greek";
+import type { RosterPlayer } from "@/lib/types";
 import styles from "./GoalSheet.module.css";
-
-export interface RosterPlayer {
-  slug: string;
-  name: string;
-  goals: number;
-}
 
 export interface GoalChoice {
   /** What the volunteer typed or picked. Null for "nobody knows yet". */
@@ -43,6 +39,7 @@ export function GoalSheet({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
+  const trap = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -61,6 +58,7 @@ export function GoalSheet({
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div
+        ref={trap}
         className={styles.sheet}
         role="dialog"
         aria-modal="true"
@@ -107,11 +105,24 @@ export function GoalSheet({
           {loading ? (
             <p className={styles.note}>Φόρτωση ρόστερ…</p>
           ) : shown.length === 0 ? (
-            <p className={styles.note}>
-              {roster.length === 0
-                ? "Δεν υπάρχει ρόστερ για αυτή την ομάδα. Πάτα «Άγνωστος» — το γκολ μετράει ούτως ή άλλως."
-                : `Κανένας παίκτης για «${query}».`}
-            </p>
+            <>
+              {/* A typed name, for the opponent's scorer or anyone the
+                  register does not hold. */}
+              {query.trim().length >= 2 && (
+                <button
+                  type="button"
+                  className={styles.player}
+                  onClick={() => onPick({ playerName: query.trim(), ownGoal: false })}
+                >
+                  <span className={styles.playerName}>Καταχώρηση ως «{query.trim()}»</span>
+                </button>
+              )}
+              <p className={styles.note}>
+                {roster.length === 0
+                  ? "Χωρίς ρόστερ για αυτή την ομάδα: γράψε το όνομα από πάνω ή πάτα «Άγνωστος» — το γκολ μετράει ούτως ή άλλως."
+                  : `Κανένας παίκτης για «${query}».`}
+              </p>
+            </>
           ) : (
             shown.map((player) => (
               <button

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { MatchSheet, type SheetBackend } from "@/components/MatchSheet";
+import { useOutboxSize } from "@/lib/outbox";
 import { volunteerApi, type Volunteer } from "@/lib/volunteerApi";
 import { CodeForm } from "./CodeForm";
 import styles from "./page.module.css";
@@ -30,6 +31,7 @@ type State = { status: "checking" } | { status: "out" } | { status: "in"; who: V
 
 export function Desk() {
   const [state, setState] = useState<State>({ status: "checking" });
+  const queued = useOutboxSize();
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +72,13 @@ export function Desk() {
           type="button"
           className={styles.logout}
           onClick={async () => {
+            // Events still waiting for a signal are sent with this session;
+            // signing out first strands them on the phone.
+            const question =
+              queued > 0
+                ? `Υπάρχουν ${queued} γεγονότα που δεν έχουν σταλεί ακόμη. Αν αποσυνδεθείς, δεν θα σταλούν. Αποσύνδεση;`
+                : "Αποσύνδεση από το φύλλο αγώνα;";
+            if (!window.confirm(question)) return;
             await volunteerApi.logout().catch(() => undefined);
             setState({ status: "out" });
           }}
@@ -79,7 +88,7 @@ export function Desk() {
       </header>
 
       <div className={styles.sheetWrap}>
-        <MatchSheet backend={BACKEND} />
+        <MatchSheet backend={{ ...BACKEND, ownTeamSlug: state.who.team_slug }} />
       </div>
 
       <p className={styles.small}>
