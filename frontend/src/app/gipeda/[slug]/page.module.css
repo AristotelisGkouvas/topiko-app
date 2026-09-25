@@ -125,12 +125,6 @@
 
 
 
-.noPin {
-  margin: 0 2px;
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  color: var(--color-text-muted);
-}
 
 /* --- grouped lists -------------------------------------------------- */
 
@@ -241,8 +235,7 @@
     align-items: start;
   }
 
-  .group,
-  .noPin {
+  .group {
     grid-column: 2;
   }
 

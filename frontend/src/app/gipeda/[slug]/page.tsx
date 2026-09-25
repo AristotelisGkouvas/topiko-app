@@ -148,14 +148,6 @@ export default async function FieldPage({
           <ShareButton title={field.name} className={styles.secondary} />
         </div>
 
-        {!located && (
-          <p className={styles.noPin}>
-            Το γήπεδο δεν έχει ακόμη θέση στον χάρτη. Οι οδηγίες ψάχνουν το
-            όνομα — η θέση συμπληρώνεται από τη{" "}
-            <Link href="/diaxeirisi">διαχείριση</Link>.
-          </p>
-        )}
-
         {field.home_teams.length > 0 && (
           <section className={styles.group}>
             <p className={styles.groupLabel}>ΣΩΜΑΤΕΙΑ ΜΕ ΕΔΡΑ ΕΔΩ</p>

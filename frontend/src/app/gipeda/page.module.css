@@ -63,17 +63,4 @@
   justify-self: start;
 }
 
-.noPins {
-  margin: 0 2px 16px;
-  padding: 11px 13px;
-  background: var(--color-highlight-surface);
-  color: var(--color-highlight-ink);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  line-height: 1.55;
-}
 
-.noPins a {
-  color: var(--color-navy-900);
-  font-weight: 600;
-}
