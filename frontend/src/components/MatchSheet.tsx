@@ -22,6 +22,7 @@ import {
 import { formatDayDate, formatTime } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchSheet.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 /** How long an entry can be taken back.
  *
@@ -201,17 +202,22 @@ export function MatchSheet({
             onClick={() => setChosen(match)}
           >
             {/* The day as well as the hour: a club's list spans the whole
-                season, and "16:00" eighteen times tells nobody which Sunday. */}
+                season, and "16:00" eighteen times tells nobody which Sunday.
+                A line of its own above the teams, so a fixture with no date
+                yet leaves no empty column beside them. */}
             <span className={styles.pickTime}>
-              <span className={styles.pickDay}>
-                {formatDayDate(match.kickoff_at)}
-              </span>
-              {formatTime(match.kickoff_at)}
+              {match.kickoff_at
+                ? `${formatDayDate(match.kickoff_at)} · ${formatTime(match.kickoff_at)}`
+                : "Χωρίς ημερομηνία"}
+              {match.is_live && <span className={styles.pickLive}>LIVE</span>}
             </span>
+            {/* One club per line: two federation names side by side do not
+                fit a phone, and cut off they are two clubs nobody can tell
+                apart. */}
             <span className={styles.pickTeams}>
-              {match.home_team.name} — {match.away_team.name}
+              <span>{match.home_team.name}</span>
+              <span>{match.away_team.name}</span>
             </span>
-            {match.is_live && <span className={styles.pickLive}>LIVE</span>}
           </button>
         </li>
       ))}
@@ -330,10 +336,13 @@ function Sheet({
       feed &&
       feed.events.length === 0 &&
       existing > 0 &&
-      !window.confirm(
-        `Ο αγώνας έχει ήδη σκορ ${feed.home_score}–${feed.away_score} χωρίς καταγεγραμμένα γκολ. ` +
-          "Από το πρώτο γεγονός το σκορ θα μετράει μόνο όσα καταχωρήσεις εδώ. Συνέχεια;",
-      )
+      !(await confirm(
+        `Ο αγώνας έχει ήδη σκορ ${feed.home_score}–${feed.away_score} χωρίς καταγεγραμμένα γκολ.`,
+        {
+          detail: "Από το πρώτο γεγονός το σκορ θα μετράει μόνο όσα καταχωρήσεις εδώ.",
+          confirmLabel: "Συνέχεια",
+        },
+      ))
     ) {
       return;
     }

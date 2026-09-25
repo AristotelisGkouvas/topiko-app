@@ -21,12 +21,7 @@ const MONTHS = [
 ];
 
 export default async function OnThisDayPage() {
-  // The archive's size comes from the archive, not from a sentence written
-  // when it happened to hold 22.022 matches.
-  const [day, records] = await Promise.all([
-    api.getOnThisDay(),
-    api.getRecords().catch(() => null),
-  ]);
+  const day = await api.getOnThisDay();
 
   // Grouped by year so the page reads as a set of anniversaries rather than
   // one long list in which 2016 and 2024 sit next to each other unexplained.
@@ -85,11 +80,6 @@ export default async function OnThisDayPage() {
         ))
       )}
 
-      <p className={styles.note}>
-        {records &&
-          `Από ${records.total_matches.toLocaleString("el-GR")} ${records.total_matches === 1 ? "αγώνα" : "αγώνες"} σε ${records.seasons_covered} ${records.seasons_covered === 1 ? "περίοδο" : "περιόδους"}. `}
-        Οι μεγαλύτερες διαφορές έρχονται πρώτες.
-      </p>
     </div>
   );
 }

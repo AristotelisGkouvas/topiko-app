@@ -80,6 +80,10 @@ export default async function HomePage({
       />
 
       <div className={styles.main}>
+        {/* First: "Σαν σήμερα" (and an open MVP vote) is what changes every
+            day, so it is what a Tuesday visitor should see before anything. */}
+        <HomeTeasers />
+
         <WelcomeCard />
 
         {/* The design opens on the reader's own club. Everything below is the
@@ -118,8 +122,6 @@ export default async function HomePage({
             />
           )}
         </section>
-
-        <HomeTeasers />
       </div>
 
       {/* Rendered once. On a phone the grid is one column, so this simply

@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { AllLeagues } from "./AllLeagues";
 import { ApiLink } from "@/components/ApiLink";
-import { CopyText } from "@/components/CopyText";
 import { LeagueChips } from "@/components/LeagueChips";
 import { MatchRow } from "@/components/MatchRow";
 import { MatchdayStrip } from "@/components/MatchdayStrip";
@@ -12,13 +11,11 @@ import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { formatDayDate, upper } from "@/lib/format";
 import {
-  leagueLabel,
   readParam,
   resolveLeague,
   resolveMatchday,
   type SearchParams,
 } from "@/lib/leagues";
-import { roundText } from "@/lib/shareText";
 import type { Match } from "@/lib/types";
 import styles from "./page.module.css";
 
@@ -144,17 +141,6 @@ export default async function MatchesPage({
                 </div>
               </section>
             ))}
-          </div>
-        )}
-
-        {matches.length > 0 && (
-          <div>
-            <CopyText
-              text={roundText(
-                `${leagueLabel(league)} · ${matchday}η αγωνιστική`,
-                matches,
-              )}
-            />
           </div>
         )}
 

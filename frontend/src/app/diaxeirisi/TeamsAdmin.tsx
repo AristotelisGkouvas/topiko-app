@@ -13,6 +13,7 @@ import type { SponsorAdmin, Team, TeamLook, TeamPhoto } from "@/lib/types";
 import { noteAuthError } from "./session";
 import styles from "./TeamsAdmin.module.css";
 import page from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 /** A club's look: logo, colours, gallery, sponsors. Admin only.
  *
@@ -137,8 +138,10 @@ function TeamLookEditor({ slug, onBack }: { slug: string; onBack: () => void }) 
               type="button"
               className={styles.danger}
               disabled={busy !== null}
-              onClick={() => {
-                if (window.confirm("Αφαίρεση σήματος;")) run("logo", () => editorApi.removeLogo(slug));
+              onClick={async () => {
+                if (await confirm("Αφαίρεση σήματος;", { confirmLabel: "Αφαίρεση", danger: true })) {
+                  run("logo", () => editorApi.removeLogo(slug));
+                }
               }}
             >
               Αφαίρεση
@@ -309,8 +312,10 @@ function Photos({ slug, photos, busy, run }: { slug: string; photos: TeamPhoto[]
               disabled={busy !== null}
               onCaption={(caption) => run(`caption-${photo.id}`, () => editorApi.captionPhoto(slug, photo.id, caption))}
               onMove={(by) => run("order", () => editorApi.orderPhotos(slug, move(photos, i, by)))}
-              onRemove={() => {
-                if (window.confirm("Διαγραφή φωτογραφίας;")) run("remove", () => editorApi.removePhoto(slug, photo.id));
+              onRemove={async () => {
+                if (await confirm("Διαγραφή φωτογραφίας;", { confirmLabel: "Διαγραφή", danger: true })) {
+                  run("remove", () => editorApi.removePhoto(slug, photo.id));
+                }
               }}
             />
           ))}
@@ -570,8 +575,8 @@ function SponsorRow({
           type="button"
           className={styles.danger}
           disabled={disabled}
-          onClick={() => {
-            if (window.confirm(`Διαγραφή του χορηγού «${sponsor.name}»;`)) {
+          onClick={async () => {
+            if (await confirm(`Διαγραφή του χορηγού «${sponsor.name}»;`, { confirmLabel: "Διαγραφή", danger: true })) {
               run("remove", () => editorApi.removeSponsor(slug, sponsor.id));
             }
           }}

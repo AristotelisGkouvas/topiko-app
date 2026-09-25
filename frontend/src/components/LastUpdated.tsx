@@ -38,7 +38,9 @@ export function LastUpdated({
     state === "offline" && timestamp === null
       ? "Χωρίς δεδομένα"
       : state === "offline"
-        ? `Εκτός σύνδεσης — τελευταία λήψη ${formatRelative(timestamp, now)}`
+        ? // Not "offline": the reader is online, the data is old. The red dot
+          // already says "do not trust this"; the words only say since when.
+          `Τελευταία ενημέρωση ${formatRelative(timestamp, now)}`
         : `Ενημερώθηκε ${formatRelative(timestamp, now)}`,
     suffix,
     host,

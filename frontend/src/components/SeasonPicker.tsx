@@ -14,6 +14,7 @@ export function SeasonPicker({
   seasons,
   active,
   markerLabel = "τρέχουσα",
+  league,
 }: {
   seasons: { slug: string; name: string; is_current: boolean }[];
   /** undefined while the current season is showing, as the URL omits it then. */
@@ -21,6 +22,9 @@ export function SeasonPicker({
   /** What the marked season is. On a club page the newest one it played is
    *  not the season the federation is running, so it is not "τρέχουσα". */
   markerLabel?: string;
+  /** The division on show, by the name readers know it by. Carried across
+   *  the season change as ?kat=, so Β΄ Κατηγορία stays Β΄ Κατηγορία. */
+  league?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -37,10 +41,14 @@ export function SeasonPicker({
     // short — that is the link most people share.
     if (current && slug === current.slug) params.delete("periodos");
     else params.set("periodos", slug);
-    // League and matchday belong to the season being left: slugs repeat across
-    // seasons but ids do not, and the 14th αγωνιστική of 2016 is not the 14th
-    // of today.
+    // The division is carried by name, not by slug: the federation's slugs
+    // change between seasons ("v-katigoria", "v-erasitechniki-katigoria-
+    // 2025-2026") while the name stays "Β Κατηγορία". resolveLeague picks the
+    // division of that name in the other season. The matchday does not carry
+    // over — the 14th αγωνιστική of 2016 is not the 14th of today.
     params.delete("liga");
+    if (league) params.set("kat", league);
+    else params.delete("kat");
     params.delete("agonistiki");
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });

@@ -171,8 +171,12 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* minmax(0, …), not 1fr: a bare 1fr will not shrink below its longest
+     word, and one unbreakable name ("Α.Ε.ΓΕΝΝ.ΚΕΦΑΛΟΒΡ.") widened a column
+     until the grid scrolled sideways and cut the names off. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  overflow-x: hidden;
   align-content: start;
   /* Capped and scrolled: the whole register is 177 clubs, and a page that
      grows to their full height buries the button that moves you on. */
@@ -183,6 +187,7 @@
 .tile {
   position: relative;
   width: 100%;
+  min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -246,6 +251,8 @@
   line-height: 1.15;
   color: var(--color-heading);
   text-align: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   /* Two lines and then an ellipsis: a long club name must not make its tile
      twice the height of the ones beside it. */
   display: -webkit-box;

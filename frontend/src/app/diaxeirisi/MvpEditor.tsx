@@ -8,6 +8,7 @@ import type { components } from "@/lib/api-schema";
 import type { League } from "@/lib/types";
 import { noteAuthError } from "./session";
 import styles from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 type PlayerHit = components["schemas"]["PlayerSearchOut"];
 type Candidate = { player: PlayerHit; reason: string };
@@ -51,9 +52,13 @@ export function MvpEditor() {
       return;
     }
     if (
-      !window.confirm(
-        `Άνοιγμα ψηφοφορίας για την ${round}η αγωνιστική (${chosenLeague.short_name ?? chosenLeague.name}) με ${candidates.length} υποψηφίους; Αν υπάρχει ήδη ψηφοφορία γι' αυτή την αγωνιστική, αντικαθίσταται μαζί με τις ψήφους της.`,
-      )
+      !(await confirm(
+        `Άνοιγμα ψηφοφορίας για την ${round}η αγωνιστική (${chosenLeague.short_name ?? chosenLeague.name}) με ${candidates.length} υποψηφίους;`,
+        {
+          detail: "Αν υπάρχει ήδη ψηφοφορία γι' αυτή την αγωνιστική, αντικαθίσταται μαζί με τις ψήφους της.",
+          confirmLabel: "Άνοιγμα",
+        },
+      ))
     ) {
       return;
     }

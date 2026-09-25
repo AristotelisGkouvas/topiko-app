@@ -98,7 +98,10 @@
 
 .statRow {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* A fixed middle column: with `auto` it was as wide as each row's label,
+     so "ΘΕΣΗ" and "ΓΚΟΛ ΥΠΕΡ" pushed the numbers to different places and
+     the two sides did not line up from one row to the next. */
+  grid-template-columns: 1fr 92px 1fr;
   align-items: center;
   gap: 8px;
   padding: 9px 14px;
@@ -106,6 +109,7 @@
 }
 
 .statLabel {
+  margin: 0;
   font-size: var(--text-xs);
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -123,11 +127,15 @@
   color: var(--color-text);
 }
 
+/* Each number hugs the label, and is only as wide as itself, so the lead
+   tint below is a pill around the number and not a bar across half the row. */
 .statRow .cell:first-of-type {
+  justify-self: end;
   text-align: right;
 }
 
 .statRow .cell:last-of-type {
+  justify-self: start;
   text-align: left;
 }
 

@@ -111,9 +111,6 @@ export default async function FieldPage({
         ) : (
           <div className={styles.hatch} aria-hidden="true" />
         )}
-        <Link href="/gipeda" className={styles.back}>
-          ‹ Γήπεδα
-        </Link>
       </div>
 
       <div className={styles.titleBlock}>

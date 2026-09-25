@@ -7,11 +7,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { ScorerRail } from "@/components/ScorerRail";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SeasonPicker } from "@/components/SeasonPicker";
-import { CopyText } from "@/components/CopyText";
 import { StandingsTable } from "@/components/StandingsTable";
 import { VenueTable } from "@/components/VenueTable";
 import Link from "next/link";
-import { tableText } from "@/lib/shareText";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
 import { matchdayLabel } from "@/lib/format";
@@ -97,8 +95,13 @@ export default async function StandingsPage({
               leagues={leagues}
               active={league.slug}
               basePath="/vathmologia"
+              season={season}
             />
-            <SeasonPicker seasons={seasons} active={season} />
+            <SeasonPicker
+              seasons={seasons}
+              active={season}
+              league={leagueLabel(league)}
+            />
           </div>
 
           <LiveStandings leagueSlug={league.slug} />
@@ -115,9 +118,6 @@ export default async function StandingsPage({
             <>
               <StandingsTable standings={standings} league={league} />
               <div className={styles.tools}>
-                <CopyText
-                  text={tableText(`Βαθμολογία ${leagueLabel(league)}`, standings)}
-                />
                 {/* A picture for the group chat — read by all, where a link
                     is opened by few. */}
                 <a

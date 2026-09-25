@@ -17,6 +17,7 @@ import { VenueEditor } from "./VenueEditor";
 import { SESSION_LOST } from "./session";
 import { TeamsAdmin } from "./TeamsAdmin";
 import styles from "./page.module.css";
+import { confirm } from "@/components/ConfirmDialog";
 
 type Tab = "sheet" | "matches" | "codes" | "look" | "mvp" | "venues" | "audit" | "runs";
 
@@ -96,7 +97,7 @@ export function EditorDashboard() {
           className={styles.logout}
           onClick={async () => {
             // One click away from the tabs, on a Sunday, with scores typed.
-            if (!window.confirm("Αποσύνδεση από τη διαχείριση;")) return;
+            if (!(await confirm("Αποσύνδεση από τη διαχείριση;", { confirmLabel: "Αποσύνδεση" }))) return;
             await editorApi.logout();
             mutate(undefined, { revalidate: true });
           }}

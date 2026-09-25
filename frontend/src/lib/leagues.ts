@@ -63,8 +63,18 @@ export async function resolveLeague(
     : undefined;
 
   const leagues = await api.listLeagues(season);
-  const wanted = readParam(params, "liga") ?? (await rememberedLeague());
-  const league = leagues.find((l) => l.slug === wanted) ?? leagues[0] ?? null;
+  const find = (slug: string | undefined) =>
+    slug ? leagues.find((l) => l.slug === slug) : undefined;
+  // ?kat= is a division by name, set when the season changes (SeasonPicker):
+  // slugs differ between seasons, names do not. It outranks the remembered
+  // division, which is a slug from the season being left.
+  const named = readParam(params, "kat");
+  const league =
+    find(readParam(params, "liga")) ??
+    (named ? leagues.find((l) => leagueLabel(l) === named) : undefined) ??
+    find(await rememberedLeague()) ??
+    leagues[0] ??
+    null;
   return { seasons, season, leagues, league };
 }
 
