@@ -1,0 +1,7 @@
+
+# Intermediate for `npm run types`; the generated api-schema.ts is committed.
+openapi.json
+
+# Playwright
+/test-results/
+/playwright-report/
