@@ -135,7 +135,7 @@
 .lead {
   font-weight: 700;
   color: var(--color-heading);
-  background: var(--color-green-100);
+  background: var(--color-soft);
   border-radius: 999px;
   padding: 1px 8px;
 }

@@ -45,13 +45,13 @@
 }
 
 .chipNext {
-  background: var(--color-green-100);
-  color: var(--color-navy-900);
+  background: var(--color-soft);
+  color: var(--color-heading);
 }
 
 .chipWarn {
-  background: var(--color-amber-200);
-  color: var(--color-terra-700);
+  background: var(--color-highlight-surface);
+  color: var(--color-loss-text);
 }
 
 .pulse {

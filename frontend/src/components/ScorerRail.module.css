@@ -29,13 +29,13 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--color-green-600);
+  background: var(--color-crest-surface);
   display: grid;
   place-items: center;
   font-weight: 800;
   font-size: 0.625rem;
   line-height: 1;
-  color: #fff;
+  color: var(--color-crest-ink);
   user-select: none;
 }
 

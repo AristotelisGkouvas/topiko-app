@@ -6,8 +6,8 @@
   place-items: center;
   flex: none;
   border-radius: 50%;
-  background: var(--color-green-600);
-  color: var(--color-grey-50);
+  background: var(--color-crest-surface);
+  color: var(--color-crest-ink);
   font-family: var(--font-display);
   font-weight: 800;
   line-height: 1;

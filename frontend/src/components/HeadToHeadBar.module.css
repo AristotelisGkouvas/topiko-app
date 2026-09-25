@@ -53,7 +53,7 @@
 /* Navy and grey-blue, not two brand colours: neither club is "the good one",
    and green here would read as one of them being the right answer. */
 .barHome {
-  background: var(--color-navy-900);
+  background: var(--color-h2h-home);
 }
 
 .barDraw {
@@ -61,5 +61,5 @@
 }
 
 .barAway {
-  background: var(--color-navy-700);
+  background: var(--color-h2h-away);
 }

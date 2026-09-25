@@ -208,8 +208,8 @@
 
 .provenance {
   padding: 10px 12px;
-  background: var(--color-amber-200);
-  color: var(--color-grey-800);
+  background: var(--color-highlight-surface);
+  color: var(--color-highlight-ink);
   border-radius: var(--radius-md, 8px);
 }
 
@@ -265,18 +265,18 @@
 /* Dark ink on light grounds throughout: white on green-600 is 4.3:1 and on
    the loss brick it is worse, both short of the bar for text this small. */
 .win {
-  background: var(--color-green-100);
-  color: var(--color-grey-800);
+  background: var(--color-soft);
+  color: var(--color-text);
 }
 
 .draw {
-  background: var(--color-amber-200);
-  color: var(--color-grey-800);
+  background: var(--color-highlight-surface);
+  color: var(--color-highlight-ink);
 }
 
 .loss {
-  background: #f6dcd8;
-  color: var(--color-grey-800);
+  background: var(--color-loss-tint);
+  color: var(--color-loss-tint-ink);
 }
 
 .historyLink {
@@ -401,9 +401,9 @@
 }
 
 .primary {
-  background: var(--color-green-600);
+  background: var(--color-action);
   border: 1px solid var(--color-green-600);
-  color: #fff;
+  color: var(--color-action-ink);
 }
 
 .primary:hover {

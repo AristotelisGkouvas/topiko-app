@@ -208,6 +208,16 @@ html:root[data-contrast="high"] {
   --color-loss-text: #ff8a80;
   --color-highlight-surface: #ffe600;
   --color-highlight-ink: #000;
+  --color-action: #ffe600;
+  --color-action-ink: #000;
+  --color-crest-surface: #fff;
+  --color-crest-ink: #000;
+  --color-loss-tint: #1c1c1c;
+  --color-loss-tint-ink: #fff;
+  --color-loss-zone: #1c1c1c;
+  --color-loss-mark: #ff8a80;
+  --color-h2h-home: #fff;
+  --color-h2h-away: #ffe600;
   --focus-ring: #ffe600;
 }
 

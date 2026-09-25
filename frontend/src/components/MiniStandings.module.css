@@ -130,7 +130,7 @@
 }
 
 .loss {
-  background: var(--color-loss);
+  background: var(--color-loss-mark);
 }
 
 .points {

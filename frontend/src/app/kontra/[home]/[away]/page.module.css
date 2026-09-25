@@ -154,18 +154,18 @@
 }
 
 .win {
-  background: var(--color-green-100);
-  color: var(--color-grey-800);
+  background: var(--color-soft);
+  color: var(--color-text);
 }
 
 .draw {
-  background: var(--color-amber-200);
-  color: var(--color-grey-800);
+  background: var(--color-highlight-surface);
+  color: var(--color-highlight-ink);
 }
 
 .loss {
-  background: #f6dcd8;
-  color: var(--color-grey-800);
+  background: var(--color-loss-tint);
+  color: var(--color-loss-tint-ink);
 }
 
 .link {

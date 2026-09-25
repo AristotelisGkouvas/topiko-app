@@ -20,6 +20,9 @@
     var(--color-green-600) 0 45px,
     var(--color-green-700) 45px 90px
   );
+  /* Centred, so the field ends on a whole stripe at both edges instead of
+     a sliver on the right. */
+  background-position: center;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -71,12 +74,15 @@
   background: #fff;
 }
 
+/* White on the lighter stripe is 4.3:1 — short of AA for body text, fine for
+   large text. So the line is set large (19px bold clears the 3:1 bar for
+   large text on both stripes) rather than darkening the grass. */
 .heroText {
   margin: 26px 0 0;
   font-family: var(--font-body);
-  font-weight: 500;
-  font-size: 0.9375rem;
-  line-height: 1.5;
+  font-weight: 700;
+  font-size: 1.1875rem;
+  line-height: 1.4;
   color: #fff;
   text-align: center;
   text-wrap: pretty;
@@ -208,13 +214,13 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--color-green-600);
+  background: var(--color-action);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.6875rem;
-  color: #fff;
+  color: var(--color-action-ink);
 }
 
 .tileCrest {
@@ -274,9 +280,9 @@
 }
 
 .primary {
-  background: var(--color-green-600);
+  background: var(--color-action);
   border: 1px solid var(--color-green-600);
-  color: #fff;
+  color: var(--color-action-ink);
 }
 
 .primary:hover {

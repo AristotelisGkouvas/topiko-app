@@ -89,6 +89,32 @@
   --color-live-surface: var(--color-terra-700);
   --color-live-ink: var(--color-grey-50);
 
+  /* --- Action -------------------------------------------------------
+     The fill of a primary button and of anything else that carries white
+     text on green. green-600 is 4.3:1 under white, which fails AA at the
+     13–14px buttons use; green-700 is 5.2:1 and still reads as the brand. */
+  --color-action: var(--color-green-700);
+  --color-action-ink: var(--color-grey-50);
+  /* The club monogram disc. Same reasoning: white initials on green-600
+     are 4.3:1. */
+  --color-crest-surface: var(--color-green-700);
+  --color-crest-ink: var(--color-grey-50);
+
+  /* --- Loss, softer -------------------------------------------------
+     loss-surface is a solid pill fill. These are the quiet versions:
+     loss-tint behind a small loss chip or an error box, loss-zone behind a
+     whole relegation row (the rail on the first cell says "relegation";
+     the row only needs a hint), loss-mark for a dot or rail that must hold
+     3:1 on the card in both themes. */
+  --color-loss-tint: #f6dcd8;
+  --color-loss-tint-ink: var(--color-grey-800);
+  --color-loss-zone: #fbeeec;
+  --color-loss-mark: var(--color-loss);
+
+  /* The two sides of a head-to-head bar. */
+  --color-h2h-home: var(--color-navy-900);
+  --color-h2h-away: var(--color-navy-700);
+
   --color-text: var(--color-grey-800);
   --color-text-muted: var(--color-grey-600);
   --color-heading: var(--color-navy-900);
@@ -245,6 +271,14 @@
     --color-accent-ink: var(--color-green-400);
     --color-nav-idle: #a9b6c4;
     --color-loss-text: #f08a7e;
+    --color-loss-tint: #3a1f1c;
+    --color-loss-tint-ink: #f5d5d0;
+    --color-loss-zone: #35212b;
+    /* 4.9:1 on the dark card; the brick itself is 2.9:1 there. */
+    --color-loss-mark: #e5695c;
+    /* navy-900 on the dark card is 1.4:1: the bar vanished. */
+    --color-h2h-home: #7fa6d6;
+    --color-h2h-away: #4d7cb8;
   }
 }
 
@@ -286,4 +320,12 @@
   --color-accent-ink: var(--color-green-400);
   --color-nav-idle: #a9b6c4;
   --color-loss-text: #f08a7e;
+  --color-loss-tint: #3a1f1c;
+  --color-loss-tint-ink: #f5d5d0;
+  --color-loss-zone: #35212b;
+  /* 4.9:1 on the dark card; the brick itself is 2.9:1 there. */
+  --color-loss-mark: #e5695c;
+  /* navy-900 on the dark card is 1.4:1: the bar vanished. */
+  --color-h2h-home: #7fa6d6;
+  --color-h2h-away: #4d7cb8;
 }

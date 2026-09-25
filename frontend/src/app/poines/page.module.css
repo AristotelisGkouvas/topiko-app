@@ -32,8 +32,8 @@
   min-width: 46px;
   padding: 5px 6px;
   border-radius: var(--radius-md, 8px);
-  background: #f6dcd8;
-  color: var(--color-grey-800);
+  background: var(--color-loss-tint);
+  color: var(--color-loss-tint-ink);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.125rem;

@@ -44,7 +44,7 @@
 .on {
   color: var(--color-amber-600);
   border-color: var(--color-amber-600);
-  background: var(--color-amber-200);
+  background: var(--color-highlight-surface);
 }
 
 @media (prefers-reduced-motion: reduce) {

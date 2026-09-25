@@ -64,7 +64,7 @@
 }
 
 .save {
-  background: var(--color-green-100);
+  background: var(--color-soft);
   border-color: var(--color-green-300);
 }
 
@@ -321,8 +321,8 @@
   margin: 0;
   padding: 8px 10px;
   border-radius: var(--radius-md, 8px);
-  background: #f6dcd8;
-  color: var(--color-grey-800);
+  background: var(--color-loss-tint);
+  color: var(--color-loss-tint-ink);
   font-size: 0.7812rem;
 }
 

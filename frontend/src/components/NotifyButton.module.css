@@ -32,8 +32,8 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: var(--radius-md, 8px);
-  background: var(--color-green-100);
-  color: var(--color-grey-800);
+  background: var(--color-soft);
+  color: var(--color-text);
   font-size: 0.7812rem;
   font-weight: 600;
 }

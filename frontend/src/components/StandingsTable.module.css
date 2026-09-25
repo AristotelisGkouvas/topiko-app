@@ -184,7 +184,7 @@
 }
 
 .pillLoss {
-  background: var(--color-loss);
+  background: var(--color-loss-mark);
 }
 
 /* --- zones ---------------------------------------------------------- */
@@ -222,11 +222,11 @@
 }
 
 .zone_relegation td {
-  background: color-mix(in srgb, var(--color-loss-surface) 30%, transparent);
+  background: var(--color-loss-zone);
 }
 
 .zone_relegation td:first-child {
-  box-shadow: inset 3px 0 0 var(--color-loss);
+  box-shadow: inset 3px 0 0 var(--color-loss-mark);
 }
 
 /* The reader's own club. After the zones, so it wins over their tint. */
@@ -297,7 +297,7 @@
 }
 
 .swatch_relegation {
-  background: var(--color-loss);
+  background: var(--color-loss-mark);
 }
 
 .sortButton {

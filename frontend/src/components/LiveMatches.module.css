@@ -25,8 +25,8 @@
 
 .error {
   font-size: 0.7188rem;
-  color: var(--color-terra-700);
-  background: var(--color-amber-200);
+  color: var(--color-loss-text);
+  background: var(--color-highlight-surface);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
 }

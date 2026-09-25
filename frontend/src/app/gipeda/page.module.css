@@ -66,8 +66,8 @@
 .noPins {
   margin: 0 2px 16px;
   padding: 11px 13px;
-  background: var(--color-amber-200);
-  color: var(--color-grey-800);
+  background: var(--color-highlight-surface);
+  color: var(--color-highlight-ink);
   border-radius: var(--radius-md, 8px);
   font-size: 0.7812rem;
   line-height: 1.55;

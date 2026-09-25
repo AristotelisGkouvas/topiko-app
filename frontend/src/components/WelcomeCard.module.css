@@ -41,8 +41,8 @@
   min-height: 44px;
   padding: 0 16px;
   border-radius: var(--radius-md);
-  background: var(--color-green-600);
-  color: #fff;
+  background: var(--color-action);
+  color: var(--color-action-ink);
   font-weight: 600;
   font-size: 0.875rem;
   text-decoration: none;

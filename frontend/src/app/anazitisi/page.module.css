@@ -108,14 +108,14 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--color-green-600);
+  background: var(--color-crest-surface);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 0.6875rem;
   line-height: 1;
-  color: var(--color-grey-50);
+  color: var(--color-crest-ink);
 }
 
 /* A ground: a tinted tile, not a disc. It has no initials, and a circle with
