@@ -168,6 +168,18 @@ def test_undoing_the_whole_log_clears_the_result() -> None:
     assert m.is_live is False
 
 
+def test_undoing_the_whole_log_undoes_the_final_whistle_too() -> None:
+    # FINISHED with no score would be a result nobody played.
+    m = match()
+    apply_events(
+        m, [event(MatchEventKind.KICKOFF), goal(HOME, 12), event(MatchEventKind.FULLTIME)]
+    )
+    assert m.status is MatchStatus.FINISHED
+    apply_events(m, [])
+    assert m.status is MatchStatus.SCHEDULED
+    assert m.home_score_ht is None and m.away_score_ht is None
+
+
 def test_the_minute_is_dropped_once_the_match_is_over() -> None:
     m = match()
     apply_events(
@@ -175,3 +187,22 @@ def test_the_minute_is_dropped_once_the_match_is_over() -> None:
     )
     assert m.status is MatchStatus.FINISHED
     assert m.minute is None
+
+
+# --- the sheet taking over from a typed score ----------------------------
+
+from app.services.events import replaces_typed_score  # noqa: E402
+
+
+def test_the_first_event_on_a_typed_score_is_flagged() -> None:
+    assert replaces_typed_score({"home_score": 3, "away_score": 4}, [goal(HOME, 5)])
+
+
+def test_later_events_are_not() -> None:
+    assert not replaces_typed_score(
+        {"home_score": 1, "away_score": 0}, [goal(HOME, 5), goal(AWAY, 9)]
+    )
+
+
+def test_a_first_event_on_an_unscored_match_is_not() -> None:
+    assert not replaces_typed_score({"home_score": None, "away_score": None}, [goal(HOME, 5)])

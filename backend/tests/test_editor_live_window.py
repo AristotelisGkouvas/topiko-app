@@ -58,3 +58,41 @@ def test_a_fixture_with_no_date_is_not_live() -> None:
     # fixture as live — would put every one of them behind the stricter
     # permission for no reason.
     assert not _is_live_window(match(kickoff_at=None), NOW)
+
+
+# --- the status a typed score implies --------------------------------------
+
+from app.api.v1.editor import _implied_status  # noqa: E402
+
+
+def scored(**kwargs) -> SimpleNamespace:
+    fields = {
+        "status": MatchStatus.SCHEDULED,
+        "kickoff_at": NOW - timedelta(days=1),
+        "home_score": 2,
+        "away_score": 1,
+    }
+    return SimpleNamespace(**{**fields, **kwargs})
+
+
+def test_a_score_on_a_played_fixture_finishes_it() -> None:
+    # Otherwise the table, which reads only finished matches, never sees it.
+    assert _implied_status(scored(), {"home_score": 2}, NOW) is MatchStatus.FINISHED
+
+
+def test_a_score_during_the_match_is_a_live_score() -> None:
+    m = scored(kickoff_at=NOW - timedelta(minutes=40))
+    assert _implied_status(m, {"home_score": 2}, NOW) is MatchStatus.LIVE
+
+
+def test_an_explicit_status_is_left_alone() -> None:
+    assert _implied_status(scored(), {"status": MatchStatus.AWARDED}, NOW) is None
+
+
+def test_half_a_score_is_not_a_result() -> None:
+    assert _implied_status(scored(away_score=None), {"home_score": 2}, NOW) is None
+
+
+def test_only_a_scheduled_match_is_promoted() -> None:
+    m = scored(status=MatchStatus.POSTPONED)
+    assert _implied_status(m, {"home_score": 2}, NOW) is None

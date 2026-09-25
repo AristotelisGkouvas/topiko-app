@@ -251,3 +251,33 @@ def test_undated_fixture_stays_protected_forever(kickoff_at):
     )
     plan = plan_match(existing, result(2, 2), NOW)
     assert plan.deferred is True
+
+
+class TestManualReschedule:
+    """A date or ground moved in the dashboard survives the next scrape."""
+
+    def test_a_fresh_reschedule_holds_kickoff_and_venue(self):
+        moved_to = NOW + timedelta(days=3)
+        existing = match(
+            kickoff_at=moved_to,
+            field_id=4,
+            rescheduled_at=NOW - timedelta(hours=1),
+        )
+        plan = plan_match(
+            existing,
+            {"kickoff_at": NOW - timedelta(hours=2), "field_id": 9, "referee": "ΝΕΟΣ"},
+            NOW,
+        )
+        assert "kickoff_at" not in plan.changes
+        assert "field_id" not in plan.changes
+        # Everything else is still the federation's to say.
+        assert plan.changes["referee"] == "ΝΕΟΣ"
+
+    def test_the_hold_expires_after_the_new_kickoff(self):
+        existing = match(
+            kickoff_at=NOW - timedelta(days=3),
+            field_id=4,
+            rescheduled_at=NOW - timedelta(days=5),
+        )
+        plan = plan_match(existing, {"field_id": 9}, NOW)
+        assert plan.changes == {"field_id": 9}
