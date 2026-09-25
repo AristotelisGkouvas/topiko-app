@@ -35,6 +35,7 @@
 .vs {
   padding-bottom: 12px;
   font-family: var(--font-display);
+  font-weight: 600;
   font-size: var(--text-sm);
   color: var(--color-nav-idle);
 }

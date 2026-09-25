@@ -1,6 +1,7 @@
 .date {
   margin: 2px 0 0;
   font-family: var(--font-display);
+  font-weight: 600;
   font-size: var(--text-base);
   color: var(--color-text-muted);
 }

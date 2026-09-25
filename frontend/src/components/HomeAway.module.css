@@ -9,6 +9,7 @@
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-display);
+  font-weight: 600;
   font-size: var(--text-md);
   font-variant-numeric: tabular-nums;
 }

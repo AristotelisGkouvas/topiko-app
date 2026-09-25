@@ -20,8 +20,7 @@ import { READABILITY_BOOT } from "@/lib/readabilityBoot";
    alone renders Greek text from a fallback and the page ends up in two
    typefaces at once.
 
-   Weight 500 is not loaded: two rules used it, and each extra weight is two
-   more files. Measured on 3G, preloading ten font files pushed the first paint
+   Each extra static weight is two more files (Greek and Latin). Measured on 3G, preloading ten font files pushed the first paint
    of a match page from 1.5 s to 3.7 s. The display face (headings, scores) is
    still preloaded; the body face is not — for running text the system
    fallback for the first second is an acceptable price. */
@@ -30,14 +29,19 @@ const display = Fira_Sans_Condensed({
   // 800 is the weight the design uses for scores, crests, the winner's name
   // and the promotion zone — 38 rules ask for it. Without the file the
   // browser falls back to 700 and every one of those contrasts goes flat.
-  weight: ["400", "600", "700", "800"],
+  // 400 is not loaded: an audit of every page found four places setting the
+  // display face without a weight (match fact labels, the home/away table,
+  // "Σαν σήμερα"'s date, the comparison's "vs"); they are 600 now.
+  weight: ["600", "700", "800"],
   variable: "--font-fira",
   display: "swap",
 });
 
+// Noto Sans is a variable font: with no weight listed, next/font serves the
+// one variable file per subset instead of a static file per weight, and every
+// weight between 100 and 900 is real rather than synthesised.
 const body = Noto_Sans({
   subsets: ["greek", "latin"],
-  weight: ["400", "600", "700"],
   variable: "--font-noto",
   display: "swap",
   preload: false,

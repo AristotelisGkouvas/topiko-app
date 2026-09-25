@@ -183,10 +183,11 @@
 
 .fact dt {
   font-family: var(--font-display);
+  font-weight: 600;
   font-size: var(--text-xs);
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
   margin-bottom: 3px;
 }
 
