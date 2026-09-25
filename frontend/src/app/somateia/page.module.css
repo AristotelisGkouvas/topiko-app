@@ -53,3 +53,9 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
+
+/* A club with no competition this season: a red rail on the left, on top of
+   the red "Ανενεργό" under its name. */
+.inactive {
+  border-left: 3px solid var(--color-loss-mark);
+}

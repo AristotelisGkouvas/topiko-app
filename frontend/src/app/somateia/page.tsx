@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ActivityStatus } from "@/components/ActivityStatus";
 import { Crest } from "@/components/Crest";
 import { SearchBox } from "@/components/SearchBox";
 import { Empty } from "@/components/States";
@@ -42,11 +43,16 @@ export default async function ClubsPage({
             <Link
               key={team.id}
               href={`/somateia/${team.slug}`}
-              className={styles.card}
+              className={
+                team.active === false
+                  ? `${styles.card} ${styles.inactive}`
+                  : styles.card
+              }
             >
               <Crest team={team} size="md" />
               <span className={styles.text}>
                 <span className={styles.name}>{team.name}</span>
+                <ActivityStatus active={team.active} />
                 <span className={styles.meta}>
                   {[team.city, team.home_field?.name]
                     .filter(Boolean)

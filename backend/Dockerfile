@@ -19,9 +19,12 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-# Non-root. Nothing here writes to the image at runtime.
+# Non-root. The one thing written at runtime is uploaded images, into
+# /data/media — a volume in compose. Created here, owned by the app user, so
+# the empty volume inherits that ownership on first mount.
 RUN useradd --create-home --uid 10001 pamesentra \
-    && chown -R pamesentra:pamesentra /app
+    && mkdir -p /data/media \
+    && chown -R pamesentra:pamesentra /app /data/media
 USER pamesentra
 
 EXPOSE 8000

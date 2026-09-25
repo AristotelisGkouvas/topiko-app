@@ -163,3 +163,36 @@
 .listRow:hover {
   background: var(--color-grey-100);
 }
+
+/* --- Status ---------------------------------------------------------
+   Ενεργό / Ανενεργό on a club or a player. A coloured dot and a word: the
+   word carries it for anybody who cannot tell the green from the red. */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusActive {
+  composes: status;
+  color: var(--color-accent-ink);
+}
+
+.statusInactive {
+  composes: status;
+  color: var(--color-loss-text);
+}

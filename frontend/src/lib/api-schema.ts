@@ -352,6 +352,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Look */
+        get: operations["get_look_api_v1__association_slug__editor_teams__team_slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Colours */
+        patch: operations["edit_colours_api_v1__association_slug__editor_teams__team_slug__patch"];
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Logo */
+        put: operations["set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put"];
+        post?: never;
+        /** Remove Logo */
+        delete: operations["remove_logo_api_v1__association_slug__editor_teams__team_slug__logo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Photo */
+        post: operations["add_photo_api_v1__association_slug__editor_teams__team_slug__photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/photos/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Order Photos */
+        put: operations["order_photos_api_v1__association_slug__editor_teams__team_slug__photos_order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/photos/{photo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Photo */
+        delete: operations["remove_photo_api_v1__association_slug__editor_teams__team_slug__photos__photo_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Photo */
+        patch: operations["edit_photo_api_v1__association_slug__editor_teams__team_slug__photos__photo_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/sponsors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Sponsor */
+        post: operations["add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/sponsors/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Order Sponsors */
+        put: operations["order_sponsors_api_v1__association_slug__editor_teams__team_slug__sponsors_order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/sponsors/{sponsor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Sponsor */
+        delete: operations["remove_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Sponsor */
+        patch: operations["edit_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/sponsors/{sponsor_id}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Sponsor Logo */
+        put: operations["set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/ethelontis/login": {
         parameters: {
             query?: never;
@@ -1464,6 +1621,41 @@ export interface components {
             /** User Email */
             user_email: string | null;
         };
+        /** Body_add_photo_api_v1__association_slug__editor_teams__team_slug__photos_post */
+        Body_add_photo_api_v1__association_slug__editor_teams__team_slug__photos_post: {
+            /** Caption */
+            caption?: string | null;
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post */
+        Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post: {
+            /** File */
+            file?: string | null;
+            /** Name */
+            name: string;
+            /** Website Url */
+            website_url?: string | null;
+        };
+        /** Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put */
+        Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put */
+        Body_set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
         /**
          * ClubCodeOut
          * @description A code as the dashboard lists it. Never the code itself.
@@ -1952,12 +2144,22 @@ export interface components {
          *     rather than being loaded for every row of every list.
          */
         MatchDetailOut: {
+            /**
+             * Away Sponsors
+             * @default []
+             */
+            away_sponsors: components["schemas"]["SponsorOut"][];
             away_standing: components["schemas"]["StandingOut"] | null;
             /**
              * Head To Head
              * @default []
              */
             head_to_head: components["schemas"]["MatchOut"][];
+            /**
+             * Home Sponsors
+             * @default []
+             */
+            home_sponsors: components["schemas"]["SponsorOut"][];
             home_standing: components["schemas"]["StandingOut"] | null;
             league: components["schemas"]["LeagueOut"];
             match: components["schemas"]["MatchOut"];
@@ -2189,6 +2391,21 @@ export interface components {
             month: number;
         };
         /**
+         * OrderIn
+         * @description Every id of the list, in the new order. The whole list rather than one
+         *     move, so two tabs reordering at once end in one of their orders and not in
+         *     a mixture of both.
+         */
+        OrderIn: {
+            /** Ids */
+            ids: number[];
+        };
+        /** PhotoEdit */
+        PhotoEdit: {
+            /** Caption */
+            caption?: string | null;
+        };
+        /**
          * PlayerDetailOut
          * @description A footballer's page.
          *
@@ -2257,6 +2474,8 @@ export interface components {
          *     is what a person actually recognises.
          */
         PlayerSearchOut: {
+            /** Active */
+            active: boolean | null;
             /** Birth Year */
             birth_year: number | null;
             /** Id */
@@ -2586,6 +2805,44 @@ export interface components {
             /** Start Date */
             start_date: string | null;
         };
+        /**
+         * SponsorAdminOut
+         * @description What the dashboard sees: the inactive ones too, and in which order.
+         */
+        SponsorAdminOut: {
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+            /** Website Url */
+            website_url: string | null;
+        };
+        /** SponsorEdit */
+        SponsorEdit: {
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Name */
+            name?: string | null;
+            /** Website Url */
+            website_url?: string | null;
+        };
+        /** SponsorOut */
+        SponsorOut: {
+            /** Id */
+            id: number;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Website Url */
+            website_url: string | null;
+        };
         /** StandingOut */
         StandingOut: {
             /** Drawn */
@@ -2681,6 +2938,8 @@ export interface components {
          *     query per row.
          */
         TeamDetailOut: {
+            /** Active */
+            active: boolean | null;
             /** City */
             city: string | null;
             /** Founded Year */
@@ -2694,6 +2953,11 @@ export interface components {
             logo_url: string | null;
             /** Name */
             name: string;
+            /**
+             * Photos
+             * @default []
+             */
+            photos: components["schemas"]["TeamPhotoOut"][];
             /** Primary Color */
             primary_color: string | null;
             /**
@@ -2707,9 +2971,37 @@ export interface components {
             short_name: string | null;
             /** Slug */
             slug: string;
+            /**
+             * Sponsors
+             * @default []
+             */
+            sponsors: components["schemas"]["SponsorOut"][];
+        };
+        /**
+         * TeamLookEdit
+         * @description A club's colours. `None` clears one; a key not sent is left alone.
+         */
+        TeamLookEdit: {
+            /** Primary Color */
+            primary_color?: string | null;
+            /** Secondary Color */
+            secondary_color?: string | null;
+        };
+        /**
+         * TeamLookOut
+         * @description Everything the dashboard's club screen edits, in one response.
+         */
+        TeamLookOut: {
+            /** Photos */
+            photos: components["schemas"]["TeamPhotoOut"][];
+            /** Sponsors */
+            sponsors: components["schemas"]["SponsorAdminOut"][];
+            team: components["schemas"]["TeamOut"];
         };
         /** TeamOut */
         TeamOut: {
+            /** Active */
+            active: boolean | null;
             /** City */
             city: string | null;
             /** Founded Year */
@@ -2731,6 +3023,21 @@ export interface components {
             short_name: string | null;
             /** Slug */
             slug: string;
+        };
+        /** TeamPhotoOut */
+        TeamPhotoOut: {
+            /** Caption */
+            caption: string | null;
+            /** Height */
+            height: number;
+            /** Id */
+            id: number;
+            /** Thumb Url */
+            thumb_url: string;
+            /** Url */
+            url: string;
+            /** Width */
+            width: number;
         };
         /**
          * TeamRef
@@ -2745,6 +3052,8 @@ export interface components {
             logo_url: string | null;
             /** Name */
             name: string;
+            /** Primary Color */
+            primary_color: string | null;
             /** Short Name */
             short_name: string | null;
             /** Slug */
@@ -3386,6 +3695,476 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScrapeRunOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_look_api_v1__association_slug__editor_teams__team_slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_colours_api_v1__association_slug__editor_teams__team_slug__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamLookEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_logo_api_v1__association_slug__editor_teams__team_slug__logo_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_photo_api_v1__association_slug__editor_teams__team_slug__photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_photo_api_v1__association_slug__editor_teams__team_slug__photos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_photos_api_v1__association_slug__editor_teams__team_slug__photos_order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_photo_api_v1__association_slug__editor_teams__team_slug__photos__photo_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                photo_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_photo_api_v1__association_slug__editor_teams__team_slug__photos__photo_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                photo_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_sponsors_api_v1__association_slug__editor_teams__team_slug__sponsors_order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SponsorEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLookOut"];
                 };
             };
             /** @description Validation Error */

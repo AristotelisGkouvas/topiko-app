@@ -507,3 +507,29 @@
   color: var(--color-link);
   font-weight: 600;
 }
+
+/* --- sponsors -------------------------------------------------------- */
+
+.sponsors {
+  display: grid;
+  gap: 14px;
+  max-width: 1200px;
+  margin: 22px auto 0;
+  padding: 0 14px;
+}
+
+.sponsorSide {
+  display: grid;
+  gap: 8px;
+}
+
+.sponsorTeam {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-heading);
+}

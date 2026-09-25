@@ -66,6 +66,11 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+      # Club logos, gallery photos, sponsor logos. On a volume so rebuilding
+      # the image does not delete them; back it up with the database.
+      MEDIA_DIR: /data/media
+    volumes:
+      - media:/data/media
     ports:
       # Configurable because a server rarely has 8000 free — and behind a
       # reverse proxy this should not be public at all.
@@ -135,3 +140,4 @@ services:
 
 volumes:
   pgdata:
+  media:

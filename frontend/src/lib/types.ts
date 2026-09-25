@@ -90,7 +90,21 @@ export type Announcement = S["AnnouncementOut"];
 export interface CrestSubject {
   name: string;
   initials?: string | null;
+  logo_url?: string | null;
+  primary_color?: string | null;
 }
+
+/* ---- A club's look ----------------------------------------------------- */
+
+export type TeamPhoto = S["TeamPhotoOut"];
+
+export type Sponsor = S["SponsorOut"];
+
+/** A sponsor as the dashboard sees it: inactive ones too, with their order. */
+export type SponsorAdmin = S["SponsorAdminOut"];
+
+/** Everything the dashboard's club screen edits. */
+export type TeamLook = S["TeamLookOut"];
 
 /** A ground's own page: everything `Field` has, plus who plays there. */
 export type FieldDetail = S["FieldDetailOut"];

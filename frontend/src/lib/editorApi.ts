@@ -2,7 +2,7 @@
 
 import type { components } from "./api-schema";
 import { API_URL, apiFetch, apiUrl } from "./api";
-import type { Field, Match, MatchFeed } from "./types";
+import type { Field, Match, MatchFeed, Team, TeamLook } from "./types";
 
 /** The editor talks to the API from the browser, not through the server.
  *
@@ -29,6 +29,22 @@ export type AuditEntry = components["schemas"]["AuditEntryOut"];
 export type MatchEdit = components["schemas"]["MatchEdit"];
 
 export type FieldEdit = components["schemas"]["FieldEdit"];
+
+export type TeamLookEdit = components["schemas"]["TeamLookEdit"];
+
+export type SponsorEdit = components["schemas"]["SponsorEdit"];
+
+/** A multipart upload. No Content-Type header: the browser sets it, with the
+ *  boundary the body needs. */
+function upload<T>(url: string, method: string, fields: Record<string, Blob | string | null | undefined>) {
+  const body = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== null && value !== undefined && value !== "") body.append(key, value);
+  }
+  return call<T>(url, { method, body });
+}
+
+const team = (slug: string) => `${scoped}/editor/teams/${slug}`;
 
 export const editorApi = {
   me: () => call<EditorUser>(`${auth}/me`),
@@ -78,4 +94,46 @@ export const editorApi = {
   audit: (limit = 30) => call<AuditEntry[]>(`${scoped}/editor/audit?limit=${limit}`),
 
   fields: () => call<Field[]>(`${scoped}/fields`),
+
+  /* ---- A club's look (admin only) ---- */
+
+  teams: () => call<Team[]>(`${scoped}/teams`),
+
+  look: (slug: string) => call<TeamLook>(team(slug)),
+
+  saveColours: (slug: string, edit: TeamLookEdit) =>
+    call<TeamLook>(team(slug), { method: "PATCH", json: edit }),
+
+  setLogo: (slug: string, file: Blob) =>
+    upload<TeamLook>(`${team(slug)}/logo`, "PUT", { file }),
+
+  removeLogo: (slug: string) =>
+    call<TeamLook>(`${team(slug)}/logo`, { method: "DELETE" }),
+
+  addPhoto: (slug: string, file: Blob, caption?: string) =>
+    upload<TeamLook>(`${team(slug)}/photos`, "POST", { file, caption }),
+
+  captionPhoto: (slug: string, id: number, caption: string | null) =>
+    call<TeamLook>(`${team(slug)}/photos/${id}`, { method: "PATCH", json: { caption } }),
+
+  removePhoto: (slug: string, id: number) =>
+    call<TeamLook>(`${team(slug)}/photos/${id}`, { method: "DELETE" }),
+
+  orderPhotos: (slug: string, ids: number[]) =>
+    call<TeamLook>(`${team(slug)}/photos/order`, { method: "PUT", json: { ids } }),
+
+  addSponsor: (slug: string, fields: { name: string; website_url?: string; file?: Blob | null }) =>
+    upload<TeamLook>(`${team(slug)}/sponsors`, "POST", fields),
+
+  saveSponsor: (slug: string, id: number, edit: SponsorEdit) =>
+    call<TeamLook>(`${team(slug)}/sponsors/${id}`, { method: "PATCH", json: edit }),
+
+  setSponsorLogo: (slug: string, id: number, file: Blob) =>
+    upload<TeamLook>(`${team(slug)}/sponsors/${id}/logo`, "PUT", { file }),
+
+  removeSponsor: (slug: string, id: number) =>
+    call<TeamLook>(`${team(slug)}/sponsors/${id}`, { method: "DELETE" }),
+
+  orderSponsors: (slug: string, ids: number[]) =>
+    call<TeamLook>(`${team(slug)}/sponsors/order`, { method: "PUT", json: { ids } }),
 };

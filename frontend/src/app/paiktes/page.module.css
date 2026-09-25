@@ -76,3 +76,12 @@
   color: var(--color-text-muted);
   line-height: 1.5;
 }
+
+.names > span + span + span {
+  margin-top: 3px;
+}
+
+/* A player with no stat line this season. */
+.inactive {
+  box-shadow: inset 3px 0 0 var(--color-loss-mark);
+}

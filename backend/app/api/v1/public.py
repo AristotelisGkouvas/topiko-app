@@ -20,7 +20,7 @@ from app.api.deps import (
     CurrentSeason,
     DbSession,
 )
-from app.api.lookups import MATCH_LOADS, match_in, team_in
+from app.api.lookups import MATCH_LOADS, match_in, recent_season_ids, team_in
 from app.models import (
     Association,
     Field,
@@ -33,13 +33,16 @@ from app.models import (
     PlayerSuspension,
     ScrapeRun,
     Season,
+    Sponsor,
     Standing,
     Team,
+    TeamPhoto,
 )
 from app.models.enums import MatchEventKind, MatchStatus, ScrapeRunStatus
 from app.services import search as search_service
 from app.services.live import LIVE_WINDOW
 from app.services.standings import project_live_standings
+from app.schemas.catalog import SponsorOut, TeamPhotoOut
 from app.schemas import (
     AssociationOut,
     FieldDetailOut,
@@ -397,7 +400,7 @@ async def list_teams(
     association: CurrentAssociation,
     db: DbSession,
     q: Annotated[str | None, Query(description="Αναζήτηση ονόματος")] = None,
-) -> list[Team]:
+) -> list[TeamOut]:
     stmt = (
         select(Team)
         .options(selectinload(Team.home_field))
@@ -405,8 +408,33 @@ async def list_teams(
     )
     if q:
         stmt = stmt.where(Team.name.ilike(f"%{q}%"))
-    result = await db.execute(stmt.order_by(Team.name))
-    return list(result.scalars())
+    teams = list((await db.execute(stmt.order_by(Team.name))).scalars())
+
+    # The register keeps every club that ever played; half of them have
+    # folded. One query for the whole list says which have been in a
+    # competition this season or last.
+    recent = await recent_season_ids(db, association.id)
+    playing: set[int] | None = None
+    if recent:
+        playing = set(
+            (
+                await db.execute(
+                    select(LeagueTeam.team_id)
+                    .join(League, LeagueTeam.league_id == League.id)
+                    .where(League.season_id.in_(recent))
+                    .distinct()
+                )
+            ).scalars()
+        )
+
+    return [
+        TeamOut.model_validate(team).model_copy(
+            update={
+                "active": None if playing is None else team.id in playing
+            }
+        )
+        for team in teams
+    ]
 
 
 async def _load_team(
@@ -436,9 +464,38 @@ async def get_team(
         )
     ).scalars().all()
 
+    photos = (
+        await db.execute(
+            select(TeamPhoto)
+            .where(TeamPhoto.team_id == team.id)
+            .order_by(TeamPhoto.position, TeamPhoto.id.desc())
+        )
+    ).scalars()
+    sponsors = (await _active_sponsors(db, [team.id]))[team.id]
+
     return TeamDetailOut.model_validate(
-        {**TeamOut.model_validate(team).model_dump(), "seasons": list(seasons)}
+        {
+            **TeamOut.model_validate(team).model_dump(),
+            "seasons": list(seasons),
+            "photos": [TeamPhotoOut.model_validate(p) for p in photos],
+            "sponsors": [SponsorOut.model_validate(s) for s in sponsors],
+        }
     )
+
+
+async def _active_sponsors(db: DbSession, team_ids: list[int]) -> dict[int, list[Sponsor]]:
+    """Each club's live sponsors, main one first."""
+    rows = (
+        await db.execute(
+            select(Sponsor)
+            .where(Sponsor.team_id.in_(team_ids), Sponsor.is_active.is_(True))
+            .order_by(Sponsor.position, Sponsor.id)
+        )
+    ).scalars()
+    grouped: dict[int, list[Sponsor]] = {team_id: [] for team_id in team_ids}
+    for sponsor in rows:
+        grouped[sponsor.team_id].append(sponsor)
+    return grouped
 
 
 @router.get(
@@ -772,7 +829,11 @@ async def get_match(
         ).scalars()
     }
 
+    sponsors = await _active_sponsors(db, list(pair))
+
     return MatchDetailOut(
+        home_sponsors=[SponsorOut.model_validate(s) for s in sponsors[match.home_team_id]],
+        away_sponsors=[SponsorOut.model_validate(s) for s in sponsors[match.away_team_id]],
         match=MatchOut.model_validate(match),
         league=LeagueOut.model_validate(match.league),
         head_to_head=[MatchOut.model_validate(m) for m in history],
