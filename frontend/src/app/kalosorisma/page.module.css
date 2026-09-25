@@ -184,6 +184,13 @@
   overflow-y: auto;
 }
 
+/* The <li> passes the row's height down, so every tile in a row is as tall
+   as its tallest neighbour. */
+.grid > li {
+  display: flex;
+  min-width: 0;
+}
+
 .tile {
   position: relative;
   width: 100%;
@@ -253,6 +260,9 @@
   text-align: center;
   max-width: 100%;
   overflow-wrap: anywhere;
+  /* Room for two lines on every tile, used or not: a name that wraps no
+     longer makes its tile taller than the rest. */
+  min-height: calc(2 * 1.15em);
   /* Two lines and then an ellipsis: a long club name must not make its tile
      twice the height of the ones beside it. */
   display: -webkit-box;
