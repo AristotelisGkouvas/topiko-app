@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { Toggle } from "../eidopoiiseis/Toggle";
 import { NavIcon } from "@/components/NavIcon";
 import { setReadability, useReadability } from "@/lib/readability";
@@ -21,7 +22,10 @@ export function ReadabilitySettings() {
         </span>
         <Toggle
           checked={large}
-          onChange={(on) => setReadability("large", on)}
+          onChange={(on) => {
+            track("readability", { setting: "large", on });
+            setReadability("large", on);
+          }}
           label="Μεγάλα γράμματα"
         />
       </div>
@@ -35,7 +39,10 @@ export function ReadabilitySettings() {
         </span>
         <Toggle
           checked={contrast}
-          onChange={(on) => setReadability("contrast", on)}
+          onChange={(on) => {
+            track("readability", { setting: "contrast", on });
+            setReadability("contrast", on);
+          }}
           label="Υψηλή αντίθεση"
         />
       </div>

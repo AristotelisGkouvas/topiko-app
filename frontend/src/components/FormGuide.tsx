@@ -8,10 +8,10 @@ const CLASS: Record<Result, string> = { Ν: "win", Ι: "draw", Η: "loss" };
 /** A club's last results, the same way everywhere.
  *
  *  Two sizes of one thing, where there used to be three drawings of it:
- *  - `mark` for dense rows (the table, the home page's top five): a win is a
- *    filled disc, a draw a ring, a loss a filled square. The shapes carry the
- *    result on their own, so it survives red–green colour blindness — the
- *    green and the brick are only 1.3:1 apart in lightness.
+ *  - `mark` for dense rows (the table, the home page's top five): three round
+ *    dots, green / yellow / red. All one shape, so for red–green colour
+ *    blindness a win and a loss differ by lightness (a light green, a dark
+ *    red — --color-form-* in tokens.css) and by the legend's words.
  *  - `letter` where there is room (a club's own page): the Ν / Ι / Η pill.
  *
  *  Either way it is one image to a screen reader, read out in words. */

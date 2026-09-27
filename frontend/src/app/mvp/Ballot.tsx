@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -55,6 +56,7 @@ export function Ballot() {
   const total = poll.total_votes ?? 0;
 
   async function choose(candidateId: number) {
+    track("mvp_vote", { candidate: candidateId });
     if (busy || !poll?.open) return;
     setBusy(true);
     setError(null);

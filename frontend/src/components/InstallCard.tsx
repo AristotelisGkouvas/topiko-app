@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useSyncExternalStore } from "react";
 
 import styles from "./LeagueRail.module.css";
@@ -71,6 +72,7 @@ export function InstallCard() {
           const prompt = deferred;
           deferred = null;
           listeners.forEach((l) => l());
+          track("install_prompt", { action: "accepted" });
           void prompt?.prompt();
         }}
       >

@@ -66,6 +66,14 @@
   --color-draw-dot: #8a8e92;
   --color-loss: #c0392b; /* dark brick, not alarm red */
   --color-live: var(--color-terra-500);
+  /* The form guide's three dots, all round (owner's choice, 2026-09): green,
+     yellow, red. Round shapes no longer tell a win from a loss for red–green
+     colour blindness, so the two are pulled apart in lightness instead — a
+     lighter green against a darker red — and the legend says it in words. */
+  --color-form-win: #2fa84f;
+  --color-form-draw: #f0b400;
+  --color-form-loss: #b3261e;
+  --color-form-draw-surface: var(--color-amber-200);
 
   /* Ink for small text sitting on each result colour. White on green-600 is
      only 4.3:1 and on terra-500 only 3.9:1 — both fail AA at the 10px the form
@@ -321,6 +329,10 @@
     --color-loss-zone: #35212b;
     /* 4.9:1 on the dark card; the brick itself is 2.9:1 there. */
     --color-loss-mark: #e5695c;
+    --color-form-win: #4fd07c;
+    --color-form-draw: #f2c94c;
+    --color-form-loss: #d9534a;
+    --color-form-draw-surface: #4a3d12;
     /* navy-900 on the dark card is 1.4:1: the bar vanished. */
     --color-h2h-home: #7fa6d6;
     --color-h2h-away: #4d7cb8;
@@ -372,6 +384,10 @@
   --color-loss-zone: #35212b;
   /* 4.9:1 on the dark card; the brick itself is 2.9:1 there. */
   --color-loss-mark: #e5695c;
+  --color-form-win: #4fd07c;
+  --color-form-draw: #f2c94c;
+  --color-form-loss: #d9534a;
+  --color-form-draw-surface: #4a3d12;
   /* navy-900 on the dark card is 1.4:1: the bar vanished. */
   --color-h2h-home: #7fa6d6;
   --color-h2h-away: #4d7cb8;

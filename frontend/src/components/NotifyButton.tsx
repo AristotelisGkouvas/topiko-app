@@ -1,4 +1,5 @@
 "use client";
+import { track } from "@/lib/analytics";
 
 import { useState } from "react";
 import useSWR from "swr";
@@ -75,6 +76,7 @@ export function NotifyButton({ slug, name }: { slug: string; name: string }) {
         },
       });
       setState("on");
+      track("notify_on", { team: slug });
     } catch {
       setError("Δεν ήταν δυνατή η ενεργοποίηση.");
       setState("idle");

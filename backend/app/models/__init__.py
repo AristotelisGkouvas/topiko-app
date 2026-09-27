@@ -7,6 +7,7 @@ that silently never gets a migration.
 
 from app.models.association import Association, Season
 from app.models.base import Base, TimestampMixin
+from app.models.analytics import AnalyticsEvent, PageView
 from app.models.announcement import Announcement
 from app.models.club import Field, Sponsor, Team, TeamPhoto
 from app.models.event import MatchEvent
@@ -39,6 +40,8 @@ from app.models.sponsorship import PLACEMENTS, PlatformSponsor, SponsorDailyStat
 from app.models.user import AuditLog, RevokedToken, User, UserAssociation
 
 __all__ = [
+    "AnalyticsEvent",
+    "PageView",
     "PLACEMENTS",
     "PlatformSponsor",
     "SponsorDailyStat",

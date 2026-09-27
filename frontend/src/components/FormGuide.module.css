@@ -11,26 +11,25 @@
 }
 
 .mark .item {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   flex: none;
 }
 
+.mark .item {
+  border-radius: 50%;
+}
+
 .mark .win {
-  border-radius: 50%;
-  background: var(--color-win);
+  background: var(--color-form-win);
 }
 
-/* A ring: the one result that is neither, drawn as the one hollow mark. */
 .mark .draw {
-  border-radius: 50%;
-  border: 2px solid var(--color-draw-dot);
+  background: var(--color-form-draw);
 }
 
-/* A square, so a loss is told from a win by shape as well as colour. */
 .mark .loss {
-  border-radius: 1px;
-  background: var(--color-loss-mark);
+  background: var(--color-form-loss);
 }
 
 /* --- letter: a club's own page --------------------------------------- */
@@ -57,8 +56,8 @@
 }
 
 .letter .draw {
-  background: var(--color-draw-surface);
-  color: var(--color-draw-ink);
+  background: var(--color-form-draw-surface);
+  color: var(--color-highlight-ink);
 }
 
 .letter .loss {

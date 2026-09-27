@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useSyncExternalStore } from "react";
 import { Icon, type IconName } from "@/components/Icon";
 
@@ -64,6 +65,7 @@ function subscribe(listener: () => void) {
 }
 
 function set(theme: Theme) {
+  track("theme", { to: theme });
   current = theme;
   try {
     if (theme === "system") window.localStorage.removeItem(KEY);

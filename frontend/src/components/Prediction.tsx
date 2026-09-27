@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -44,6 +45,7 @@ export function Prediction({
 
   async function vote(choice: Choice) {
     if (!token || busy) return;
+    track("prediction", { match: matchId, choice });
     setBusy(true);
     try {
       const poll = await apiFetch<PredictionPoll>(

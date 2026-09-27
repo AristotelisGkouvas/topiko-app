@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -54,6 +55,15 @@ export function SearchBox({
     }, 250);
     return () => clearTimeout(id);
   }, [value, pathname, router, searchParams]);
+
+  // What people look for, once they stop typing: a pause of a second and a
+  // half, so "δ", "δα", "δαφ"… are one search and not five.
+  useEffect(() => {
+    const wanted = value.trim();
+    if (wanted.length < 2) return;
+    const id = setTimeout(() => track("search", { q: wanted.toLocaleLowerCase("el-GR").slice(0, 60), where: pathname }), 1500);
+    return () => clearTimeout(id);
+  }, [value, pathname]);
 
   return (
     <div className={styles.wrap}>

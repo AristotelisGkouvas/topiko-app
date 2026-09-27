@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
+import { TrackOnMount } from "@/components/TrackOnMount";
 import styles from "./error.module.css";
 
 /** Screen E3. "Ωχ!" in the navy bar, then a ringed question mark and one way
@@ -15,6 +16,8 @@ export default function NotFound() {
   return (
     <>
       <PageHeader title="Ωχ!" />
+      {/* Which dead links people actually follow — old shares, typos. */}
+      <TrackOnMount name="not_found" />
       <div className={styles.wrap}>
         <span className={styles.mark} aria-hidden="true">
           ?

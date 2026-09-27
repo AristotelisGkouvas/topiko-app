@@ -77,7 +77,7 @@ def _clean() -> None:
         conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
     engine.dispose()
     # The throttles are process-wide; one test's logins must not starve the next.
-    from app.api.v1 import sponsors
+    from app.api.v1 import analytics, sponsors
 
     for limit in (
         ratelimit.login_limit,
@@ -85,6 +85,8 @@ def _clean() -> None:
         ratelimit.vote_limit,
         sponsors.view_limit,
         sponsors.click_limit,
+        analytics.view_limit,
+        analytics.event_limit,
     ):
         limit._hits.clear()
     sponsors.view_once._seen.clear()

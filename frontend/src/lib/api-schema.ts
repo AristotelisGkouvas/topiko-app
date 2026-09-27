@@ -116,6 +116,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/analytics/event": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Event */
+        post: operations["record_event_api_v1__association_slug__analytics_event_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/analytics/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Leave
+         * @description How long the page was open and how far down it was read. Only for the
+         *     reader's own view of today, and only once.
+         */
+        post: operations["record_leave_api_v1__association_slug__analytics_leave_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/analytics/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record View */
+        post: operations["record_view_api_v1__association_slug__analytics_view_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/apotelesmata.rss": {
         parameters: {
             query?: never;
@@ -137,6 +192,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/editor/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Analytics Summary
+         * @description Everything the site knows about its readership, for the last `days`.
+         */
+        get: operations["analytics_summary_api_v1__association_slug__editor_analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/editor/audit": {
         parameters: {
             query?: never;
@@ -149,6 +224,10 @@ export interface paths {
          * @description Recent changes. Visible to every editor of the association, not just
          *     admins: a shared log is only a deterrent if the people sharing it can
          *     read it.
+         *
+         *     Except the platform's sponsors: their dates and names are contracts, and
+         *     editors do not get that tab at all. The trail of it should not be the way
+         *     round.
          */
         get: operations["list_audit_api_v1__association_slug__editor_audit_get"];
         put?: never;
@@ -312,7 +391,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Mvp Polls
+         * @description The last twenty polls, newest first, with their counts — so the desk can
+         *     see what is running and announce a winner.
+         */
+        get: operations["list_mvp_polls_api_v1__association_slug__editor_mvp_get"];
         put?: never;
         /**
          * Open Mvp Poll
@@ -325,6 +409,44 @@ export interface paths {
          *     be counting votes for a question nobody was asked.
          */
         post: operations["open_mvp_poll_api_v1__association_slug__editor_mvp_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/mvp/{poll_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Mvp Poll */
+        delete: operations["delete_mvp_poll_api_v1__association_slug__editor_mvp__poll_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/mvp/{poll_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Mvp Poll
+         * @description Close now, keeping every vote. The only way before was to reopen the poll
+         *     with a past closing time, which threw the votes away.
+         */
+        post: operations["close_mvp_poll_api_v1__association_slug__editor_mvp__poll_id__close_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1686,6 +1808,74 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnalyticsOut */
+        AnalyticsOut: {
+            /** Browsers */
+            browsers: components["schemas"]["Counted"][];
+            /** Campaigns */
+            campaigns: components["schemas"]["Counted"][];
+            /** Days */
+            days: number;
+            /** Devices */
+            devices: components["schemas"]["Counted"][];
+            /** Errors */
+            errors: components["schemas"]["Counted"][];
+            /** Events */
+            events: components["schemas"]["Counted"][];
+            /** Follows */
+            follows: components["schemas"]["Counted"][];
+            /** Hours */
+            hours: number[];
+            /** Langs */
+            langs: components["schemas"]["Counted"][];
+            /** Leagues */
+            leagues: components["schemas"]["Counted"][];
+            /** Live Events */
+            live_events: components["schemas"]["Counted"][];
+            /** Matches */
+            matches: components["schemas"]["Counted"][];
+            /** Mvp Polls */
+            mvp_polls: number;
+            /** Mvp Votes */
+            mvp_votes: number;
+            /** Not Found */
+            not_found: components["schemas"]["Counted"][];
+            /** Oses */
+            oses: components["schemas"]["Counted"][];
+            /** Per Day */
+            per_day: components["schemas"]["DayPoint"][];
+            /** Players */
+            players: components["schemas"]["Counted"][];
+            /** Predictions */
+            predictions: number;
+            /** Push Subscriptions */
+            push_subscriptions: number;
+            /** Referrers */
+            referrers: components["schemas"]["Counted"][];
+            /** Routes */
+            routes: components["schemas"]["Counted"][];
+            scraper: components["schemas"]["Scraper"];
+            /** Searches */
+            searches: components["schemas"]["Counted"][];
+            /** Shares */
+            shares: components["schemas"]["Counted"][];
+            /**
+             * Since
+             * Format: date
+             */
+            since: string;
+            /** Sponsors */
+            sponsors: components["schemas"]["SponsorLine"][];
+            /** Teams */
+            teams: components["schemas"]["Counted"][];
+            totals: components["schemas"]["Totals"];
+            /** Vitals */
+            vitals: components["schemas"]["Vital"][];
+            /** Weekdays */
+            weekdays: number[];
+            /** Widths */
+            widths: components["schemas"]["Counted"][];
+        };
         /** AnnouncementOut */
         AnnouncementOut: {
             /** Body */
@@ -1911,6 +2101,17 @@ export interface components {
             /** Season */
             season: string;
         };
+        /** Counted */
+        Counted: {
+            /** Count */
+            count: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Visitors */
+            visitors: number | null;
+        };
         /**
          * DataSource
          * @description Where the current value of a match record came from.
@@ -1920,19 +2121,17 @@ export interface components {
          * @enum {string}
          */
         DataSource: "scraper" | "manual_live" | "manual_confirmed";
-        /** EventIn */
-        EventIn: {
-            /** Client Id */
-            client_id?: string | null;
-            kind: components["schemas"]["MatchEventKind"];
-            /** Minute */
-            minute?: number | null;
-            /** Note */
-            note?: string | null;
-            /** Player Name */
-            player_name?: string | null;
-            /** Team Id */
-            team_id?: number | null;
+        /** DayPoint */
+        DayPoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Views */
+            views: number;
+            /** Visitors */
+            visitors: number;
         };
         /** EventOut */
         EventOut: {
@@ -2210,6 +2409,15 @@ export interface components {
                 [key: string]: number[];
             };
         };
+        /** LeaveIn */
+        LeaveIn: {
+            /** Duration Ms */
+            duration_ms: number;
+            /** Id */
+            id: number;
+            /** Scroll Pct */
+            scroll_pct: number;
+        };
         /**
          * LiveScorerOut
          * @description A scorer counted from the goals logged at the ground.
@@ -2461,6 +2669,18 @@ export interface components {
             /** Source Url */
             source_url: string | null;
         };
+        /** MvpAdminCandidateOut */
+        MvpAdminCandidateOut: {
+            /** Player Name */
+            player_name: string;
+            /** Team Name */
+            team_name: string | null;
+            /**
+             * Votes
+             * @default 0
+             */
+            votes: number;
+        };
         /** MvpCandidateIn */
         MvpCandidateIn: {
             /** Player Slug */
@@ -2486,6 +2706,26 @@ export interface components {
             team_slug: string | null;
             /** Votes */
             votes: number | null;
+        };
+        /**
+         * MvpPollAdminOut
+         * @description A poll as the desk sees it: counts always, open or not.
+         */
+        MvpPollAdminOut: {
+            /** Candidates */
+            candidates: components["schemas"]["MvpAdminCandidateOut"][];
+            /** Closes At */
+            closes_at: string | null;
+            /** Id */
+            id: number;
+            /** League Name */
+            league_name: string;
+            /** Matchday */
+            matchday: number;
+            /** Open */
+            open: boolean;
+            /** Total Votes */
+            total_votes: number;
         };
         /** MvpPollCreatedOut */
         MvpPollCreatedOut: {
@@ -2994,6 +3234,17 @@ export interface components {
          * @enum {string}
          */
         ScrapeRunStatus: "running" | "success" | "partial" | "failed";
+        /** Scraper */
+        Scraper: {
+            /** Failures */
+            failures: number;
+            /** Last Run At */
+            last_run_at: string | null;
+            /** Last Status */
+            last_status: string | null;
+            /** Runs */
+            runs: number;
+        };
         /**
          * SearchHitOut
          * @description One result, in the shape the list row needs and no larger.
@@ -3106,6 +3357,17 @@ export interface components {
             starts_on?: string | null;
             /** Website Url */
             website_url?: string | null;
+        };
+        /** SponsorLine */
+        SponsorLine: {
+            /** Clicks */
+            clicks: number;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Views */
+            views: number;
         };
         /** SponsorOut */
         SponsorOut: {
@@ -3360,6 +3622,23 @@ export interface components {
             /** Seasons */
             seasons: number;
         };
+        /** Totals */
+        Totals: {
+            /** Avg Scroll */
+            avg_scroll: number | null;
+            /** Avg Seconds */
+            avg_seconds: number | null;
+            /** Dark Share */
+            dark_share: number | null;
+            /** Installed Share */
+            installed_share: number | null;
+            /** Views */
+            views: number;
+            /** Views Per Visitor */
+            views_per_visitor: number | null;
+            /** Visitors */
+            visitors: number;
+        };
         /** UnsubscribeIn */
         UnsubscribeIn: {
             /** Endpoint */
@@ -3389,6 +3668,26 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** ViewIn */
+        ViewIn: {
+            /** Dark */
+            dark?: boolean | null;
+            /** Installed */
+            installed?: boolean | null;
+            /** Lang */
+            lang?: string | null;
+            /** Referrer */
+            referrer?: string | null;
+            /** Url */
+            url: string;
+            /** Viewport Width */
+            viewport_width?: number | null;
+        };
+        /** ViewOut */
+        ViewOut: {
+            /** Id */
+            id: number | null;
+        };
         /**
          * ViewsIn
          * @description Which sponsors were on screen. Ids, deduplicated by the client.
@@ -3405,6 +3704,15 @@ export interface components {
              */
             platform: number[];
         };
+        /** Vital */
+        Vital: {
+            /** Count */
+            count: number;
+            /** Name */
+            name: string;
+            /** P75 */
+            p75: number;
+        };
         /** VolunteerOut */
         VolunteerOut: {
             /** Label */
@@ -3413,6 +3721,29 @@ export interface components {
             team_name: string;
             /** Team Slug */
             team_slug: string;
+        };
+        /** EventIn */
+        app__api__v1__analytics__EventIn: {
+            /** Name */
+            name: string;
+            /** Path */
+            path?: string | null;
+            /** Props */
+            props?: Record<string, never> | null;
+        };
+        /** EventIn */
+        app__schemas__events__EventIn: {
+            /** Client Id */
+            client_id?: string | null;
+            kind: components["schemas"]["MatchEventKind"];
+            /** Minute */
+            minute?: number | null;
+            /** Note */
+            note?: string | null;
+            /** Player Name */
+            player_name?: string | null;
+            /** Team Id */
+            team_id?: number | null;
         };
     };
     responses: never;
@@ -3582,6 +3913,110 @@ export interface operations {
             };
         };
     };
+    record_event_api_v1__association_slug__analytics_event_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__api__v1__analytics__EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_leave_api_v1__association_slug__analytics_leave_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_view_api_v1__association_slug__analytics_view_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     results_feed_api_v1__association_slug__apotelesmata_rss_get: {
         parameters: {
             query?: {
@@ -3603,6 +4038,40 @@ export interface operations {
                 };
                 content: {
                     "application/rss+xml": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analytics_summary_api_v1__association_slug__editor_analytics_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsOut"];
                 };
             };
             /** @description Validation Error */
@@ -3873,7 +4342,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EventIn"];
+                "application/json": components["schemas"]["app__schemas__events__EventIn"];
             };
         };
         responses: {
@@ -3931,6 +4400,38 @@ export interface operations {
             };
         };
     };
+    list_mvp_polls_api_v1__association_slug__editor_mvp_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MvpPollAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     open_mvp_poll_api_v1__association_slug__editor_mvp_post: {
         parameters: {
             query?: {
@@ -3957,6 +4458,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MvpPollCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_mvp_poll_api_v1__association_slug__editor_mvp__poll_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                poll_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MvpPollAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_mvp_poll_api_v1__association_slug__editor_mvp__poll_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                poll_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MvpPollAdminOut"][];
                 };
             };
             /** @description Validation Error */
@@ -4787,7 +5354,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EventIn"];
+                "application/json": components["schemas"]["app__schemas__events__EventIn"];
             };
         };
         responses: {

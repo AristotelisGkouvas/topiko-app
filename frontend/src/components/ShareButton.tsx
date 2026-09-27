@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Icon } from "./Icon";
+import { track } from "@/lib/analytics";
 
 /** The design's "Κοινοποίηση" button.
  *
@@ -31,6 +32,7 @@ export function ShareButton({
   const [said, setSaid] = useState<string | null>(null);
 
   async function share() {
+    track("share", { what: (path ?? location.pathname).split("/")[1] || "home", path: path ?? location.pathname });
     const url = path ? new URL(path, window.location.origin).href : window.location.href;
     try {
       if (navigator.share) {

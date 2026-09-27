@@ -41,7 +41,7 @@ export function CalendarLink({ slug, name }: { slug: string; name: string }) {
         </p>
 
         <div className={styles.actions}>
-          <a className={styles.subscribe} href={webcal}>
+          <a className={styles.subscribe} href={webcal} data-track="calendar" data-track-props={JSON.stringify({ how: "subscribe" })}>
             Εγγραφή
           </a>
           <button

@@ -1,0 +1,287 @@
+/* One series everywhere, so one colour: the head-to-head navy, which already
+   has its own light and dark values. Text never wears it. */
+.wrap {
+  --chart: var(--color-h2h-home);
+  --chart-track: var(--color-hairline);
+  display: grid;
+  gap: 16px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.range {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rangeOn {
+  background: var(--color-navy-900);
+  border-color: var(--color-navy-900);
+  color: var(--color-grey-50);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.tile {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.tileLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.tileValue {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.section {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: var(--color-heading);
+}
+
+.pair,
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 760px) {
+  .pair {
+    grid-template-columns: 2fr 1fr;
+  }
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.muted,
+.note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+/* --- columns -------------------------------------------------------------- */
+
+.figure {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.columnsWrap {
+  position: relative;
+  padding-top: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.axisMax {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.columns {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+}
+
+.col {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Capped at 24px, rounded at the data end only, square at the baseline. */
+.colBar {
+  display: block;
+  width: 100%;
+  max-width: 24px;
+  min-height: 1px;
+  border-radius: 4px 4px 0 0;
+  background: var(--chart);
+}
+
+.col:hover .colBar {
+  filter: brightness(1.15);
+}
+
+.tip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--color-navy-900);
+  color: var(--color-grey-50);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+}
+
+.col:hover .tip {
+  opacity: 1;
+}
+
+.colLabels {
+  display: flex;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.colLabels span {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.tableToggle summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--text-sm);
+  color: var(--color-link);
+  cursor: pointer;
+}
+
+/* --- bars ----------------------------------------------------------------- */
+
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+}
+
+.barLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.barTrack {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--chart-track);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+  background: var(--chart);
+}
+
+.barValue {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+/* --- tables & vitals --------------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: left;
+}
+
+.numCol {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.vitals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: var(--text-sm);
+}
+
+.vitals li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.ok {
+  color: var(--color-accent-ink);
+  font-weight: 600;
+}
+
+.warn {
+  color: var(--color-loss-text);
+  font-weight: 600;
+}

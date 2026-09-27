@@ -219,6 +219,8 @@ export default async function MatchPage({
                 href={directions}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-track="directions"
+                data-track-props={JSON.stringify({ match: match.id, field: match.field?.slug ?? null })}
                 aria-label="Οδηγίες προς το γήπεδο"
                 title="Οδηγίες προς το γήπεδο"
               >
@@ -247,6 +249,8 @@ export default async function MatchPage({
             <a
               href={`/agones/${match.id}/istoria?lipsi=1`}
               download
+              data-track="story"
+              data-track-props={JSON.stringify({ match: match.id })}
               className={styles.secondary}
               aria-label="Κατέβασμα εικόνας για story (Instagram, Facebook)"
               title="Κατέβασμα εικόνας για story"

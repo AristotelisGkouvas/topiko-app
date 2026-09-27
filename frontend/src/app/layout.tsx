@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Fira_Sans_Condensed, Noto_Sans } from "next/font/google";
 
+import { Suspense } from "react";
+
+import { Analytics } from "@/components/Analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { OfflineBar } from "@/components/OfflineBar";
 import { SearchShortcut } from "@/components/SearchShortcut";
@@ -161,6 +164,11 @@ export default async function RootLayout({
             <SiteSponsors />
           </main>
           <BottomNav liveCount={liveCount} />
+          {/* In Suspense: it reads the search params, which would otherwise
+              opt every page out of static rendering. */}
+          <Suspense fallback={null}>
+            <Analytics />
+          </Suspense>
           <SearchShortcut />
           <ServiceWorker />
         </Providers>

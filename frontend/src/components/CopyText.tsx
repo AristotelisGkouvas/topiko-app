@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useState } from "react";
 
 import styles from "./CopyText.module.css";
@@ -11,6 +12,7 @@ export function CopyText({ text, label = "Αντιγραφή ως κείμενο
   const [said, setSaid] = useState<string | null>(null);
 
   async function copy() {
+    track("copy_text", { what: label });
     try {
       await navigator.clipboard.writeText(text);
       setSaid("Αντιγράφηκε ✓");

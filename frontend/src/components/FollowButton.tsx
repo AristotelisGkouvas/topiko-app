@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useFavourite } from "@/lib/favourite";
 import styles from "./FollowButton.module.css";
 import { Icon } from "@/components/Icon";
@@ -24,7 +25,10 @@ export function FollowButton({
     <button
       type="button"
       className={`${styles.button} ${isFollowing ? styles.on : ""}`}
-      onClick={() => toggle({ slug, name })}
+      onClick={() => {
+        track(isFollowing ? "unfollow" : "follow", { team: slug });
+        toggle({ slug, name });
+      }}
       // The label carries the state, because the only visual difference is a
       // filled star against an outlined one.
       aria-pressed={isFollowing}

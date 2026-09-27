@@ -144,6 +144,8 @@ export default async function StandingsPage({
                 <a
                   href={`/vathmologia/eikona?liga=${league.slug}&lipsi=1`}
                   download
+                  data-track="table_image"
+                  data-track-props={JSON.stringify({ league: league.slug })}
                   className={styles.imageLink}
                 >
                   Λήψη εικόνας
