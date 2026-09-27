@@ -13,6 +13,7 @@ const timeFmt = fmt({ hour: "2-digit", minute: "2-digit", hour12: false });
 const dayShortFmt = fmt({ weekday: "short" });
 const dayLongFmt = fmt({ weekday: "long" });
 const dateShortFmt = fmt({ day: "2-digit", month: "2-digit" });
+const dateYearFmt = fmt({ day: "2-digit", month: "2-digit", year: "numeric" });
 const dateLongFmt = fmt({ day: "numeric", month: "long", year: "numeric" });
 
 export function parseDate(iso: string | null): Date | null {
@@ -21,22 +22,43 @@ export function parseDate(iso: string | null): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** "16:00" */
+/** "16:00", or "" when the kickoff time is not known.
+ *
+ *  The federation lists some fixtures — awarded matches, rearranged ones —
+ *  with a date and no time, and the scraper stores those at midnight Greek
+ *  time. No amateur match kicks off at 00:00, so midnight means "unknown",
+ *  and printing it told readers to turn up at midnight. */
 export function formatTime(iso: string | null): string {
   const d = parseDate(iso);
-  return d ? timeFmt.format(d) : "";
+  if (!d) return "";
+  const time = timeFmt.format(d);
+  return time === "00:00" ? "" : time;
 }
 
 /** Greek capitals drop the tonos: Πέμ -> ΠΕΜ, not ΠΈΜ. Plain toUpperCase keeps
  *  the accent, so the locale-aware form is the only correct one here. */
 export const upper = (value: string) => value.toLocaleUpperCase(LOCALE);
 
-/** "ΚΥΡ 23/11" — the form used on match card headers. */
-export function formatDayDate(iso: string | null): string {
+/** Beyond this distance from today a day and month no longer say which
+ *  year — the record win "ΚΥΡ 28/02" was 2016. */
+const YEAR_AFTER_MS = 240 * 24 * 60 * 60 * 1000;
+
+/** "ΚΥΡ 23/11" — the form used on match card headers. "ΚΥΡ 28/02/2016" when
+ *  the date is more than about eight months away, as in history and records. */
+export function formatDayDate(iso: string | null, now = Date.now()): string {
   const d = parseDate(iso);
   if (!d) return "";
   const day = upper(dayShortFmt.format(d).replace(".", ""));
-  return `${day} ${dateShortFmt.format(d)}`;
+  const date =
+    Math.abs(d.getTime() - now) > YEAR_AFTER_MS
+      ? dateYearFmt.format(d)
+      : dateShortFmt.format(d);
+  return `${day} ${date}`;
+}
+
+/** "ΚΥΡ 23/11 · 16:00", or just the day when the time is not known. */
+export function formatKickoff(iso: string | null, separator = " · "): string {
+  return [formatDayDate(iso), formatTime(iso)].filter(Boolean).join(separator);
 }
 
 /** "Κυριακή" */
@@ -63,7 +85,10 @@ export function formatShortKickoff(iso: string | null): string {
  *  else "ψήφοι". Greek, like English, has one form for one and one for the
  *  rest — zero included ("0 ψήφοι"). */
 export const plural = (n: number, one: string, many: string) =>
-  n === 1 ? one : many;
+  n === 1 || n === -1 ? one : many;
+
+/** "1 βαθμός", "3 βαθμοί", "-9 βαθμοί". */
+export const pointsLabel = (n: number) => `${n} ${plural(n, "βαθμός", "βαθμοί")}`;
 
 /**
  * "πριν 4 λεπτά". Rendered from a timestamp rather than baked on the server, so

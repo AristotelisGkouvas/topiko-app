@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 
-import { formatDayDate, formatTime, isDecided, listName, matchStatusLabel } from "@/lib/format";
+import { formatKickoff, formatTime, isDecided, listName, matchStatusLabel } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchRow.module.css";
 
@@ -74,7 +74,7 @@ export function MatchRow({
             // showing "21:00" as if it were still to come.
             const state = matchStatusLabel(match.status, match.kickoff_at);
             return match.status === "scheduled" && state !== "ΧΩΡΙΣ ΑΠΟΤΕΛΕΣΜΑ"
-              ? formatTime(match.kickoff_at)
+              ? formatTime(match.kickoff_at) || "—"
               : state;
           })()}
         </span>
@@ -83,7 +83,7 @@ export function MatchRow({
         <span className={styles.meta}>
           {[
             match.kickoff_at
-              ? `${formatDayDate(match.kickoff_at)} · ${formatTime(match.kickoff_at)}`
+              ? formatKickoff(match.kickoff_at)
               : "Χωρίς ημερομηνία",
             match.field?.short_name ?? match.field?.name,
           ]

@@ -83,7 +83,7 @@ function Total({ value, label }: { value: string | number; label: string }) {
 function RecordList({ rows, unit }: { rows: RecordMatch[]; unit: string }) {
   return (
     <ul className={styles.list}>
-      {rows.map(({ match, value }) => (
+      {rows.map(({ match, value, league_name }) => (
         <li key={match.id}>
           <Link href={`/agones/${match.id}`} className={styles.row}>
             <span className={styles.badge}>
@@ -96,7 +96,9 @@ function RecordList({ rows, unit }: { rows: RecordMatch[]; unit: string }) {
                 {match.away_team.name}
               </span>
               <span className={styles.date}>
-                {formatDayDate(match.kickoff_at)}
+                {[formatDayDate(match.kickoff_at), league_name]
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
             </span>
           </Link>

@@ -2,6 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 
+import { apiUrl, jsonFetcher } from "./api";
+import { rememberLeague } from "./leagueCookie";
+import type { TeamStanding } from "./types";
+
 const KEY = "pamesentra:clubs";
 /** What the single-club version wrote. Read once, then migrated. */
 const LEGACY_KEY = "pamesentra:club";
@@ -94,7 +98,24 @@ const getSnapshot = () => snapshot;
 const EMPTY: Favourite[] = [];
 const getServerSnapshot = () => EMPTY;
 
+/** Make the division the reader browses follow "my club".
+ *
+ *  Following a Β΄ Κατηγορία club and landing on the Α΄ table, fixtures and home
+ *  page every time was two extra taps on every visit. Only when the first
+ *  club changes — that is a choice the reader just made — and never on load,
+ *  so it cannot undo a division picked later in the header. */
+function followLeagueOf(slug: string) {
+  jsonFetcher<TeamStanding | null>(apiUrl(`/teams/${slug}/standing`))
+    .then((placement) => {
+      if (placement) rememberLeague(placement.league.slug);
+    })
+    .catch(() => {
+      // No table for the club (youth-only, folded): keep the division as is.
+    });
+}
+
 function write(clubs: Favourite[]) {
+  if (clubs[0] && clubs[0].slug !== snapshot[0]?.slug) followLeagueOf(clubs[0].slug);
   try {
     if (clubs.length > 0) window.localStorage.setItem(KEY, JSON.stringify(clubs));
     else window.localStorage.removeItem(KEY);

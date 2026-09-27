@@ -4,7 +4,7 @@ import { Desk } from "./Desk";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Δήλωση αγώνα",
+  title: "Live από το γήπεδο",
   description: "Για εκπροσώπους σωματείων, με κωδικό.",
   // Not a page for search engines: it is a door, and the only people who
   // should arrive at it are the ones holding a card with a code on it.

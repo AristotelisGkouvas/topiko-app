@@ -141,3 +141,21 @@ async def test_a_code_cannot_undo_its_own_entry_minutes_later(client, db, world)
     await db.commit()
     response = await client.delete(f"{url}/{mine}", headers=SAME_SITE)
     assert response.status_code == 409
+
+
+async def test_a_locked_code_says_so_only_to_the_right_code(client, db, world: World) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    world.code.locked_until = datetime.now(UTC) + timedelta(minutes=10)
+    db.add(world.code)
+    await db.commit()
+
+    wrong = await client.post(
+        "/api/v1/alpha/ethelontis/login", json={"code": world.code.prefix + "-000000"}, headers=SAME_SITE
+    )
+    assert wrong.status_code == 401
+    right = await client.post(
+        "/api/v1/alpha/ethelontis/login", json={"code": world.code_plaintext}, headers=SAME_SITE
+    )
+    assert right.status_code == 423
+    assert "κλείδωσε" in right.json()["detail"]

@@ -70,14 +70,11 @@ async def team_in(
     return team
 
 
-async def recent_season_ids(db: AsyncSession, association_id: int) -> list[int]:
-    """The current season and the one before it — the window a club or a
-    player counts as active in. Empty when no season is marked current.
-
-    Two, not one: in September the new season has a handful of divisions and
-    a handful of published stat lines, and a one-season window would call
-    most of the register inactive for the first months of every year.
-    """
+async def recent_season_ids(
+    db: AsyncSession, association_id: int, count: int = 2
+) -> list[int]:
+    """The current season and the `count - 1` before it, newest first. Empty
+    when no season is marked current."""
     current = (
         await db.execute(
             select(Season.slug).where(
@@ -97,7 +94,7 @@ async def recent_season_ids(db: AsyncSession, association_id: int) -> list[int]:
                     Season.slug <= current,
                 )
                 .order_by(Season.slug.desc())
-                .limit(2)
+                .limit(count)
             )
         ).scalars()
     )

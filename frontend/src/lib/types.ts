@@ -103,6 +103,14 @@ export type Sponsor = S["SponsorOut"];
 /** A sponsor as the dashboard sees it: inactive ones too, with their order. */
 export type SponsorAdmin = S["SponsorAdminOut"];
 
+export type PlatformSponsor = S["PlatformSponsorOut"];
+
+export type PlatformSponsorAdmin = S["PlatformSponsorAdminOut"];
+
+/** Where a platform sponsor can be bought: every page, the home page, the
+ *  match pages, the share images. */
+export type SponsorPlacement = "site" | "home" | "match" | "share";
+
 /** Everything the dashboard's club screen edits. */
 export type TeamLook = S["TeamLookOut"];
 

@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 import { api } from "@/lib/api";
 import { formatDayDate } from "@/lib/format";
-import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts } from "@/lib/og";
+import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts, shareSponsors } from "@/lib/og";
 
 export const alt = "Αγώνας";
 export const size = OG_SIZE;
@@ -46,7 +46,7 @@ export default async function Image({
     // keep the fallback
   }
 
-  return new ImageResponse(<Card footer={footer}>{body}</Card>, {
+  return new ImageResponse(<Card footer={footer} sponsors={await shareSponsors()}>{body}</Card>, {
     ...size,
     fonts,
   });

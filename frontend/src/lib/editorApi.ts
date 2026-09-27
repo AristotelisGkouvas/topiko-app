@@ -2,7 +2,7 @@
 
 import type { components } from "./api-schema";
 import { API_URL, apiFetch, apiUrl } from "./api";
-import type { Field, Match, MatchFeed, Team, TeamLook } from "./types";
+import type { Field, Match, MatchFeed, PlatformSponsorAdmin, Team, TeamLook } from "./types";
 
 /** The editor talks to the API from the browser, not through the server.
  *
@@ -33,6 +33,8 @@ export type FieldEdit = components["schemas"]["FieldEdit"];
 export type TeamLookEdit = components["schemas"]["TeamLookEdit"];
 
 export type SponsorEdit = components["schemas"]["SponsorEdit"];
+
+export type PlatformSponsorEdit = components["schemas"]["PlatformSponsorEdit"];
 
 /** A multipart upload. No Content-Type header: the browser sets it, with the
  *  boundary the body needs. */
@@ -122,7 +124,10 @@ export const editorApi = {
   orderPhotos: (slug: string, ids: number[]) =>
     call<TeamLook>(`${team(slug)}/photos/order`, { method: "PUT", json: { ids } }),
 
-  addSponsor: (slug: string, fields: { name: string; website_url?: string; file?: Blob | null }) =>
+  addSponsor: (
+    slug: string,
+    fields: { name: string; website_url?: string; starts_on?: string; ends_on?: string; file?: Blob | null },
+  ) =>
     upload<TeamLook>(`${team(slug)}/sponsors`, "POST", fields),
 
   saveSponsor: (slug: string, id: number, edit: SponsorEdit) =>
@@ -136,4 +141,36 @@ export const editorApi = {
 
   orderSponsors: (slug: string, ids: number[]) =>
     call<TeamLook>(`${team(slug)}/sponsors/order`, { method: "PUT", json: { ids } }),
+
+  // The platform's own sponsors. Every call answers with the whole list.
+  platformSponsors: () => call<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors`),
+
+  addPlatformSponsor: (fields: {
+    name: string;
+    website_url?: string;
+    starts_on?: string;
+    ends_on?: string;
+    /** Comma-separated placements. */
+    placements?: string;
+    note?: string;
+    file?: Blob | null;
+  }) => upload<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors`, "POST", fields),
+
+  savePlatformSponsor: (id: number, edit: PlatformSponsorEdit) =>
+    call<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors/${id}`, {
+      method: "PATCH",
+      json: edit,
+    }),
+
+  setPlatformSponsorLogo: (id: number, file: Blob) =>
+    upload<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors/${id}/logo`, "PUT", { file }),
+
+  removePlatformSponsor: (id: number) =>
+    call<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors/${id}`, { method: "DELETE" }),
+
+  orderPlatformSponsors: (ids: number[]) =>
+    call<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors/order`, {
+      method: "PUT",
+      json: { ids },
+    }),
 };

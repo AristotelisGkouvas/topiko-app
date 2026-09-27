@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 import { api } from "@/lib/api";
-import { COLORS, DISPLAY, OG_CONTENT_TYPE, OG_SIZE, grass, ogFonts } from "@/lib/og";
+import { COLORS, DISPLAY, OG_SIZE, SponsorRow, grass, ogFonts, shareSponsors } from "@/lib/og";
 import { formatDayDate, formatTime, listName, upper } from "@/lib/format";
 import { leagueLabel, resolveLeague, resolveMatchday } from "@/lib/leagues";
 import type { Match } from "@/lib/types";
@@ -11,9 +12,7 @@ import type { Match } from "@/lib/types";
  *  so generating per request costs nothing a reader would notice. */
 export const dynamic = "force-dynamic";
 
-export const size = OG_SIZE;
-export const contentType = OG_CONTENT_TYPE;
-export const alt = "Πρόγραμμα αγωνιστικής";
+const size = OG_SIZE;
 
 /** Screen S4: one round, as a Facebook card.
  *
@@ -28,14 +27,12 @@ export const alt = "Πρόγραμμα αγωνιστικής";
  */
 const MAX_ROWS = 7;
 
-export default async function Image({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[] | undefined>;
-}) {
+export async function GET(req: NextRequest) {
+  const searchParams = Object.fromEntries(req.nextUrl.searchParams);
   const params = searchParams ?? {};
   const { league, season } = await resolveLeague(params);
   const fonts = await ogFonts();
+  const sponsors = await shareSponsors();
 
   if (!league) {
     return new ImageResponse(<div style={empty}>ΠΑΜΕ ΣΕΝΤΡΑ</div>, {
@@ -175,18 +172,19 @@ export default async function Image({
         <div
           style={{
             display: "flex",
+            alignItems: "center",
+            gap: 20,
             padding: "0 48px 18px",
             fontSize: 18,
             fontWeight: 600,
             color: COLORS.onNavyMuted,
           }}
         >
-          ΠΑΜΕ ΣΕΝΤΡΑ · ΕΠΣ ΗΠΕΙΡΟΥ
-          {matches.length > MAX_ROWS && (
-            <span style={{ marginLeft: "auto" }}>
-              +{matches.length - MAX_ROWS} ακόμη
-            </span>
-          )}
+          <span>ΠΑΜΕ ΣΕΝΤΡΑ · ΕΠΣ ΗΠΕΙΡΟΥ</span>
+          {matches.length > MAX_ROWS && <span>+{matches.length - MAX_ROWS} ακόμη</span>}
+          <span style={{ display: "flex", marginLeft: "auto" }}>
+            <SponsorRow sponsors={sponsors} height={52} />
+          </span>
         </div>
       </div>
     ),

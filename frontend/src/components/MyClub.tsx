@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import useSWR from "swr";
 
 import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 import { useWelcomed } from "@/lib/onboarding";
-import { formatDayDate, formatTime } from "@/lib/format";
+import { rememberLeague, rememberedLeagueInBrowser } from "@/lib/leagueCookie";
+import { formatDayDate, formatKickoff, plural } from "@/lib/format";
 import type { Match, TeamStanding } from "@/lib/types";
 import { Crest } from "./Crest";
 import styles from "./MyClub.module.css";
@@ -91,10 +93,22 @@ export function MyClub() {
       },
     },
   );
+  const router = useRouter();
   const { data: placement } = useSWR<TeamStanding | null>(
     favourite ? apiUrl(`/teams/${favourite.slug}/standing`) : null,
     jsonFetcher,
-    { revalidateOnFocus: false },
+    {
+      revalidateOnFocus: false,
+      // Somebody who chose their club before the division followed it, and
+      // never picked one in the header, still gets the Α΄ under their Β΄ club.
+      // Once: afterwards the cookie exists and a header choice stands.
+      onSuccess: (found) => {
+        if (found && !rememberedLeagueInBrowser()) {
+          rememberLeague(found.league.slug);
+          router.refresh();
+        }
+      },
+    },
   );
 
   // Nothing at all until the browser has been read. Rendering the invitation
@@ -142,7 +156,7 @@ export function MyClub() {
   const vs = (m: Match) => `${m.home_team.name} – ${m.away_team.name}`;
   const summary = [
     `Η ομάδα σου, ${favourite.name}`,
-    placement ? `${placement.standing.position}η θέση με ${placement.standing.points} βαθμούς` : null,
+    placement ? `${placement.standing.position}η θέση με ${placement.standing.points} ${plural(placement.standing.points, "βαθμό", "βαθμούς")}` : null,
     live
       ? `Παίζει τώρα: ${live.home_team.name} ${live.home_score ?? 0}, ${live.away_team.name} ${live.away_score ?? 0}${live.minute ? `, ${live.minute}ο λεπτό` : ""}`
       : null,
@@ -150,7 +164,7 @@ export function MyClub() {
       ? `Τελευταίο αποτέλεσμα: ${last.home_team.name} ${last.home_score}, ${last.away_team.name} ${last.away_score}`
       : null,
     next && !live
-      ? `Επόμενος αγώνας: ${vs(next)}, ${formatDayDate(next.kickoff_at)} ${formatTime(next.kickoff_at)}${next.field ? `, ${next.field.name}` : ""}`
+      ? `Επόμενος αγώνας: ${vs(next)}, ${formatKickoff(next.kickoff_at, " ")}${next.field ? `, ${next.field.name}` : ""}`
       : null,
   ]
     .filter(Boolean)
@@ -183,7 +197,7 @@ export function MyClub() {
             ) : (
               <span>
                 {shown.kickoff_at
-                  ? `${formatDayDate(shown.kickoff_at)} · ${formatTime(shown.kickoff_at)}`
+                  ? formatKickoff(shown.kickoff_at)
                   : "Χωρίς ώρα"}
               </span>
             )}

@@ -44,6 +44,9 @@
 .name {
   flex: 1;
   min-width: 0;
+  /* The row is 48px; the name inside it was a 24px target. */
+  padding: 12px 0;
+  margin: -12px 0;
   font-family: var(--font-display);
   font-weight: 700;
   color: var(--color-heading);

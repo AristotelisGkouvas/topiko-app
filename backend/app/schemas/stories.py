@@ -41,6 +41,9 @@ class RecordMatchOut(ORMModel):
 
     match: MatchOut
     value: int
+    #: Which division — an 18–0 in a youth group and in the Α΄ are not the
+    #: same record, and MatchOut carries only the id.
+    league_name: str | None = None
 
 
 class TopScorerAllTimeOut(ORMModel):

@@ -188,3 +188,14 @@
   background: var(--color-grey-100);
   color: var(--color-text);
 }
+
+.quickOn {
+  background: var(--color-soft);
+  border-color: var(--color-green-300);
+  color: var(--color-heading);
+}
+
+.quickButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

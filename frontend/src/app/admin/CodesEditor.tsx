@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 
+import { CopyText } from "@/components/CopyText";
 import { Empty } from "@/components/States";
 import { ApiError, apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import type { components } from "@/lib/api-schema";
@@ -24,7 +25,9 @@ const editor = (path: string) => apiUrl(`/editor${path}`);
  *  developer. A new code replaces the club's old one; the plaintext is shown
  *  once, because it is stored hashed and cannot be read back.
  */
-export function CodesEditor() {
+/** `canIssue`: a code gives its holder the right to log live scores, so only
+ *  those who hold that right themselves may hand one out or withdraw it. */
+export function CodesEditor({ canIssue }: { canIssue: boolean }) {
   const { data: codes, error, isLoading, mutate } = useSWR<ClubCode[]>(
     "editor:club-codes",
     () => apiFetch<ClubCode[]>(editor("/club-codes"), { credentials: "include" }),
@@ -97,7 +100,13 @@ export function CodesEditor() {
 
   return (
     <>
-      <div className={styles.filters}>
+      {!canIssue && (
+        <p className={styles.muted}>
+          Κωδικούς εκδίδουν μόνο όσοι έχουν δικαίωμα live καταχώρισης. Ζήτησέ το από τον διαχειριστή.
+        </p>
+      )}
+      {canIssue && (
+      <div className={`${styles.filters} ${styles.codeForm}`}>
         <select
           className={styles.select}
           value={team}
@@ -113,7 +122,7 @@ export function CodesEditor() {
         </select>
         <input
           className={styles.input}
-          placeholder="Σε ποιον δίνεται (π.χ. Γ. Παπαδόπουλος, έφορος)"
+          placeholder="Σε ποιον (π.χ. Γ. Παπαδόπουλος)"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           aria-label="Σε ποιον δίνεται ο κωδικός"
@@ -122,6 +131,7 @@ export function CodesEditor() {
           {busy ? "…" : "Νέος κωδικός"}
         </button>
       </div>
+      )}
 
       {issued && (
         <div className={styles.issued} role="status">
@@ -130,11 +140,21 @@ export function CodesEditor() {
           </p>
           <p className={styles.issuedCode}>{issued.code}</p>
           <p>
-            Γράψ&apos; τον τώρα στο χαρτί — δεν θα ξαναεμφανιστεί. Ο εθελοντής
-            τον πληκτρολογεί στη σελίδα «Δήλωση αγώνα», με ή χωρίς τόνους.
+            Δεν θα ξαναεμφανιστεί. Στείλε στον εθελοντή το μήνυμα — έχει μέσα
+            τον κωδικό, το link και τι να πατήσει.
           </p>
+          {/* Codes travel by Viber, not on paper: a ready message with the
+              link beats reading eleven characters down a phone line. */}
+          <div className={styles.issuedActions}>
+            <CopyText
+              label="Αντιγραφή μηνύματος"
+              text={`Κωδικός για live από το γήπεδο (${issued.team_name}): ${issued.code}
+Άνοιξε ${window.location.origin}/ethelontis και γράψ' τον εκεί. Στους αγώνες μας πάτα «+1 ΓΚΟΛ» σε κάθε γκολ και «Τελικό» στο σφύριγμα.`}
+            />
+            <CopyText text={issued.code} label="Αντιγραφή κωδικού" />
+          </div>
           <button type="button" className={styles.save} onClick={() => setIssued(null)}>
-            Τον έγραψα
+            Εντάξει
           </button>
         </div>
       )}
@@ -161,9 +181,11 @@ export function CodesEditor() {
                     ? `τελευταία χρήση ${formatRelative(code.last_used_at)}`
                     : "δεν έχει χρησιμοποιηθεί"}
                 </span>
+                {canIssue && (
                 <button type="button" className={styles.logout} onClick={() => revoke(code)}>
                   Ακύρωση
                 </button>
+                )}
               </div>
             </li>
           ))}

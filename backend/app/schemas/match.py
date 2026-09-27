@@ -32,6 +32,10 @@ class MatchOut(ORMModel):
     # same claim as one lifted from the federation site, and the card says so.
     data_source: DataSource
     updated_at: datetime
+    #: When the scraper last read this fixture from the federation, changed
+    #: or not. `updated_at` moves only when something changes, so on an
+    #: unchanged fixture it alone made a checked row look two days stale.
+    last_scraped_at: datetime | None = None
 
     @model_validator(mode="after")
     def _check_the_clock(self) -> "MatchOut":
@@ -68,6 +72,9 @@ class StandingOut(ORMModel):
     goals_against: int
     goal_difference: int
     points: int
+    #: Points the ένωση took off; `points` is already net of them. Shown so a
+    #: table with 3 points beside four wins is not read as a mistake.
+    deduction: int = 0
     form: str | None = None
     zone: StandingZone | None = None
 

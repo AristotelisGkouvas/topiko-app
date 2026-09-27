@@ -77,8 +77,18 @@ def _clean() -> None:
         conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
     engine.dispose()
     # The throttles are process-wide; one test's logins must not starve the next.
-    for limit in (ratelimit.login_limit, ratelimit.code_login_limit, ratelimit.vote_limit):
+    from app.api.v1 import sponsors
+
+    for limit in (
+        ratelimit.login_limit,
+        ratelimit.code_login_limit,
+        ratelimit.vote_limit,
+        sponsors.view_limit,
+        sponsors.click_limit,
+    ):
         limit._hits.clear()
+    sponsors.view_once._seen.clear()
+    sponsors.click_once._seen.clear()
 
 
 @pytest_asyncio.fixture

@@ -17,13 +17,16 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
-from sqlalchemy import exists, or_, select
+from sqlalchemy import exists, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
 
 from app.api.auth_deps import CurrentUser, EditableAssociation, may_edit_live
 from app.api.deps import CurrentSeason, DbSession
 from app.api.lookups import MATCH_LOADS, match_in
 from app.models import (
+    Association,
+    MvpVote,
+    LeagueTeam,
     ScrapeRun,
     AuditLog,
     ClubAccessCode,
@@ -35,15 +38,16 @@ from app.models import (
     MvpPoll,
     Player,
     Team,
+    User,
 )
-from app.models.enums import DataSource, FieldSurface, MatchStatus
+from app.models.enums import DataSource, FieldSurface, MatchStatus, UserRole
 from app.schemas import FieldOut, MatchOut
 from app.services import search as search_service
 from app.services import volunteer as volunteer_service
 from app.services.audit import changed_fields, record
 from app.services.live import LIVE_LEAD, LIVE_WINDOW, live_window
 from app.services.standings import recompute_standings
-from app.schemas.polls import MvpPollCreatedOut, MvpPollIn
+from app.schemas.polls import MvpAdminCandidateOut, MvpPollAdminOut, MvpPollCreatedOut, MvpPollIn
 from app.schemas.editor import (
     AuditEntryOut,
     ClubCodeOut,
@@ -71,6 +75,10 @@ def _is_live_window(match: Match, now: datetime) -> bool:
 
 #: Fields whose change can move a team's points, and so the table.
 _TABLE_FIELDS = ("home_score", "away_score", "status")
+
+#: A generous box around Epirus and its borders, for a sanity check on a pin.
+_EPIRUS_LAT = (38.5, 40.6)
+_EPIRUS_LON = (19.5, 21.8)
 
 _SCORE_FIELDS = ("home_score", "away_score", "home_score_ht", "away_score_ht")
 
@@ -232,6 +240,22 @@ async def edit_match(
     for key, value in changes.items():
         setattr(match, key, value)
 
+    if (match.home_score is None) != (match.away_score is None):
+        # Half a score is not a result: it dropped the match from the table
+        # and left "ΤΕΛΙΚΟ" over an empty scoreboard.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Χρειάζονται και τα δύο σκορ — ή κανένα.",
+        )
+    if (
+        "status" not in changes
+        and match.home_score is None
+        and match.status in (MatchStatus.FINISHED, MatchStatus.LIVE, MatchStatus.HALFTIME)
+    ):
+        # A result taken back entirely: the fixture waits for one again.
+        match.status = MatchStatus.SCHEDULED
+        match.is_live = False
+
     implied = _implied_status(match, changes, now)
     if implied is not None:
         match.status = implied
@@ -342,6 +366,26 @@ async def edit_field(
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(venue, key, value)
 
+    # A pin is both numbers or neither: a latitude alone hid the "no pin"
+    # warning while the public page still had nowhere to point.
+    if (venue.latitude is None) != (venue.longitude is None):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Χρειάζονται και το γεωγραφικό πλάτος και το μήκος — ή κανένα.",
+        )
+    if venue.latitude is not None and not (
+        _EPIRUS_LAT[0] <= float(venue.latitude) <= _EPIRUS_LAT[1]
+        and _EPIRUS_LON[0] <= float(venue.longitude) <= _EPIRUS_LON[1]
+    ):
+        # 20.8 / 39.7 typed the wrong way round lands in the Horn of Africa.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Το σημείο πέφτει έξω από την Ήπειρο. Έλεγξε ότι το πλάτος (π.χ. 39.66) "
+                "και το μήκος (π.χ. 20.85) δεν μπήκαν ανάποδα."
+            ),
+        )
+
     old, new = changed_fields(before, snapshot())
     if not old and not new:
         return venue
@@ -367,17 +411,22 @@ async def edit_field(
 )
 async def list_audit(
     association: EditableAssociation,
+    user: CurrentUser,
     db: DbSession,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> list[AuditLog]:
     """Recent changes. Visible to every editor of the association, not just
     admins: a shared log is only a deterrent if the people sharing it can
-    read it."""
+    read it.
+
+    Except the platform's sponsors: their dates and names are contracts, and
+    editors do not get that tab at all. The trail of it should not be the way
+    round."""
+    stmt = select(AuditLog).where(AuditLog.association_id == association.id)
+    if user.role is not UserRole.ADMIN:
+        stmt = stmt.where(AuditLog.entity_type != "platform_sponsor")
     result = await db.execute(
-        select(AuditLog)
-        .where(AuditLog.association_id == association.id)
-        .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
-        .limit(limit)
+        stmt.order_by(AuditLog.created_at.desc(), AuditLog.id.desc()).limit(limit)
     )
     return list(result.scalars())
 
@@ -399,6 +448,17 @@ async def list_scrape_runs(
         .limit(limit)
     )
     return list(result.scalars())
+
+
+def _may_hand_out_live(user: User, association: Association) -> None:
+    """A club code lets its holder log a live score. Handing one out is
+    handing out that right, so only someone who has it may — otherwise an
+    editor without live rights could give themselves them through a club."""
+    if not may_edit_live(user, association):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Κωδικούς σωματείων εκδίδουν μόνο όσοι έχουν δικαίωμα live καταχώρισης.",
+        )
 
 
 @router.get("/{association_slug}/editor/club-codes", response_model=list[ClubCodeOut])
@@ -446,6 +506,7 @@ async def issue_club_code(
     read back, which is the point. The retired row stays, so the events it
     authored still name who reported them.
     """
+    _may_hand_out_live(user, association)
     team = (
         await db.execute(
             select(Team).where(
@@ -506,6 +567,7 @@ async def revoke_club_code(
     db: DbSession,
 ) -> None:
     """Withdraw a code. Takes effect on the next request, not on expiry."""
+    _may_hand_out_live(user, association)
     code = (
         await db.execute(
             select(ClubAccessCode).where(
@@ -571,6 +633,12 @@ async def open_mvp_poll(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Δεν βρέθηκε διοργάνωση '{payload.league_slug}'.",
         )
+    if payload.closes_at is not None and payload.closes_at <= datetime.now(UTC):
+        # Accepted, it said "the poll opened" over a poll nobody could vote in.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Η ώρα κλεισίματος πρέπει να είναι στο μέλλον.",
+        )
 
     players = {
         p.slug: p
@@ -603,6 +671,23 @@ async def open_mvp_poll(
             )
         ).scalars()
     }
+
+    # A candidate's club must play in this division: a Α΄ Κατηγορία player on
+    # a Β΄ ballot was accepted and shown.
+    in_league = set(
+        (
+            await db.execute(select(LeagueTeam.team_id).where(LeagueTeam.league_id == league.id))
+        ).scalars()
+    )
+    outsiders = [
+        c.team_slug for c in payload.candidates
+        if c.team_slug and (c.team_slug not in teams or teams[c.team_slug].id not in in_league)
+    ]
+    if outsiders:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Δεν παίζουν σε αυτή την κατηγορία: {', '.join(sorted(set(outsiders)))}.",
+        )
 
     existing = (
         await db.execute(
@@ -657,3 +742,103 @@ async def open_mvp_poll(
         closes_at=poll.closes_at,
         candidates=len(payload.candidates),
     )
+
+
+async def _mvp_polls(db: DbSession, association_id: int) -> list[MvpPollAdminOut]:
+    polls = (
+        await db.execute(
+            select(MvpPoll)
+            .where(MvpPoll.association_id == association_id)
+            .options(
+                selectinload(MvpPoll.league),
+                selectinload(MvpPoll.candidates).selectinload(MvpCandidate.player),
+                selectinload(MvpPoll.candidates).selectinload(MvpCandidate.team),
+            )
+            .order_by(MvpPoll.id.desc())
+            .limit(20)
+        )
+    ).scalars().all()
+    counts = {
+        cid: n
+        for cid, n in (
+            await db.execute(
+                select(MvpVote.candidate_id, func.count(MvpVote.id))
+                .where(MvpVote.poll_id.in_([p.id for p in polls]))
+                .group_by(MvpVote.candidate_id)
+            )
+        ).all()
+    } if polls else {}
+    now = datetime.now(UTC)
+    out = []
+    for poll in polls:
+        rows = sorted(
+            (
+                MvpAdminCandidateOut(
+                    player_name=c.player.name,
+                    team_name=(c.team.short_name or c.team.name) if c.team else None,
+                    votes=counts.get(c.id, 0),
+                )
+                for c in poll.candidates
+            ),
+            key=lambda r: -r.votes,
+        )
+        out.append(
+            MvpPollAdminOut(
+                id=poll.id,
+                league_name=poll.league.short_name or poll.league.name,
+                matchday=poll.matchday,
+                closes_at=poll.closes_at,
+                open=poll.closes_at is None or poll.closes_at > now,
+                total_votes=sum(r.votes for r in rows),
+                candidates=rows,
+            )
+        )
+    return out
+
+
+@router.get("/{association_slug}/editor/mvp", response_model=list[MvpPollAdminOut])
+async def list_mvp_polls(association: EditableAssociation, db: DbSession) -> list[MvpPollAdminOut]:
+    """The last twenty polls, newest first, with their counts — so the desk can
+    see what is running and announce a winner."""
+    return await _mvp_polls(db, association.id)
+
+
+async def _poll_in(db: DbSession, association_id: int, poll_id: int) -> MvpPoll:
+    poll = (
+        await db.execute(
+            select(MvpPoll).where(MvpPoll.id == poll_id, MvpPoll.association_id == association_id)
+        )
+    ).scalar_one_or_none()
+    if poll is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Δεν βρέθηκε ψηφοφορία.")
+    return poll
+
+
+@router.post("/{association_slug}/editor/mvp/{poll_id}/close", response_model=list[MvpPollAdminOut])
+async def close_mvp_poll(
+    association: EditableAssociation, user: CurrentUser, poll_id: int, request: Request, db: DbSession
+) -> list[MvpPollAdminOut]:
+    """Close now, keeping every vote. The only way before was to reopen the poll
+    with a past closing time, which threw the votes away."""
+    poll = await _poll_in(db, association.id, poll_id)
+    poll.closes_at = datetime.now(UTC)
+    record(
+        db, user=user, association=association, action="mvp.close", entity_type="mvp_poll",
+        entity_id=poll.id, after={"matchday": poll.matchday}, request=request,
+    )
+    await db.commit()
+    return await _mvp_polls(db, association.id)
+
+
+@router.delete("/{association_slug}/editor/mvp/{poll_id}", response_model=list[MvpPollAdminOut])
+async def delete_mvp_poll(
+    association: EditableAssociation, user: CurrentUser, poll_id: int, request: Request, db: DbSession
+) -> list[MvpPollAdminOut]:
+    poll = await _poll_in(db, association.id, poll_id)
+    record(
+        db, user=user, association=association, action="mvp.remove", entity_type="mvp_poll",
+        entity_id=poll.id, before={"matchday": poll.matchday}, request=request,
+    )
+    await db.delete(poll)
+    await db.commit()
+    return await _mvp_polls(db, association.id)

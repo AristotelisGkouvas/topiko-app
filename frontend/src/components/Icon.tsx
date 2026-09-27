@@ -31,6 +31,8 @@ export const ICON_PATHS = {
   hourglass: "M7 4h10M7 20h10M8 4c0 5 8 6 8 16M16 4c0 5-8 6-8 16",
   abandoned: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM6.5 6.5l11 11",
   note: "M5 19l1-4L16 5l3 3L9 18z",
+  share: "M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9h13v-9H17",
+  download: "M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14",
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

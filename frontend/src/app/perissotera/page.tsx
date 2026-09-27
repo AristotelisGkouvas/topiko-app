@@ -25,25 +25,8 @@ export default function MorePage() {
       <PageHeader column="narrow" title="Περισσότερα" />
 
       <div className={styles.page}>
-        <nav className={styles.card} aria-label="Περισσότερες σελίδες">
-          {SECONDARY_NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className={styles.row}>
-              <span className={styles.icon}>
-                <NavIcon item={item} size={20} />
-              </span>
-              <span className={styles.labelBlock}>
-                <span className={styles.label}>{item.label}</span>
-                {item.description && (
-                  <span className={styles.description}>{item.description}</span>
-                )}
-              </span>
-              <span className={styles.chevron} aria-hidden="true">
-                ›
-              </span>
-            </Link>
-          ))}
-        </nav>
-
+        {/* First, not under nine links: large text and high contrast are
+            for the readers least likely to scroll down looking for them. */}
         <p className={styles.sectionLabel}>ΡΥΘΜΙΣΕΙΣ</p>
         <div className={styles.card}>
           <Link href="/eidopoiiseis" className={styles.row}>
@@ -71,6 +54,26 @@ export default function MorePage() {
           <ReadabilitySettings />
         </div>
 
+        <p className={styles.sectionLabel}>ΣΕΛΙΔΕΣ</p>
+        <nav className={styles.card} aria-label="Περισσότερες σελίδες">
+          {SECONDARY_NAV_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className={styles.row}>
+              <span className={styles.icon}>
+                <NavIcon item={item} size={20} />
+              </span>
+              <span className={styles.labelBlock}>
+                <span className={styles.label}>{item.label}</span>
+                {item.description && (
+                  <span className={styles.description}>{item.description}</span>
+                )}
+              </span>
+              <span className={styles.chevron} aria-hidden="true">
+                ›
+              </span>
+            </Link>
+          ))}
+        </nav>
+
         <p className={styles.sectionLabel}>ΣΩΜΑΤΕΙΑ</p>
         <div className={styles.card}>
           <Link href="/ethelontis" className={styles.row}>
@@ -80,7 +83,7 @@ export default function MorePage() {
                 size={20}
               />
             </span>
-            <span className={styles.label}>Δήλωση αγώνα</span>
+            <span className={styles.label}>Live από το γήπεδο</span>
             <span className={styles.chevron} aria-hidden="true">
               ›
             </span>

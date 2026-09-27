@@ -86,6 +86,10 @@
   --color-loss-text: var(--color-loss);
   --color-highlight-surface: var(--color-amber-200);
   --color-highlight-ink: var(--color-grey-800);
+  /* The "my club" star and its outline. amber-600 is 1.5:1 on its own pale
+     surface and 1.8:1 on white; the ink shade holds 3:1 for a graphic. On
+     dark the bright amber is the one that reads. */
+  --color-star: var(--color-amber-ink);
   --color-loss-surface: var(--color-loss);
   --color-loss-ink: var(--color-grey-50);
   --color-live-surface: var(--color-terra-700);
@@ -208,7 +212,10 @@
      at that distance a difference reads as a mistake, not as hierarchy.
      rem throughout, so "Μεγάλα γράμματα" still scales all of it. */
   --text-2xs: 0.625rem; /* 10px — tags, form letters */
-  --text-xs: 0.6875rem; /* 11px — section labels, captions */
+  /* 12px, not 11: section labels are upper case and letter-spaced, and at
+     11px the older readers this site is for could not make them out. Level
+     with --text-sm on purpose — the labels differ by case and weight. */
+  --text-xs: 0.75rem; /* 12px — section labels, captions */
   --text-sm: 0.75rem; /* 12px — meta: venue, referee, time */
   --text-md: 0.8125rem; /* 13px — secondary lines, links in rows */
   --text-base: 0.875rem; /* 14px — team names, buttons */
@@ -305,6 +312,7 @@
     --color-on-navy-fill: #1a3252;
     --color-highlight-surface: #3a3117;
     --color-highlight-ink: #f2d88f;
+    --color-star: var(--color-amber-600);
     --color-accent-ink: var(--color-green-400);
     --color-nav-idle: #a9b6c4;
     --color-loss-text: #f08a7e;
@@ -355,6 +363,7 @@
   --color-on-navy-fill: #1a3252;
   --color-highlight-surface: #3a3117;
   --color-highlight-ink: #f2d88f;
+  --color-star: var(--color-amber-600);
   --color-accent-ink: var(--color-green-400);
   --color-nav-idle: #a9b6c4;
   --color-loss-text: #f08a7e;

@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { api } from "./api";
+import { mediaUrl } from "./media";
+
 /** OpenGraph's expected aspect ratio, and what every social preview crops to. */
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
@@ -81,12 +84,77 @@ export function grass(stripe = 60): string {
 
 /** The frame every card shares: navy ground, the wordmark, and a strip of
  *  colour along the bottom so a thumbnail is recognisable at any size. */
+/** A platform sponsor as a share image draws it. */
+export interface ShareSponsor {
+  name: string;
+  src: string;
+}
+
+/** The sponsors who bought the share images: up to four, those with a PNG
+ *  logo (the renderer cannot read WebP). Never throws — a card with no
+ *  sponsors beats a card that failed to render. */
+export async function shareSponsors(): Promise<ShareSponsor[]> {
+  const list = await api.listPlatformSponsors("share").catch(() => []);
+  return list
+    .filter((s) => s.logo_png_url)
+    .slice(0, 4)
+    .map((s) => ({ name: s.name, src: mediaUrl(s.logo_png_url!) }));
+}
+
+/** Logos on white plates, in a row. White on the navy card too: logos are
+ *  drawn for white paper. Satori needs every image's size spelled out. */
+export function SponsorRow({
+  sponsors,
+  height = 56,
+}: {
+  sponsors: ShareSponsor[];
+  height?: number;
+}) {
+  if (sponsors.length === 0) return null;
+  const width = Math.round(height * 2.6);
+  return (
+    <div style={{ display: "flex", gap: 10 }}>
+      {sponsors.map((s) => (
+        <div
+          key={s.src}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width,
+            height,
+            padding: 5,
+            borderRadius: 8,
+            background: "#ffffff",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders <img>, not next/image */}
+          <img
+            src={s.src}
+            alt={s.name}
+            width={width - 10}
+            height={height - 10}
+            style={{ objectFit: "contain" }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Card({
   children,
   footer,
+  sponsors = [],
+  sponsorHeight = 56,
 }: {
   children: React.ReactNode;
   footer?: string;
+  /** From shareSponsors(): drawn on the right of the footer line. */
+  sponsors?: ShareSponsor[];
+  /** Plate height. 56 on a 1200px card; bigger on the tall story, where the
+   *  same 44 came out at 16px on a phone and could not be read. */
+  sponsorHeight?: number;
 }) {
   return (
     <div
@@ -143,9 +211,17 @@ export function Card({
         {children}
       </div>
 
-      {footer && (
-        <div style={{ display: "flex", fontSize: 24, opacity: 0.75 }}>
-          {footer}
+      {(footer || sponsors.length > 0) && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 20,
+          }}
+        >
+          <div style={{ display: "flex", fontSize: 24, opacity: 0.75 }}>{footer ?? ""}</div>
+          <SponsorRow sponsors={sponsors} height={sponsorHeight} />
         </div>
       )}
 

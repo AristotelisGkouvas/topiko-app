@@ -11,6 +11,7 @@ nothing.
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
@@ -24,7 +25,7 @@ from app.models import Association, Sponsor, Team, TeamPhoto, User
 from app.schemas.catalog import SponsorAdminOut, TeamOut, TeamPhotoOut
 from app.schemas.common import ORMModel
 from app.schemas.editor import OrderIn, PhotoEdit, SponsorEdit, TeamLookEdit
-from app.services import media
+from app.services import media, sponsorship
 from app.services.audit import changed_fields, record
 
 router = APIRouter(prefix="/api/v1", tags=["editor"])
@@ -51,11 +52,24 @@ async def _team(db: DbSession, association: Association | int, slug: str) -> Tea
     )
 
 
-def _look(team: Team) -> TeamLookOut:
+async def _look_of(db: DbSession, team: Team) -> TeamLookOut:
+    # Each sponsor with its state and last month's numbers — what the club
+    # shows the bakery when the deal comes up for renewal.
+    stats = await sponsorship.totals(db, kind="club", ids=[s.id for s in team.sponsors])
+    today = sponsorship.today()
     return TeamLookOut(
         team=TeamOut.model_validate(team),
         photos=[TeamPhotoOut.model_validate(p) for p in team.photos],
-        sponsors=[SponsorAdminOut.model_validate(s) for s in team.sponsors],
+        sponsors=[
+            SponsorAdminOut.model_validate(s).model_copy(
+                update={
+                    "status": sponsorship.status(s, today),
+                    "views_30d": stats.get(s.id, (0, 0))[0],
+                    "clicks_30d": stats.get(s.id, (0, 0))[1],
+                }
+            )
+            for s in team.sponsors
+        ],
     )
 
 
@@ -76,7 +90,7 @@ async def _reload(db: DbSession, association: Association, slug: str) -> TeamLoo
     # and reading an expired attribute is a lazy load an async session cannot do.
     association_id = association.id
     db.expire_all()
-    return _look(await _team(db, association_id, slug))
+    return await _look_of(db, await _team(db, association_id, slug))
 
 
 def _audit(
@@ -110,7 +124,7 @@ def _audit(
 async def get_look(
     association: EditableAssociation, _: CurrentAdmin, team_slug: str, db: DbSession
 ) -> TeamLookOut:
-    return _look(await _team(db, association, team_slug))
+    return await _look_of(db, await _team(db, association, team_slug))
 
 
 @router.patch(BASE, response_model=TeamLookOut)
@@ -307,6 +321,11 @@ def _checked(name: str | None, website_url: str | None) -> SponsorEdit:
         ) from error
 
 
+def _plain(value: object) -> object:
+    """Dates as ISO strings, for the audit log's JSON."""
+    return value.isoformat() if isinstance(value, date) else value
+
+
 def _sponsor(team: Team, sponsor_id: int) -> Sponsor:
     sponsor = next((s for s in team.sponsors if s.id == sponsor_id), None)
     if sponsor is None:
@@ -323,10 +342,14 @@ async def add_sponsor(
     request: Request,
     db: DbSession,
     website_url: Annotated[str | None, Form()] = None,
+    starts_on: Annotated[date | None, Form()] = None,
+    ends_on: Annotated[date | None, Form()] = None,
     file: Annotated[UploadFile | None, File()] = None,
 ) -> TeamLookOut:
     team = await _team(db, association, team_slug)
     fields = _checked(name, website_url)
+    if starts_on and ends_on and ends_on < starts_on:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Η λήξη είναι πριν από την έναρξη.")
     if fields.name is None:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Το όνομα του χορηγού είναι υποχρεωτικό.")
     stored = (
@@ -342,6 +365,8 @@ async def add_sponsor(
         # At the end: the first one added is usually the main one.
         position=len(team.sponsors),
         is_active=True,
+        starts_on=starts_on,
+        ends_on=ends_on,
     )
     db.add(sponsor)
     await db.flush()
@@ -365,8 +390,8 @@ async def edit_sponsor(
 ) -> TeamLookOut:
     team = await _team(db, association, team_slug)
     sponsor = _sponsor(team, sponsor_id)
-    keys = ("name", "website_url", "is_active")
-    before = {k: getattr(sponsor, k) for k in keys}
+    keys = ("name", "website_url", "is_active", "starts_on", "ends_on")
+    before = {k: _plain(getattr(sponsor, k)) for k in keys}
     changes = payload.model_dump(exclude_unset=True)
     if "name" in changes and changes["name"] is None:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Το όνομα του χορηγού είναι υποχρεωτικό.")
@@ -374,7 +399,9 @@ async def edit_sponsor(
         del changes["is_active"]
     for key, value in changes.items():
         setattr(sponsor, key, value.strip() if isinstance(value, str) else value)
-    old, new = changed_fields(before, {k: getattr(sponsor, k) for k in keys})
+    if sponsor.starts_on and sponsor.ends_on and sponsor.ends_on < sponsor.starts_on:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Η λήξη είναι πριν από την έναρξη.")
+    old, new = changed_fields(before, {k: _plain(getattr(sponsor, k)) for k in keys})
     if old or new:
         _audit(db, request, user, association, "sponsor.edit", "sponsor", sponsor.id, old, new)
         await db.commit()

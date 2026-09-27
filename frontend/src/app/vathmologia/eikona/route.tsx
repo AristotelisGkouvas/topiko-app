@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { ApiError, api } from "@/lib/api";
 import { listName } from "@/lib/format";
-import { COLORS, Card, DISPLAY, ogFonts } from "@/lib/og";
+import { COLORS, Card, DISPLAY, ogFonts, shareSponsors } from "@/lib/og";
 
 /** The table as a picture, 1080×1350 — the size a group chat shows in full
  *  without cropping. Viber is how results travel in the federation, and a
@@ -26,7 +26,11 @@ export async function GET(req: NextRequest) {
 
   const image = new ImageResponse(
     (
-      <Card footer={`Βαθμολογία · ${league.short_name ?? league.name}`}>
+      <Card
+        footer={`Βαθμολογία · ${league.short_name ?? league.name}`}
+        sponsors={await shareSponsors()}
+        sponsorHeight={72}
+      >
         <div style={{ display: "flex", flexDirection: "column", width: "100%", fontFamily: DISPLAY }}>
           <div style={{ display: "flex", fontSize: 26, color: COLORS.onNavyMuted, paddingBottom: 10 }}>
             <div style={{ display: "flex", width: 60 }}>#</div>

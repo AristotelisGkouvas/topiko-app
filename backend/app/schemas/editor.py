@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from datetime import date, datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -79,6 +79,15 @@ class SponsorEdit(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     website_url: str | None = Field(default=None, max_length=255, pattern=WEB_URL)
     is_active: bool | None = None
+    #: Sent as null to clear: "no end date".
+    starts_on: date | None = None
+    ends_on: date | None = None
+
+
+class PlatformSponsorEdit(SponsorEdit):
+    #: At least one: a sponsor with none was "Ενεργός" and shown nowhere.
+    placements: list[Literal["site", "home", "match", "share"]] | None = Field(default=None, min_length=1)
+    note: str | None = Field(default=None, max_length=500)
 
 
 class OrderIn(BaseModel):

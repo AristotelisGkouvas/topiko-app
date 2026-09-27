@@ -130,24 +130,24 @@ async def search_players(
         latest.setdefault(player_id, team)
 
     # The register holds everybody who ever played, and a name with 225 goals
-    # may have retired a decade ago. Stat lines are only the head of each
-    # leaderboard, so a player with none at all is unknown, not inactive.
+    # may have retired a decade ago. But stat lines are only the head of each
+    # published leaderboard — ten scorers a division — so a missing line says
+    # nothing. A line this season or last means active; no line means unknown,
+    # never "inactive".
     recent = set(await recent_season_ids(db, association.id))
-    seasons_of: dict[int, set[int]] = {}
-    for player_id, season_id in (
-        await db.execute(
-            select(PlayerStat.player_id, League.season_id)
-            .join(League, PlayerStat.league_id == League.id)
-            .where(PlayerStat.player_id.in_(ids))
-            .distinct()
-        )
-    ).all():
-        seasons_of.setdefault(player_id, set()).add(season_id)
-
-    def active(player_id: int) -> bool | None:
-        if not recent or player_id not in seasons_of:
-            return None
-        return bool(seasons_of[player_id] & recent)
+    active_ids = set(
+        (
+            await db.execute(
+                select(PlayerStat.player_id)
+                .join(League, PlayerStat.league_id == League.id)
+                .where(
+                    PlayerStat.player_id.in_(ids),
+                    League.season_id.in_(recent),
+                )
+                .distinct()
+            )
+        ).scalars()
+    ) if recent else set()
 
     return [
         PlayerSearchOut(
@@ -161,7 +161,7 @@ async def search_players(
                 else None
             ),
             total_goals=int(goals or 0),
-            active=active(player.id),
+            active=True if player.id in active_ids else None,
         )
         for player, goals in hits
     ]
@@ -329,8 +329,10 @@ async def head_to_head(
         draws=draws or 0,
         home_goals=gf or 0,
         away_goals=ga or 0,
-        first_meeting=first.date() if first else None,
-        last_meeting=last.date() if last else None,
+        # The Greek calendar day: a midnight kickoff is 21:00 UTC the day
+        # before, and .date() on the UTC value filed 10/05 under 09/05.
+        first_meeting=first.astimezone(_ATHENS).date() if first else None,
+        last_meeting=last.astimezone(_ATHENS).date() if last else None,
         matches=[MatchOut.model_validate(m) for m in matches],
     )
 
@@ -783,13 +785,17 @@ async def records(
 
     biggest = (
         await db.execute(
-            scoped.options(*MATCH_LOADS).order_by(margin.desc(), Match.id).limit(limit)
+            scoped.options(*MATCH_LOADS, selectinload(Match.league))
+            .order_by(margin.desc(), Match.id)
+            .limit(limit)
         )
     ).scalars()
 
     highest = (
         await db.execute(
-            scoped.options(*MATCH_LOADS).order_by(total.desc(), Match.id).limit(limit)
+            scoped.options(*MATCH_LOADS, selectinload(Match.league))
+            .order_by(total.desc(), Match.id)
+            .limit(limit)
         )
     ).scalars()
 
@@ -831,6 +837,7 @@ async def records(
             RecordMatchOut(
                 match=MatchOut.model_validate(m),
                 value=abs((m.home_score or 0) - (m.away_score or 0)),
+                league_name=m.league.name,
             )
             for m in biggest
         ],
@@ -838,6 +845,7 @@ async def records(
             RecordMatchOut(
                 match=MatchOut.model_validate(m),
                 value=(m.home_score or 0) + (m.away_score or 0),
+                league_name=m.league.name,
             )
             for m in highest
         ],

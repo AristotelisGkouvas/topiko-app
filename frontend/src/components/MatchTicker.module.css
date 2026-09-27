@@ -17,7 +17,7 @@
   font-weight: 600;
   letter-spacing: 1.1px;
   text-transform: uppercase;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }
 
 /* terra-700 on a light ground rather than white on terra-500, which is 3.9:1

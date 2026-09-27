@@ -23,7 +23,7 @@ from app.models.enums import ConflictStatus, DataSource, MatchStatus, StandingZo
 if TYPE_CHECKING:
     from app.models.club import Field, Team
     from app.models.event import MatchEvent
-    from app.models.league import League
+    from app.models.league import League, LeagueTeam
     from app.models.user import User
 
 # How long a manual edit outranks the scraper. Once a match is this far past
@@ -95,6 +95,11 @@ class Match(Base, TimestampMixin):
     )
     is_live: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     last_manual_edit_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: The row as it was before the first live event: score, status, source.
+    #: Undoing the whole log puts it back exactly — a scheduled fixture back to
+    #: scheduled and the scraper's, a federation result back to that result —
+    #: instead of leaving a match marked hand-edited that nobody edited.
+    log_baseline: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     #: When the secretary last moved the date or the ground by hand. Kept apart
     #: from last_manual_edit_at: a score correction must not freeze the venue.
     rescheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -197,6 +202,23 @@ class Standing(Base, TimestampMixin):
 
     league: Mapped[League] = relationship(back_populates="standings")
     team: Mapped[Team] = relationship()
+    #: The club's entry in the division, for the deduction it carries. Loaded
+    #: with every row (selectin): a table that shows 3 points beside four wins
+    #: has to be able to say why, wherever a row is shown.
+    entry: Mapped[LeagueTeam | None] = relationship(
+        primaryjoin=(
+            "and_(Standing.league_id == foreign(LeagueTeam.league_id),"
+            " Standing.team_id == foreign(LeagueTeam.team_id))"
+        ),
+        viewonly=True,
+        uselist=False,
+        lazy="selectin",
+    )
+
+    @property
+    def deduction(self) -> int:
+        """Points taken off by the ένωση; `points` is already net of them."""
+        return self.entry.points_deduction if self.entry else 0
 
     def __repr__(self) -> str:
         return f"<Standing league={self.league_id} #{self.position}>"

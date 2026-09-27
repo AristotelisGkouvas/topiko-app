@@ -3,6 +3,8 @@
 import { useState } from "react";
 import useSWR from "swr";
 
+import { fold } from "@/lib/greek";
+
 import { Empty } from "@/components/States";
 import { ApiError } from "@/lib/api";
 import { editorApi } from "@/lib/editorApi";
@@ -22,13 +24,18 @@ export function VenueEditor() {
     () => editorApi.fields(),
   );
   const [query, setQuery] = useState("");
+  const [limit, setLimit] = useState(40);
 
   if (isLoading) return <p className={styles.loading}>Φόρτωση γηπέδων…</p>;
   if (error) return <Empty title="Δεν φορτώθηκαν τα γήπεδα" />;
 
-  const needle = query.trim().toLowerCase();
+  // Folded like every other search on the site: "Κρύας" found nothing
+  // while "ΚΡΥΑΣ" and "κρυας" found the ground.
+  const needle = fold(query.trim());
   const shown = (data ?? [])
-    .filter((f) => !needle || f.name.toLowerCase().includes(needle))
+    .filter(
+      (f) => !needle || fold(f.name).includes(needle) || fold(f.city ?? "").includes(needle),
+    )
     .sort((a, b) => {
       const pinned = Number(a.latitude !== null) - Number(b.latitude !== null);
       return pinned !== 0 ? pinned : a.name.localeCompare(b.name, "el");
@@ -52,10 +59,16 @@ export function VenueEditor() {
       </div>
 
       <ul className={styles.rows}>
-        {shown.slice(0, 40).map((field) => (
+        {shown.slice(0, limit).map((field) => (
           <VenueRow key={field.id} field={field} onSaved={() => mutate()} />
         ))}
       </ul>
+      {/* All of them reachable: 74 of 114 grounds were, silently, not. */}
+      {shown.length > limit && (
+        <button type="button" className={styles.save} onClick={() => setLimit(limit + 40)}>
+          Περισσότερα ({shown.length - limit} ακόμη)
+        </button>
+      )}
     </>
   );
 }
@@ -91,6 +104,10 @@ function VenueRow({ field, onSaved }: { field: Field; onSaved: () => void }) {
       (longitude !== null && Math.abs(longitude) > 180)
     ) {
       setError("Εκτός ορίων: πλάτος έως ±90, μήκος έως ±180.");
+      return;
+    }
+    if ((latitude === null) !== (longitude === null)) {
+      setError("Χρειάζονται και το πλάτος και το μήκος — ή κανένα.");
       return;
     }
     if (name.trim().length < 2) {
@@ -134,22 +151,28 @@ function VenueRow({ field, onSaved }: { field: Field; onSaved: () => void }) {
           onChange={(e) => setName(e.target.value)}
           aria-label={`Όνομα γηπέδου, ${field.name}`}
         />
-        <input
-          className={styles.small}
-          placeholder="Γεωγρ. πλάτος"
-          inputMode="decimal"
-          value={lat}
-          onChange={(e) => setLat(e.target.value)}
-          aria-label={`Γεωγραφικό πλάτος, ${field.name}`}
-        />
-        <input
-          className={styles.small}
-          placeholder="Γεωγρ. μήκος"
-          inputMode="decimal"
-          value={lng}
-          onChange={(e) => setLng(e.target.value)}
-          aria-label={`Γεωγραφικό μήκος, ${field.name}`}
-        />
+        {/* Visible labels: once filled, two bare numbers gave no clue which
+            was which — and swapped, they put the ground in Africa. */}
+        <label className={styles.coord}>
+          Πλάτος (π.χ. 39.66)
+          <input
+            className={styles.small}
+            inputMode="decimal"
+            value={lat}
+            onChange={(e) => setLat(e.target.value)}
+            aria-label={`Γεωγραφικό πλάτος, ${field.name}`}
+          />
+        </label>
+        <label className={styles.coord}>
+          Μήκος (π.χ. 20.85)
+          <input
+            className={styles.small}
+            inputMode="decimal"
+            value={lng}
+            onChange={(e) => setLng(e.target.value)}
+            aria-label={`Γεωγραφικό μήκος, ${field.name}`}
+          />
+        </label>
         <input
           className={styles.small}
           placeholder="Πόλη / χωριό"

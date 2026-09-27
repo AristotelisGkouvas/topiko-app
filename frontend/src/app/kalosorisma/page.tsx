@@ -49,8 +49,11 @@ export default async function WelcomePage({
         {/* The hero is the mark itself, at 70px — the design spends the whole
             upper screen on it, which is the only place in the app that does. */}
         <div className={styles.hero}>
-          <span className={styles.heroSmall}>ΠΑΜΕ</span>
-          <span className={styles.heroBig}>ΣΕΝΤΡΑ</span>
+          {/* The page's heading for a screen reader; the mark below is the
+              same words drawn large. */}
+          <h1 className="srOnly">Καλώς ήρθες στο Πάμε Σέντρα</h1>
+          <span className={styles.heroSmall} aria-hidden="true">ΠΑΜΕ</span>
+          <span className={styles.heroBig} aria-hidden="true">ΣΕΝΤΡΑ</span>
           <span className={styles.rule} aria-hidden="true">
             <span className={styles.ruleLine} />
             <span className={styles.ruleDot} />

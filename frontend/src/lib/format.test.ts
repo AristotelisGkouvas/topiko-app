@@ -19,7 +19,19 @@ describe("kickoff times", () => {
   });
 
   it("drop the tonos in capitals", () => {
-    expect(formatDayDate(KICKOFF)).toBe("ΚΥΡ 27/09");
+    expect(formatDayDate(KICKOFF, Date.parse(KICKOFF))).toBe("ΚΥΡ 27/09");
+  });
+
+  it("carry the year once the date is months away", () => {
+    const now = Date.parse(KICKOFF);
+    expect(formatDayDate("2016-02-28T13:00:00Z", now)).toBe("ΚΥΡ 28/02/2016");
+    expect(formatDayDate("2026-05-10T13:00:00Z", now)).toBe("ΚΥΡ 10/05");
+  });
+
+  it("hide a midnight kickoff, which means the time is unknown", () => {
+    // 21:00 UTC in September is 00:00 in Athens.
+    expect(formatTime("2026-05-09T21:00:00Z")).toBe("");
+    expect(formatTime("2026-05-09T21:30:00Z")).toBe("00:30");
   });
 
   it("are empty rather than 'Invalid Date' when missing or broken", () => {

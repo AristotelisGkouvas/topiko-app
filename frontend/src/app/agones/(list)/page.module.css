@@ -1,7 +1,7 @@
 /* Screens 02 and D02. */
 
 .page {
-  composes: pageWide from "../../styles/primitives.module.css";
+  composes: pageWide from "../../../styles/primitives.module.css";
 }
 
 .days {
@@ -27,7 +27,7 @@
 }
 
 .card {
-  composes: card from "../../styles/primitives.module.css";
+  composes: card from "../../../styles/primitives.module.css";
 }
 
 .note {
@@ -39,11 +39,11 @@
 }
 
 .links {
-  composes: card from "../../styles/primitives.module.css";
+  composes: card from "../../../styles/primitives.module.css";
 }
 
 .linkRow {
-  composes: listRow from "../../styles/primitives.module.css";
+  composes: listRow from "../../../styles/primitives.module.css";
 }
 
 .chevron {

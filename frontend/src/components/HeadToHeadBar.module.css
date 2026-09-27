@@ -5,36 +5,53 @@
 }
 
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
   gap: 10px;
   font-family: var(--font-body);
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
-.side {
+.side,
+.draws {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  overflow-wrap: anywhere;
 }
 
 /* The away side reads right-to-left so its number sits against the end of the
    bar it belongs to. */
-.legend > .side:last-child {
+.sideAway {
+  align-items: flex-end;
   text-align: right;
 }
 
 .side strong {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   color: var(--color-heading);
 }
 
+.team {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-heading);
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+
 .draws {
-  flex: none;
+  align-items: center;
+  text-align: center;
+}
+
+.sample {
+  font-size: var(--text-xs);
 }
 
 .bar {

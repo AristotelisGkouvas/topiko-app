@@ -28,7 +28,7 @@ from app.models import (
     Team,
     User,
 )
-from app.models.enums import DataSource, MatchEventKind
+from app.models.enums import DataSource, MatchEventKind, MatchStatus
 from app.schemas.catalog import TeamRef
 from app.schemas.events import EventIn, EventOut, MatchFeedOut
 from app.services.audit import record
@@ -176,6 +176,10 @@ async def record_event(
             # it gets through.
             return feed_of(match)
 
+    if not match.events:
+        # The first entry: remember the row as it stood, for a full undo.
+        match.log_baseline = _baseline(match)
+
     event = MatchEvent(
         match_id=match.id,
         client_id=payload.client_id,
@@ -305,12 +309,17 @@ async def _settle(
     before = {"home_score": match.home_score, "away_score": match.away_score}
     replaced = replaces_typed_score(before, match.events)
 
-    apply_events(match, match.events)
-
-    # Marked exactly like a typed-in score, so the reconciliation rules treat a
-    # logged match the same way and the scraper defers to it for its window.
-    match.last_manual_edit_at = datetime.now(UTC)
-    match.data_source = DataSource.MANUAL_LIVE
+    if not match.events and match.log_baseline is not None:
+        # The whole log was taken back: the match returns to exactly what it
+        # was before the first entry, source and all, as if never touched.
+        _restore(match, match.log_baseline)
+        match.log_baseline = None
+    else:
+        apply_events(match, match.events)
+        # Marked exactly like a typed-in score, so the reconciliation rules
+        # treat a logged match the same way and the scraper defers to it.
+        match.last_manual_edit_at = datetime.now(UTC)
+        match.data_source = DataSource.MANUAL_LIVE
 
     record(
         db,
@@ -333,8 +342,48 @@ async def _settle(
 
     league = await db.get(League, match.league_id)
     if league is not None:
-        await recompute_standings(db, league)
+        await recompute_standings(db, league, keep_previous=True)
     await db.commit()
+
+
+#: What a full undo puts back.
+_BASELINE_FIELDS = (
+    "home_score",
+    "away_score",
+    "home_score_ht",
+    "away_score_ht",
+    "status",
+    "is_live",
+    "minute",
+    "data_source",
+    "last_manual_edit_at",
+)
+
+
+def _baseline(match: Match) -> dict:
+    out = {}
+    for field in _BASELINE_FIELDS:
+        value = getattr(match, field)
+        if isinstance(value, datetime):
+            value = value.isoformat()
+        elif hasattr(value, "value"):  # an enum
+            value = value.value
+        out[field] = value
+    return out
+
+
+def _restore(match: Match, baseline: dict) -> None:
+    for field in _BASELINE_FIELDS:
+        if field not in baseline:
+            continue
+        value = baseline[field]
+        if field == "status" and value is not None:
+            value = MatchStatus(value)
+        elif field == "data_source" and value is not None:
+            value = DataSource(value)
+        elif field == "last_manual_edit_at" and value is not None:
+            value = datetime.fromisoformat(value)
+        setattr(match, field, value)
 
 
 async def _announce(match: Match, event: MatchEvent, db: AsyncSession) -> None:

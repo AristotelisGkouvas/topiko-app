@@ -1,4 +1,5 @@
 import { HomeTeasers } from "@/components/HomeTeasers";
+import { HomeSponsor } from "@/components/HomeSponsor";
 import { Intro } from "@/components/Intro";
 import { LastUpdated } from "@/components/LastUpdated";
 import { LiveMatches } from "@/components/LiveMatches";
@@ -122,6 +123,8 @@ export default async function HomePage({
             />
           )}
         </section>
+
+        <HomeSponsor />
       </div>
 
       {/* Rendered once. On a phone the grid is one column, so this simply

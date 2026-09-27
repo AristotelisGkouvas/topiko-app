@@ -79,6 +79,7 @@
 
 .arrow,
 .arrowOff {
+  position: relative;
   flex: none;
   min-width: 28px;
   min-height: 28px;
@@ -92,6 +93,14 @@
 
 .arrow:hover {
   color: var(--color-on-navy);
+}
+
+/* 28px drawn, 44px to the thumb: the round stepper is the most-tapped thing
+   on the fixtures page. */
+.arrow::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
 }
 
 .arrowOff {

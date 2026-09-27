@@ -170,6 +170,35 @@ function MatchRow({
   }
 
   async function save(confirmed: boolean) {
+    // Half a score is not a result: it took the match out of the table and
+    // left "ΤΕΛΙΚΟ" with no numbers on the public page.
+    if ((home === "") !== (away === "")) {
+      setError("Συμπλήρωσε και τα δύο σκορ — ή άδειασε και τα δύο για να σβηστεί.");
+      return;
+    }
+    const had = match.home_score !== null && match.away_score !== null;
+    const was = had ? `${match.home_score}-${match.away_score}` : null;
+    if (had && home === "" && away === "") {
+      if (
+        !(await confirm(`Διαγραφή του σκορ ${was} (${label});`, {
+          detail: "Ο αγώνας βγαίνει από τη βαθμολογία μέχρι να καταχωρηθεί νέο σκορ.",
+          confirmLabel: "Διαγραφή σκορ",
+          danger: true,
+        }))
+      ) {
+        return;
+      }
+    } else if (had && !confirmed && `${home}-${away}` !== was) {
+      // A settled result changed by one Enter moved the table for everyone.
+      if (
+        !(await confirm(`${label}: από ${was} σε ${home}-${away};`, {
+          detail: "Η βαθμολογία αλλάζει αμέσως.",
+          confirmLabel: "Αλλαγή σκορ",
+        }))
+      ) {
+        return;
+      }
+    }
     if (
       confirmed &&
       !(await confirm(`${label}: ${home || "–"}-${away || "–"}`, {
@@ -273,7 +302,7 @@ function MatchRow({
 
         {moving && (
           <div className={styles.move}>
-            <label className={styles.inlineLabel}>
+            <label className={styles.moveField}>
               Νέα ημερομηνία
               <input
                 className={styles.input}
@@ -282,7 +311,7 @@ function MatchRow({
                 onChange={(e) => setWhen(e.target.value)}
               />
             </label>
-            <label className={styles.inlineLabel}>
+            <label className={styles.moveField}>
               Γήπεδο
               <select
                 className={styles.select}

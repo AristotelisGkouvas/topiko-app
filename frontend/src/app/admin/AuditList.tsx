@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import useSWR from "swr";
 
 import { Empty } from "@/components/States";
@@ -13,6 +14,22 @@ const ACTIONS: Record<string, string> = {
   "club_code.issue": "Νέος κωδικός σωματείου",
   "club_code.revoke": "Ακύρωση κωδικού σωματείου",
   "mvp.open": "Ψηφοφορία MVP",
+  "mvp.close": "Κλείσιμο ψηφοφορίας MVP",
+  "mvp.remove": "Διαγραφή ψηφοφορίας MVP",
+  "team.colours": "Χρώματα σωματείου",
+  "team.logo": "Σήμα σωματείου",
+  "team.logo_remove": "Αφαίρεση σήματος",
+  "photo.add": "Νέα φωτογραφία",
+  "photo.edit": "Λεζάντα φωτογραφίας",
+  "photo.remove": "Διαγραφή φωτογραφίας",
+  "sponsor.add": "Νέος χορηγός σωματείου",
+  "sponsor.edit": "Χορηγός σωματείου",
+  "sponsor.logo": "Λογότυπο χορηγού σωματείου",
+  "sponsor.remove": "Διαγραφή χορηγού σωματείου",
+  "platform_sponsor.add": "Νέος μεγάλος χορηγός",
+  "platform_sponsor.edit": "Μεγάλος χορηγός",
+  "platform_sponsor.logo": "Λογότυπο μεγάλου χορηγού",
+  "platform_sponsor.remove": "Διαγραφή μεγάλου χορηγού",
 };
 
 //: The log stores column names; the secretary reads Greek.
@@ -43,6 +60,29 @@ const KEYS: Record<string, string> = {
   prefix: "Πρόθεμα",
   is_active: "Ενεργός",
   replaced_typed_score: "Αντικατέστησε πληκτρολογημένο σκορ",
+  name: "Όνομα",
+  website_url: "Ιστοσελίδα",
+  starts_on: "Έναρξη",
+  ends_on: "Λήξη",
+  placements: "Θέσεις",
+  logo_url: "Λογότυπο",
+  url: "Φωτογραφία",
+  caption: "Λεζάντα",
+  primary_color: "Κύριο χρώμα",
+  secondary_color: "Δεύτερο χρώμα",
+  team: "Σωματείο",
+  matchday: "Αγωνιστική",
+  league: "Κατηγορία",
+  candidates: "Υποψήφιοι",
+  replaced: "Αντικατέστησε προηγούμενη",
+  short_name: "Σύντομο όνομα",
+};
+
+const PLACEMENT_WORDS: Record<string, string> = {
+  site: "όλες οι σελίδες",
+  home: "αρχική",
+  match: "αγώνες",
+  share: "εικόνες κοινοποίησης",
 };
 
 const VALUES: Record<string, string> = {
@@ -60,9 +100,14 @@ const VALUES: Record<string, string> = {
   false: "Όχι",
 };
 
+const PAGE = 40;
+
 export function AuditList() {
-  const { data, error, isLoading } = useSWR<AuditEntry[]>("editor:audit", () =>
-    editorApi.audit(40),
+  // Grows by a page at a time, up to what the API gives (200): on a Sunday
+  // the match events alone pushed everything else off a fixed 40.
+  const [limit, setLimit] = useState(PAGE);
+  const { data, error, isLoading } = useSWR<AuditEntry[]>(["editor:audit", limit], () =>
+    editorApi.audit(limit),
   );
 
   if (isLoading) return <p className={styles.loading}>Φόρτωση ιστορικού…</p>;
@@ -89,6 +134,13 @@ export function AuditList() {
           <Diff before={entry.old_value} after={entry.new_value} />
         </li>
       ))}
+      {data.length >= limit && limit < 200 && (
+        <li>
+          <button type="button" className={styles.save} onClick={() => setLimit(limit + PAGE)}>
+            Περισσότερα
+          </button>
+        </li>
+      )}
     </ul>
   );
 }
@@ -101,7 +153,9 @@ function Diff({
   before: Record<string, unknown> | null;
   after: Record<string, unknown> | null;
 }) {
-  const keys = Object.keys(after ?? {});
+  // Both sides' keys: a removal has only a "before", and showing just the
+  // "after" left a deletion with no word of what was deleted.
+  const keys = [...new Set([...Object.keys(before ?? {}), ...Object.keys(after ?? {})])];
   if (keys.length === 0) return null;
 
   return (
@@ -118,7 +172,9 @@ function Diff({
   );
 }
 
-const show = (value: unknown) =>
-  value === null || value === undefined
+const show = (value: unknown): string =>
+  value === null || value === undefined || value === "None"
     ? "—"
-    : (VALUES[String(value)] ?? String(value));
+    : Array.isArray(value)
+      ? value.map((v) => PLACEMENT_WORDS[String(v)] ?? String(v)).join(", ")
+      : (VALUES[String(value)] ?? String(value));

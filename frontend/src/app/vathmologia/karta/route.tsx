@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 import { api } from "@/lib/api";
-import { COLORS, DISPLAY, OG_CONTENT_TYPE, OG_SIZE, grass, ogFonts } from "@/lib/og";
+import { COLORS, DISPLAY, OG_SIZE, grass, ogFonts, SponsorRow, shareSponsors } from "@/lib/og";
 import { formatGoalDifference, listName } from "@/lib/format";
 import { leagueLabel, resolveLeague } from "@/lib/leagues";
 
@@ -10,9 +11,7 @@ import { leagueLabel, resolveLeague } from "@/lib/leagues";
  *  so generating per request costs nothing a reader would notice. */
 export const dynamic = "force-dynamic";
 
-export const size = OG_SIZE;
-export const contentType = OG_CONTENT_TYPE;
-export const alt = "Βαθμολογία";
+const size = OG_SIZE;
 
 /** Screen S2: the table as a Facebook card.
  *
@@ -24,13 +23,11 @@ export const alt = "Βαθμολογία";
  *  in the table that is not a number, and it survives being scaled down to a
  *  thumbnail when the digits do not.
  */
-export default async function Image({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[] | undefined>;
-}) {
+export async function GET(req: NextRequest) {
+  const searchParams = Object.fromEntries(req.nextUrl.searchParams);
   const { league, season } = await resolveLeague(searchParams ?? {});
   const fonts = await ogFonts();
+  const sponsors = await shareSponsors();
 
   if (!league) {
     return new ImageResponse(
@@ -178,13 +175,15 @@ export default async function Image({
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             padding: "0 48px 18px",
             fontSize: 18,
             fontWeight: 600,
             color: COLORS.onNavyMuted,
           }}
         >
-          ΠΑΜΕ ΣΕΝΤΡΑ · ΕΠΣ ΗΠΕΙΡΟΥ
+          <span>ΠΑΜΕ ΣΕΝΤΡΑ · ΕΠΣ ΗΠΕΙΡΟΥ</span>
+          <SponsorRow sponsors={sponsors} height={52} />
         </div>
       </div>
     ),

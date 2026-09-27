@@ -35,7 +35,7 @@ export default async function EmbedStandings({
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.title}>Βαθμολογία {leagueLabel(league)}</p>
+      <h1 className={styles.title}>Βαθμολογία {leagueLabel(league)}</h1>
       {standings.length > 0 ? (
         <StandingsTable standings={standings} league={league} />
       ) : (

@@ -248,3 +248,9 @@
     grid-column: 1 / -1;
   }
 }
+
+.fixtureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

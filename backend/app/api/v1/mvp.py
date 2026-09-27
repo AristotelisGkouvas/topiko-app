@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectinload
 
@@ -36,9 +36,13 @@ async def _latest_poll(association_id: int, db: DbSession) -> MvpPoll | None:
                 selectinload(MvpPoll.candidates).selectinload(MvpCandidate.player),
                 selectinload(MvpPoll.candidates).selectinload(MvpCandidate.team),
             )
-            # Newest round first, and newest poll within it — a federation that
-            # opens two in a week means the second.
-            .order_by(MvpPoll.matchday.desc(), MvpPoll.id.desc())
+            # An open poll before a closed one, then the newest opened. By
+            # matchday alone, a Α΄ poll for round 5 hid a newer Β΄ one for
+            # round 3 — the numbers of two divisions are not one sequence.
+            .order_by(
+                or_(MvpPoll.closes_at.is_(None), MvpPoll.closes_at > func.now()).desc(),
+                MvpPoll.id.desc(),
+            )
             .limit(1)
         )
     ).scalar_one_or_none()

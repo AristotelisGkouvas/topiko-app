@@ -92,3 +92,21 @@ class MvpPollCreatedOut(BaseModel):
     matchday: int
     closes_at: datetime | None = None
     candidates: int
+
+
+class MvpAdminCandidateOut(BaseModel):
+    player_name: str
+    team_name: str | None = None
+    votes: int = 0
+
+
+class MvpPollAdminOut(BaseModel):
+    """A poll as the desk sees it: counts always, open or not."""
+
+    id: int
+    league_name: str
+    matchday: int
+    closes_at: datetime | None = None
+    open: bool
+    total_votes: int
+    candidates: list[MvpAdminCandidateOut]

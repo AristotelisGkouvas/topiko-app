@@ -18,10 +18,29 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Βαθμολογία",
-  description: "Η βαθμολογία κάθε κατηγορίας της ΕΠΣ Ηπείρου.",
-};
+/** The division in the title and in the card. Next's file-based
+ *  opengraph-image never sees ?liga=, so a Β΄ Κατηγορία link shared to Viber
+ *  unfurled with the Α΄ table; the card is a route that does, named here. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const { league, season } = await resolveLeague(params);
+  if (!league) return { title: "Βαθμολογία" };
+  const query = new URLSearchParams({ liga: league.slug });
+  if (season) query.set("periodos", season);
+  const label = leagueLabel(league);
+  const image = { url: `/vathmologia/karta?${query}`, width: 1200, height: 630, alt: `Βαθμολογία · ${label}` };
+  return {
+    title: `Βαθμολογία · ${label}`,
+    description: `Η βαθμολογία της ${label} της ΕΠΣ Ηπείρου, με φόρμα και ζώνες ανόδου/υποβιβασμού.`,
+    alternates: { canonical: `/vathmologia?${query}` },
+    openGraph: { images: [image] },
+    twitter: { card: "summary_large_image", images: [image] },
+  };
+}
 
 /** Screens 04 and D04.
  *
@@ -104,7 +123,9 @@ export default async function StandingsPage({
             />
           </div>
 
-          <LiveStandings leagueSlug={league.slug} />
+          {/* Live projection is a current-season thing; asked for an old
+              league the API answers 404, logged on every visit. */}
+          {!season && <LiveStandings leagueSlug={league.slug} />}
 
           <nav className={styles.venueTabs} aria-label="Είδος βαθμολογίας">
             {tab(null, "Γενική")}

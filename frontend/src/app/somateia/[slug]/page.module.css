@@ -87,6 +87,9 @@
 }
 
 .stat {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
   background: var(--color-surface);
   padding: 10px 6px;
   text-align: center;
@@ -94,6 +97,7 @@
 
 .statValue {
   display: block;
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.25rem;
@@ -362,13 +366,22 @@
 }
 
 /* The club's two colours as a band along the top of the hero, full bleed
-   like the hero itself. Halves, not a gradient: kit colours are blocks. */
+   like the hero itself. Halves, not a gradient: kit colours are blocks.
+
+   The band itself spans the column; two spread shadows carry each colour out
+   to its own edge of the window. Left/right offsets of -100vmax did the same
+   visually but made the page 1245px wide on a 393px phone — clip-path hides
+   paint, not scroll width. A shadow adds none. */
 .coloured::before {
   content: "";
   position: absolute;
   top: 0;
-  left: -100vmax;
-  right: -100vmax;
+  left: 0;
+  right: 0;
   height: 6px;
   background: linear-gradient(90deg, var(--club-1) 0 50%, var(--club-2) 50% 100%);
+  box-shadow:
+    -100vmax 0 0 100vmax var(--club-1),
+    100vmax 0 0 100vmax var(--club-2);
+  clip-path: inset(0 -100vmax);
 }

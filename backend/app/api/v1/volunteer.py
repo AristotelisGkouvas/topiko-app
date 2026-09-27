@@ -71,9 +71,19 @@ async def login(
     response: Response,
     db: DbSession,
 ) -> VolunteerOut:
-    code = await service.authenticate(
-        db, association_id=association.id, raw=payload.code
-    )
+    try:
+        code = await service.authenticate(
+            db, association_id=association.id, raw=payload.code
+        )
+    except service.CodeLocked as locked:
+        minutes = max(1, round((locked.until - datetime.now(UTC)).total_seconds() / 60))
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail=(
+                f"Ο κωδικός κλείδωσε προσωρινά μετά από πολλές λάθος προσπάθειες. "
+                f"Ξαναδοκίμασε σε {minutes}′ ή πάρε τηλέφωνο την ένωση."
+            ),
+        ) from None
     # Committed either way: a failed attempt has to leave its mark on the
     # counter, or the lockout never arrives.
     if code is None:

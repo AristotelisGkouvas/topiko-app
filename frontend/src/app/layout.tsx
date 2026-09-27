@@ -6,6 +6,7 @@ import { OfflineBar } from "@/components/OfflineBar";
 import { SearchShortcut } from "@/components/SearchShortcut";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteSponsors } from "@/components/SiteSponsors";
 import { api } from "@/lib/api";
 import { leagueLabel, resolveLeague } from "@/lib/leagues";
 import { APP_NAME, APP_TAGLINE } from "@/lib/nav";
@@ -80,6 +81,10 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // Without it iOS reports every env(safe-area-inset-*) as 0, and the bottom
+  // nav's inset padding did nothing: in the installed app the tabs sat on the
+  // home indicator.
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
@@ -153,6 +158,7 @@ export default async function RootLayout({
                 covering it — screen E1. */}
             <OfflineBar />
             {children}
+            <SiteSponsors />
           </main>
           <BottomNav liveCount={liveCount} />
           <SearchShortcut />

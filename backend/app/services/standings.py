@@ -84,6 +84,7 @@ class LiveRow:
     points: int
     form: str | None
     zone: StandingZone | None
+    deduction: int = 0
 
 
 def _zone_for(position: int, zones: dict) -> StandingZone | None:
@@ -233,8 +234,16 @@ async def _ordered_rows(
     return resolved, rows
 
 
-async def recompute_standings(db: AsyncSession, league: League) -> list[Standing]:
-    """Rebuild every Standing row for `league` and return them, ordered."""
+async def recompute_standings(
+    db: AsyncSession, league: League, *, keep_previous: bool = False
+) -> list[Standing]:
+    """Rebuild every Standing row for `league` and return them, ordered.
+
+    `keep_previous` leaves `previous_position` alone. A goal logged live and
+    taken back a minute later moves two clubs and moves them back; recording
+    that as their "previous" place overwrote the one from the last round for
+    every club in between.
+    """
     # Flushed first. The sessions here do not autoflush, and the fixtures are
     # read back by a query that filters on status in SQL: a result typed a
     # moment ago, still only in memory, would be left out of its own table.
@@ -255,7 +264,7 @@ async def recompute_standings(db: AsyncSession, league: League) -> list[Standing
         if standing is None:
             standing = Standing(league_id=league.id, team_id=row.team_id)
             db.add(standing)
-        elif standing.position != position:
+        elif standing.position != position and not keep_previous:
             standing.previous_position = standing.position
 
         standing.position = position
@@ -341,6 +350,7 @@ async def project_live_standings(
                 goals_against=row.goals_against,
                 goal_difference=row.goal_difference,
                 points=row.final_points,
+                deduction=row.deduction,
                 form="".join(row.form[-5:]) or None,
                 zone=_zone_for(position, league.zones or {}),
             )

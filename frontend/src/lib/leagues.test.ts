@@ -9,9 +9,18 @@ import type { League } from "./types";
 const league = (current: number | null, total: number | null) =>
   ({ current_matchday: current, total_matchdays: total }) as League;
 
+// A Monday and a Friday, noon in Athens.
+const MON = Date.parse("2026-09-28T09:00:00Z");
+const FRI = Date.parse("2026-09-25T09:00:00Z");
+
 describe("resolveMatchday", () => {
-  it("opens on the round last played", () => {
-    expect(resolveMatchday({}, league(7, 26))).toBe(7);
+  it("opens on the round last played early in the week", () => {
+    expect(resolveMatchday({}, league(7, 26), "played", MON)).toBe(7);
+  });
+
+  it("opens on the coming round from Thursday", () => {
+    expect(resolveMatchday({}, league(7, 26), "played", FRI)).toBe(8);
+    expect(resolveMatchday({}, league(null, 26), "played", FRI)).toBe(1);
   });
 
   it("opens on the next round when asked", () => {
@@ -24,11 +33,11 @@ describe("resolveMatchday", () => {
   });
 
   it("starts at 1 before a ball is kicked", () => {
-    expect(resolveMatchday({}, league(null, 26))).toBe(1);
+    expect(resolveMatchday({}, league(null, 26), "played", MON)).toBe(1);
   });
 
   it("ignores rubbish in the URL", () => {
-    expect(resolveMatchday({ agonistiki: "abc" }, league(7, 26))).toBe(7);
-    expect(resolveMatchday({ agonistiki: "0" }, league(7, 26))).toBe(7);
+    expect(resolveMatchday({ agonistiki: "abc" }, league(7, 26), "played", MON)).toBe(7);
+    expect(resolveMatchday({ agonistiki: "0" }, league(7, 26), "played", MON)).toBe(7);
   });
 });

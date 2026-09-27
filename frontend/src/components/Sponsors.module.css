@@ -40,8 +40,13 @@ a.item:hover {
 }
 
 .placeholder {
-  background: var(--color-border);
-  opacity: 0.4;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: 1px;
+  color: #1a2b3c;
 }
 
 .name {

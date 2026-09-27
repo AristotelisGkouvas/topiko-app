@@ -36,9 +36,14 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--text-body);
+  /* Two lines, not an ellipsis: "Α.Σ.ΑΠΟΛΛΩΝ ΙΩΑΝΝΙΝΩΝ 2018 Β" and "… Γ"
+     are different clubs, and a cut after "2018" made them one. */
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .meta {
@@ -58,4 +63,19 @@
    the red "Ανενεργό" under its name. */
 .inactive {
   border-left: 3px solid var(--color-loss-mark);
+}
+
+.groupTitle {
+  margin: 22px 2px 10px;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.text > :nth-child(2) {
+  justify-self: start;
+  margin: 2px 0 1px;
 }

@@ -165,6 +165,14 @@ async def issue(
     return code, plaintext
 
 
+class CodeLocked(Exception):
+    """The right code, during a lockout."""
+
+    def __init__(self, until: datetime) -> None:
+        super().__init__(until.isoformat())
+        self.until = until
+
+
 async def authenticate(
     db: AsyncSession, *, association_id: int, raw: str
 ) -> ClubAccessCode | None:
@@ -199,6 +207,12 @@ async def authenticate(
 
     now = datetime.now(UTC)
     if code.locked_until is not None and code.locked_until > now:
+        # Said only to whoever holds the right code. Anyone guessing still
+        # gets the generic refusal; the club's own volunteer, locked out by
+        # somebody else's guesses, learns why and for how long instead of
+        # concluding the paper they were given is wrong.
+        if await asyncio.to_thread(verify_password, cleaned, code.code_hash):
+            raise CodeLocked(code.locked_until)
         return None
 
     if not await asyncio.to_thread(verify_password, cleaned, code.code_hash):

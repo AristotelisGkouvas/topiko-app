@@ -8,6 +8,7 @@ import { MatchRow } from "@/components/MatchRow";
 import { PageHeader } from "@/components/PageHeader";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
+import { plural, pointsLabel } from "@/lib/format";
 import { readParam, type SearchParams } from "@/lib/leagues";
 import { RosterList } from "../roster/RosterList";
 import { PrintButton } from "./PrintButton";
@@ -15,7 +16,20 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Ανάλυση αντιπάλου" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const team = await api.getTeam(slug).catch(() => null);
+  return team
+    ? {
+        title: `Ανάλυση αντιπάλου · ${team.name}`,
+        description: `${team.name} σε μία σελίδα: θέση, εντός/εκτός, γκολ ανά 15λεπτο, σκόρερ και τιμωρίες.`,
+      }
+    : { title: "Ανάλυση αντιπάλου" };
+}
 
 /** Everything a coach reads before playing this club, on one printable page:
  *  where they stand, how they do away and at home, when they score and
@@ -53,7 +67,7 @@ export default async function OpponentPage({
       <div className={styles.page}>
         <p className={styles.lead}>
           {standing
-            ? `${standing.position}η θέση, ${standing.points} βαθμοί · ${standing.won} νίκες, ${standing.drawn} ισοπαλίες, ${standing.lost} ήττες · γκολ ${standing.goals_for} υπέρ, ${standing.goals_against} κατά`
+            ? `${standing.position}η θέση, ${pointsLabel(standing.points)} · ${standing.won} ${plural(standing.won, "νίκη", "νίκες")}, ${standing.drawn} ${plural(standing.drawn, "ισοπαλία", "ισοπαλίες")}, ${standing.lost} ${plural(standing.lost, "ήττα", "ήττες")} · γκολ ${standing.goals_for} υπέρ, ${standing.goals_against} κατά`
             : "Χωρίς θέση στη βαθμολογία αυτή την περίοδο."}
           {standing?.form ? ` · φόρμα ${standing.form.split("").join(" ")}` : ""}
         </p>

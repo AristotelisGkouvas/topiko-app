@@ -15,6 +15,7 @@
 }
 
 .card {
+  position: relative;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -54,7 +55,7 @@
   padding: 3px 8px;
   border-radius: var(--radius-pill);
   background: var(--color-grey-100);
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }
 
 .directions {
@@ -64,3 +65,12 @@
 }
 
 
+
+/* The whole card is the link: the name alone was a 19px-tall target, and
+   there are 114 of them to hit with a thumb. */
+.name a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}

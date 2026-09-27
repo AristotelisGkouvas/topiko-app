@@ -20,6 +20,9 @@
 .brand {
   display: flex;
   flex-direction: column;
+  /* The federation's name centred under the lockup, not hanging off its
+     left edge. */
+  align-items: center;
   gap: 2px;
   text-decoration: none;
   flex: none;
@@ -242,8 +245,10 @@
     margin: 0 auto;
   }
 
+  /* 38, not 44: with the federation's name under it the lockup has to fit
+     the 60px bar, and at 44 the name was cut off at the bottom. */
   .logo {
-    height: 44px;
+    height: 38px;
   }
 
   .nav {

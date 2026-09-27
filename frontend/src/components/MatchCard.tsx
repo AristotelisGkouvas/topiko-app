@@ -130,7 +130,7 @@ export function MatchCard({ match }: { match: Match }) {
           </div>
           <div className={styles.kickoff}>
             <span className={styles.kickoffTime}>
-              {formatTime(match.kickoff_at)}
+              {formatTime(match.kickoff_at) || "—"}
             </span>
             <span className={styles.kickoffDay}>
               {formatWeekday(match.kickoff_at)}

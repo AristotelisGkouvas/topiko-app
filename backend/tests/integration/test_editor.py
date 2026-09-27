@@ -210,3 +210,67 @@ async def test_the_match_list_filters_by_club(client, world: World) -> None:
 
     none = await client.get(f"{url}&q=κανενας", cookies=session_for(world.editor))
     assert none.json() == []
+
+
+async def test_undoing_the_whole_log_puts_the_match_back(client, db, world: World) -> None:
+    from app.models import Match
+
+    before = await db.get(Match, world.a.match.id)
+    original = (before.status, before.data_source, before.home_score, before.last_manual_edit_at)
+
+    ids = []
+    for kind, team in (("kickoff", None), ("goal", world.a.home.id), ("halftime", None)):
+        feed = await client.post(
+            f"{edit_url(world)}/events",
+            json={"kind": kind, "team_id": team, "minute": 10},
+            cookies=session_for(world.live_editor),
+            headers=SAME_SITE,
+        )
+        assert feed.status_code == 201, feed.text
+        ids.append(feed.json()["events"][-1]["id"])
+
+    for event_id in reversed(sorted(ids)):
+        response = await client.delete(
+            f"{edit_url(world)}/events/{event_id}",
+            cookies=session_for(world.live_editor),
+            headers=SAME_SITE,
+        )
+        assert response.status_code == 200, response.text
+
+    after = await db.get(Match, world.a.match.id, populate_existing=True)
+    assert (after.status, after.data_source, after.home_score, after.last_manual_edit_at) == original
+    assert after.log_baseline is None
+
+
+async def test_half_a_score_is_refused_and_a_cleared_result_waits_again(client, world: World) -> None:
+    await client.patch(
+        edit_url(world),
+        json={"home_score": 2, "away_score": 1},
+        cookies=session_for(world.live_editor),
+        headers=SAME_SITE,
+    )
+    half = await client.patch(
+        edit_url(world),
+        json={"home_score": None},
+        cookies=session_for(world.live_editor),
+        headers=SAME_SITE,
+    )
+    assert half.status_code == 422
+
+    cleared = await client.patch(
+        edit_url(world),
+        json={"home_score": None, "away_score": None},
+        cookies=session_for(world.live_editor),
+        headers=SAME_SITE,
+    )
+    assert cleared.status_code == 200, cleared.text
+    assert cleared.json()["status"] == "scheduled"
+
+
+async def test_only_live_editors_hand_out_club_codes(client, world: World) -> None:
+    url = "/api/v1/alpha/editor/club-codes"
+    body = {"team_slug": world.a.home.slug, "label": "δοκιμή"}
+    denied = await client.post(url, json=body, cookies=session_for(world.editor), headers=SAME_SITE)
+    assert denied.status_code == 403
+    allowed = await client.post(url, json=body, cookies=session_for(world.live_editor), headers=SAME_SITE)
+    assert allowed.status_code == 201, allowed.text

@@ -16,6 +16,7 @@ from starlette.types import Scope
 from app.api.v1.archive import router as archive_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.club_admin import router as club_admin_router
+from app.api.v1.sponsors import router as sponsors_router
 from app.api.v1.editor import router as editor_router
 from app.api.v1.events import router as events_router
 from app.api.v1.predictions import router as predictions_router
@@ -77,6 +78,7 @@ app.add_middleware(RequestContext)
 app.include_router(auth_router)
 app.include_router(editor_router)
 app.include_router(club_admin_router)
+app.include_router(sponsors_router)
 app.include_router(events_router)
 app.include_router(predictions_router)
 app.include_router(push_router)

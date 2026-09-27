@@ -10,7 +10,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { CalendarLink } from "@/components/CalendarLink";
 import { ShareButton } from "@/components/ShareButton";
 import { ApiError, api } from "@/lib/api";
-import { formatGoalDifference } from "@/lib/format";
+import { formatGoalDifference, pointsLabel } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
 import type { FieldRef, Match, TeamDetail } from "@/lib/types";
@@ -40,8 +40,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const team = await api.getTeam(slug);
-    return { title: team.name };
+    const [team, placement] = await Promise.all([
+      api.getTeam(slug),
+      api.getTeamStanding(slug).catch(() => null),
+    ]);
+    // What a search result should say under the name: the division and where
+    // they stand, not the site's tagline repeated on 177 pages.
+    const where = placement
+      ? `${placement.league.short_name ?? placement.league.name}, ${placement.standing.position}η θέση με ${pointsLabel(placement.standing.points)}`
+      : null;
+    return {
+      title: team.name,
+      description: [
+        `${team.name}: πρόγραμμα, αποτελέσματα και βαθμολογία`,
+        where,
+        team.home_field ? `έδρα ${team.home_field.name}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") + ".",
+      alternates: { canonical: `/somateia/${slug}` },
+    };
   } catch {
     return { title: "Σωματείο" };
   }
@@ -130,7 +148,7 @@ export default async function TeamPage({
                 it is "thirty-two colon twenty-eight". */}
             <Stat
               value={`${standing.goals_for} – ${standing.goals_against}`}
-              label="Γκολ υπέρ – κατά"
+              label="Γκολ"
             />
             <Stat
               value={formatGoalDifference(standing.goal_difference)}
@@ -346,7 +364,7 @@ export default async function TeamPage({
                 <span>{leagueLabel(placement.league)}</span>
                 {standing && (
                   <span className={styles.leagueMeta}>
-                    {standing.position}η θέση · {standing.points} βαθμοί
+                    {standing.position}η θέση · {pointsLabel(standing.points)}
                   </span>
                 )}
               </Link>
@@ -358,8 +376,9 @@ export default async function TeamPage({
       {/* The one place a club official would look. The tool is not in the nav
           — it is not for readers — but a door nobody can find is not a door. */}
       <p className={styles.volunteer}>
-        Είσαι από το σωματείο; <Link href="/ethelontis">Δήλωσε αγώνα</Link> με
-        τον κωδικό που σου έδωσε η ένωση.
+        Είσαι από το σωματείο; Δώσε το σκορ{" "}
+        <Link href="/ethelontis">live από το γήπεδο</Link> με τον κωδικό που σου
+        έδωσε η ένωση.
       </p>
     </div>
   );
@@ -386,9 +405,11 @@ function stillToCome(matches: Match[]): Match[] {
 
 function Stat({ value, label }: { value: string | number; label: string }) {
   return (
+    // dt before dd, as a <dl> requires; the column is reversed in CSS so the
+    // number still sits on top.
     <div className={styles.stat}>
-      <span className={styles.statValue}>{value}</span>
-      <span className={styles.statLabel}>{label}</span>
+      <dt className={styles.statLabel}>{label}</dt>
+      <dd className={styles.statValue}>{value}</dd>
     </div>
   );
 }

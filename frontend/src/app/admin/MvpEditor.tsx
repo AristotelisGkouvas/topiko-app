@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate as mutateSWR } from "swr";
 
 import { ApiError, apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import type { components } from "@/lib/api-schema";
@@ -81,6 +81,7 @@ export function MvpEditor() {
       });
       setCandidates([]);
       setMessage("Η ψηφοφορία άνοιξε. Φαίνεται στη σελίδα «Παίκτης αγωνιστικής» και στην αρχική.");
+      void mutateSWR(POLLS_KEY);
     } catch (err) {
       noteAuthError(err);
       setMessage(err instanceof ApiError ? err.message : "Απέτυχε.");
@@ -190,6 +191,111 @@ export function MvpEditor() {
           {message}
         </p>
       )}
+
+      <MvpPolls />
     </div>
+  );
+}
+
+const POLLS_KEY = "editor:mvp-polls";
+
+interface PollRow {
+  id: number;
+  league_name: string;
+  matchday: number;
+  closes_at: string | null;
+  open: boolean;
+  total_votes: number;
+  candidates: { player_name: string; team_name: string | null; votes: number }[];
+}
+
+/** What is running and what came of it: counts always, a way to close a poll
+ *  now without throwing its votes away, and to delete one opened by mistake. */
+function MvpPolls() {
+  const { data, mutate } = useSWR<PollRow[]>(POLLS_KEY, () =>
+    apiFetch<PollRow[]>(apiUrl("/editor/mvp"), { credentials: "include" }),
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  async function act(path: string, method: "POST" | "DELETE") {
+    setError(null);
+    try {
+      await mutate(await apiFetch<PollRow[]>(apiUrl(path), { method, credentials: "include" }), {
+        revalidate: false,
+      });
+    } catch (err) {
+      noteAuthError(err);
+      setError(err instanceof ApiError ? err.message : "Απέτυχε.");
+    }
+  }
+
+  if (!data || data.length === 0) return null;
+  return (
+    <section className={styles.mvpPolls} aria-labelledby="mvp-polls">
+      <h3 id="mvp-polls" className={styles.mvpPollsTitle}>Ψηφοφορίες</h3>
+      {error && (
+        <p className={styles.rowError} role="alert">
+          {error}
+        </p>
+      )}
+      <ul className={styles.mvpPollList}>
+        {data.map((poll) => (
+          <li key={poll.id} className={styles.mvpPoll}>
+            <p className={styles.mvpPollHead}>
+              <strong>
+                {poll.league_name} · {poll.matchday}η αγωνιστική
+              </strong>{" "}
+              · {poll.open ? "Ανοιχτή" : "Έκλεισε"} · {poll.total_votes}{" "}
+              {poll.total_votes === 1 ? "ψήφος" : "ψήφοι"}
+            </p>
+            <ol className={styles.mvpPollResults}>
+              {poll.candidates.map((c, i) => (
+                <li key={i}>
+                  {c.player_name}
+                  {c.team_name ? ` (${c.team_name})` : ""} — {c.votes}
+                </li>
+              ))}
+            </ol>
+            <div className={styles.mvpPollActions}>
+              {poll.open && (
+                <button
+                  type="button"
+                  className={styles.save}
+                  onClick={async () => {
+                    if (
+                      await confirm(`Κλείσιμο της ψηφοφορίας τώρα;`, {
+                        detail: "Οι ψήφοι μένουν και φαίνονται τα αποτελέσματα.",
+                        confirmLabel: "Κλείσιμο",
+                      })
+                    ) {
+                      void act(`/editor/mvp/${poll.id}/close`, "POST");
+                    }
+                  }}
+                >
+                  Κλείσιμο τώρα
+                </button>
+              )}
+              <button
+                type="button"
+                className={styles.logout}
+                onClick={async () => {
+                  if (
+                    await confirm(`Διαγραφή της ψηφοφορίας της ${poll.matchday}ης αγωνιστικής;`, {
+                      detail: "Σβήνονται και οι ψήφοι της. Δεν αναιρείται.",
+                      confirmLabel: "Διαγραφή",
+                      danger: true,
+                    })
+                  ) {
+                    void act(`/editor/mvp/${poll.id}`, "DELETE");
+                  }
+                }}
+              >
+                Διαγραφή
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

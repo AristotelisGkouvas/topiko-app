@@ -37,10 +37,22 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const field = await api.getField(slug);
-    const tenants = field.home_teams.map((t) => t.name).join(", ");
+    // A ground that is home to 28 clubs listed all 28 — 500 characters a
+    // search result cuts at 155. Count past three.
+    const teams = field.home_teams;
+    const tenants =
+      teams.length > 3
+        ? `${teams.slice(0, 3).map((t) => t.name).join(", ")} και ${teams.length - 3} ακόμη σωματεία`
+        : teams.map((t) => t.name).join(", ");
     return {
       title: field.name,
-      description: tenants ? `Έδρα: ${tenants}.` : "Γήπεδο της ένωσης.",
+      description: [
+        field.city,
+        tenants ? `Έδρα: ${tenants}` : "Γήπεδο της ένωσης",
+      ]
+        .filter(Boolean)
+        .join(" · ") + ".",
+      alternates: { canonical: `/gipeda/${slug}` },
     };
   } catch {
     // A missing ground is handled by the page itself; metadata is not the
@@ -181,9 +193,11 @@ export default async function FieldPage({
             </div>
           ) : (
             <div className={styles.card}>
-              {matches.map((match) => (
-                <FixtureRow key={match.id} match={match} />
-              ))}
+              <ul className={styles.fixtureList}>
+                {matches.map((match) => (
+                  <FixtureRow key={match.id} match={match} />
+                ))}
+              </ul>
             </div>
           )}
         </section>

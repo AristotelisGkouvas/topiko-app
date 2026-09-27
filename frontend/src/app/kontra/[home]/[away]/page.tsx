@@ -53,6 +53,16 @@ export default async function HeadToHeadPage({ params }: { params: Params }) {
         <p className={styles.note}>
           Δεν υπάρχει καταγεγραμμένη συνάντηση ανάμεσα στα δύο σωματεία.
         </p>
+        {/* Not a dead end: the two clubs are why the reader came. */}
+        <ul className={styles.onward}>
+          {[record.home, record.away].map((team) => (
+            <li key={team.slug}>
+              <Link href={`/somateia/${team.slug}`} className={styles.onwardLink}>
+                {team.name} ›
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
@@ -64,6 +74,9 @@ export default async function HeadToHeadPage({ params }: { params: Params }) {
 
   return (
     <div className={pageStyles.page}>
+      <h1 className="srOnly">
+        {record.home.name} — {record.away.name}: οι συναντήσεις τους
+      </h1>
       <header className={styles.hero}>
         <div className={styles.sides}>
           <ClubSide slug={record.home.slug} team={record.home} />

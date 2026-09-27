@@ -9,7 +9,7 @@ import { MatchdayStrip } from "@/components/MatchdayStrip";
 import { PageHeader, PageHeaderStepper } from "@/components/PageHeader";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
-import { formatDayDate, upper } from "@/lib/format";
+import { formatDayDate, matchdayLabel, upper } from "@/lib/format";
 import {
   readParam,
   resolveLeague,
@@ -22,10 +22,29 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Αγώνες",
-  description: "Το πρόγραμμα και τα αποτελέσματα κάθε αγωνιστικής.",
-};
+/** Division and round in the title and the card — see vathmologia/page.tsx
+ *  for why the card is a route named here rather than an opengraph-image. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const { league, season } = await resolveLeague(params);
+  if (!league) return { title: "Αγώνες" };
+  const matchday = resolveMatchday(params, league);
+  const query = new URLSearchParams({ liga: league.slug, agonistiki: String(matchday) });
+  if (season) query.set("periodos", season);
+  const label = `${leagueLabel(league)} · ${matchdayLabel(matchday)}`;
+  const image = { url: `/agones/karta?${query}`, width: 1200, height: 630, alt: label };
+  return {
+    title: `Αγώνες · ${label}`,
+    description: `Πρόγραμμα και αποτελέσματα: ${label}, ΕΠΣ Ηπείρου.`,
+    alternates: { canonical: `/agones?${query}` },
+    openGraph: { images: [image] },
+    twitter: { card: "summary_large_image", images: [image] },
+  };
+}
 
 /** Matches by matchday, grouped by the day they are played.
  *

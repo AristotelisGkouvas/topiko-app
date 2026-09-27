@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { api } from "@/lib/api";
-import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts } from "@/lib/og";
+import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts, shareSponsors } from "@/lib/og";
 
 export const alt = "Σωματείο";
 export const size = OG_SIZE;
@@ -23,7 +23,7 @@ export default async function Image({
     name = team.name;
     footer = [
       team.founded_year ? `από το ${team.founded_year}` : null,
-      team.seasons?.length ? `${team.seasons.length} περίοδοι στο αρχείο` : null,
+      team.seasons?.length ? `${team.seasons.length} ${team.seasons.length === 1 ? "περίοδος" : "περίοδοι"} στο αρχείο` : null,
     ]
       .filter(Boolean)
       .join(" · ");
@@ -33,7 +33,7 @@ export default async function Image({
 
   return new ImageResponse(
     (
-      <Card footer={footer}>
+      <Card footer={footer} sponsors={await shareSponsors()}>
         <div
           style={{
             display: "flex",

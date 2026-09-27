@@ -67,6 +67,38 @@
   text-decoration: underline;
 }
 
+.when {
+  margin: -4px 0 14px;
+  text-align: center;
+}
+
+.whenDay {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--color-on-navy);
+  letter-spacing: 0.3px;
+}
+
+.whenPlace {
+  margin: 3px 0 0;
+  font-size: var(--text-md);
+  color: var(--color-on-navy-muted);
+}
+
+.whenPlace a {
+  display: inline-flex;
+  align-items: center;
+  /* 44px to tap, given back so the line keeps its height. */
+  min-height: 44px;
+  margin: -14px 0;
+  color: var(--color-on-navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .scoreboard {
   display: grid;
   /* The middle column sizes to the score; the two sides split what is left,
@@ -95,7 +127,9 @@
   line-height: 1.25;
   color: var(--color-text);
   text-decoration: none;
-  overflow-wrap: anywhere;
+  /* Breaks at the dots ClubName marks; mid-word only if one piece is still
+     wider than the column. */
+  overflow-wrap: break-word;
 }
 
 .sideName:hover {
@@ -263,7 +297,7 @@
   font-size: var(--text-xs);
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }
 
 .historyScore {
@@ -395,16 +429,16 @@
   gap: 8px;
 }
 
-/* The main action gets its own row; the two secondary ones share the next,
-   instead of the third button falling onto a line of its own. */
+/* Three icons in one row: directions, share, story image. Each keeps its
+   name as aria-label and tooltip. Directions stays the filled one. */
 .primary {
   composes: buttonPrimary from "../../../styles/primitives.module.css";
-  flex: 1 1 100%;
+  flex: 1 1 0;
 }
 
 .secondary {
   composes: buttonSecondary from "../../../styles/primitives.module.css";
-  flex: 1 1 140px;
+  flex: 1 1 0;
 }
 
 
@@ -506,30 +540,4 @@
   min-height: 44px;
   color: var(--color-link);
   font-weight: 600;
-}
-
-/* --- sponsors -------------------------------------------------------- */
-
-.sponsors {
-  display: grid;
-  gap: 14px;
-  max-width: 1200px;
-  margin: 22px auto 0;
-  padding: 0 14px;
-}
-
-.sponsorSide {
-  display: grid;
-  gap: 8px;
-}
-
-.sponsorTeam {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-sm, 0.875rem);
-  color: var(--color-heading);
 }

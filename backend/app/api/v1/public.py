@@ -40,6 +40,8 @@ from app.models import (
 )
 from app.models.enums import MatchEventKind, MatchStatus, ScrapeRunStatus
 from app.services import search as search_service
+from app.services import sponsorship
+from app.services.greek import fold, words
 from app.services.live import LIVE_WINDOW
 from app.services.standings import project_live_standings
 from app.schemas.catalog import SponsorOut, TeamPhotoOut
@@ -200,6 +202,7 @@ async def live_standings(
                 goals_against=row.goals_against,
                 goal_difference=row.goal_difference,
                 points=row.points,
+                deduction=row.deduction,
                 form=row.form,
                 zone=row.zone,
             )
@@ -408,24 +411,37 @@ async def list_teams(
     )
     if q:
         stmt = stmt.where(Team.name.ilike(f"%{q}%"))
-    teams = list((await db.execute(stmt.order_by(Team.name))).scalars())
+    # Sorted here, not in SQL: the register punctuates freely ("Α.Ε.ΑΝΑΓΕΝΝ",
+    # "Α.Ε. ΓΙΑΝΝΕΝΑ"), and a byte order puts every "Α.Ε. " ahead of every
+    # "Α.Ε." — two alphabets in one list.
+    teams = sorted(
+        (await db.execute(stmt)).scalars(),
+        key=lambda t: (fold(" ".join(words(t.name))), t.name),
+    )
 
     # The register keeps every club that ever played; half of them have
-    # folded. One query for the whole list says which have been in a
-    # competition this season or last.
+    # folded. Entries are registrations, published with each division's
+    # draw — but not all at once: in September the men's divisions are out
+    # and the youth ones are not. So a club counts as playing if it is in
+    # this season, or was last season in an age group this season has not
+    # published yet; a youth-only academy is not "inactive" for a month.
     recent = await recent_season_ids(db, association.id)
     playing: set[int] | None = None
     if recent:
-        playing = set(
-            (
-                await db.execute(
-                    select(LeagueTeam.team_id)
-                    .join(League, LeagueTeam.league_id == League.id)
-                    .where(League.season_id.in_(recent))
-                    .distinct()
-                )
-            ).scalars()
-        )
+        rows = (
+            await db.execute(
+                select(LeagueTeam.team_id, League.season_id, League.age_group)
+                .join(League, LeagueTeam.league_id == League.id)
+                .where(League.season_id.in_(recent))
+            )
+        ).all()
+        current = recent[0]
+        published = {age for _, season_id, age in rows if season_id == current}
+        playing = {
+            team_id
+            for team_id, season_id, age in rows
+            if season_id == current or age not in published
+        }
 
     return [
         TeamOut.model_validate(team).model_copy(
@@ -488,7 +504,7 @@ async def _active_sponsors(db: DbSession, team_ids: list[int]) -> dict[int, list
     rows = (
         await db.execute(
             select(Sponsor)
-            .where(Sponsor.team_id.in_(team_ids), Sponsor.is_active.is_(True))
+            .where(Sponsor.team_id.in_(team_ids), sponsorship.live(Sponsor, sponsorship.today()))
             .order_by(Sponsor.position, Sponsor.id)
         )
     ).scalars()
@@ -794,8 +810,13 @@ async def get_match(
         selectinload(Match.league).selectinload(League.season),
     )
 
-    # Earlier meetings, either way round, this fixture excluded.
+    # Earlier meetings, either way round, this fixture excluded. Earlier
+    # than *this* one: opened from the archive, a January match listed May's
+    # return leg first as if it had come before.
     pair = (match.home_team_id, match.away_team_id)
+    earlier = (
+        [Match.kickoff_at < match.kickoff_at] if match.kickoff_at is not None else []
+    )
     history = list(
         (
             await db.execute(
@@ -808,6 +829,7 @@ async def get_match(
                     Match.home_team_id.in_(pair),
                     Match.away_team_id.in_(pair),
                     Match.home_score.is_not(None),
+                    *earlier,
                 )
                 .order_by(Match.kickoff_at.desc().nulls_last(), Match.id.desc())
                 .limit(5)

@@ -28,10 +28,12 @@ export function FollowButton({
       // The label carries the state, because the only visual difference is a
       // filled star against an outlined one.
       aria-pressed={isFollowing}
+      // Starts with the visible words, so "πάτα Η ομάδα μου" in voice control
+      // finds it (WCAG 2.5.3).
       aria-label={
         isFollowing
-          ? `Το ${name} είναι η ομάδα σου. Κατάργηση.`
-          : `Όρισε το ${name} ως ομάδα σου`
+          ? `Η ομάδα μου: ${name}. Πάτα για κατάργηση.`
+          : `Η ομάδα μου; Όρισε ως ομάδα σου: ${name}`
       }
       title={isFollowing ? "Η ομάδα σου" : "Όρισε ως ομάδα σου"}
     >

@@ -98,6 +98,38 @@ class SponsorAdminOut(SponsorOut):
 
     position: int
     is_active: bool
+    starts_on: date | None = None
+    ends_on: date | None = None
+    #: paused / scheduled / live / ending / ended — see services.sponsorship.
+    status: str = "live"
+    #: The last 30 days, for the renewal conversation.
+    views_30d: int = 0
+    clicks_30d: int = 0
+
+
+class PlatformSponsorOut(ORMModel):
+    """A sponsor of the whole platform, as the public pages draw it."""
+
+    id: int
+    name: str
+    website_url: str | None = None
+    logo_url: str | None = None
+    #: The PNG copy, for share images.
+    logo_png_url: str | None = None
+
+
+class PlatformSponsorAdminOut(PlatformSponsorOut):
+    starts_on: date | None = None
+    ends_on: date | None = None
+    placements: list[str] = []
+    position: int
+    is_active: bool
+    note: str | None = None
+    status: str = "live"
+    views_30d: int = 0
+    clicks_30d: int = 0
+    views_total: int = 0
+    clicks_total: int = 0
 
 
 class TeamOut(TeamRef):
@@ -105,7 +137,7 @@ class TeamOut(TeamRef):
     city: str | None = None
     secondary_color: str | None = None
     home_field: FieldRef | None = None
-    #: Whether the club had a place in a competition this season or last.
+    #: Whether the club is entered in a competition this season.
     #: Only the club list fills it — null elsewhere, and when no season is
     #: marked current, rather than calling every club inactive.
     active: bool | None = None

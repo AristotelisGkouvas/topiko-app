@@ -54,6 +54,9 @@ class Stored:
     height: int
     #: Only for photos: the small copy the gallery grid shows.
     thumb_url: str | None = None
+    #: Only when asked for: a PNG copy for the share images, whose renderer
+    #: reads PNG and JPEG but not WebP.
+    png_url: str | None = None
 
 
 def _root() -> Path:
@@ -71,11 +74,27 @@ def _write(image: Image.Image, folder: str, *, lossless: bool) -> str:
     return f"{settings.media_url}/{folder}/{name}"
 
 
+def _write_png(image: Image.Image, folder: str) -> str:
+    small = image.copy()
+    small.thumbnail((_PNG_EDGE, _PNG_EDGE), Image.Resampling.LANCZOS)
+    buffer = io.BytesIO()
+    small.save(buffer, "PNG", optimize=True)
+    name = f"{secrets.token_hex(10)}.png"
+    target = _root() / folder
+    target.mkdir(parents=True, exist_ok=True)
+    (target / name).write_bytes(buffer.getvalue())
+    return f"{settings.media_url}/{folder}/{name}"
+
+
+#: The story image draws a logo ~80px tall on a 1080px canvas; 512 keeps it sharp.
+_PNG_EDGE = 512
+
+
 def _bad(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
 
 
-async def store(upload: UploadFile, folder: str, kind: Kind) -> Stored:
+async def store(upload: UploadFile, folder: str, kind: Kind, *, png: bool = False) -> Stored:
     """Decode, normalise and write one upload. Raises 422 on anything that is
     not an image this site should serve."""
     data = await upload.read(settings.media_max_bytes + 1)
@@ -118,7 +137,11 @@ async def store(upload: UploadFile, folder: str, kind: Kind) -> Stored:
         thumb.thumbnail((_THUMB_EDGE, _THUMB_EDGE), Image.Resampling.LANCZOS)
         thumb_url = _write(thumb, folder, lossless=False)
 
-    return Stored(url=url, width=full.width, height=full.height, thumb_url=thumb_url)
+    png_url = _write_png(image, folder) if png else None
+
+    return Stored(
+        url=url, width=full.width, height=full.height, thumb_url=thumb_url, png_url=png_url
+    )
 
 
 def discard(*urls: str | None) -> None:

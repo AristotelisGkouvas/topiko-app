@@ -14,11 +14,12 @@
   font-size: var(--text-sm);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }
 
 .select {
   appearance: none;
+  min-height: 40px;
   padding: 6px 30px 6px 13px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
@@ -34,10 +35,8 @@
   border-color: var(--color-green-300);
 }
 
-.select:focus-visible {
-  outline: 2px solid var(--color-navy-700);
-  outline-offset: 2px;
-}
+/* Focus: the site-wide ring from globals.css — a navy-700 one here was
+   2.2:1 on the dark theme. */
 
 /* The native arrow is hidden by appearance:none, so draw one and keep it out of
    the pointer's way — clicks must reach the select underneath. */
@@ -47,5 +46,5 @@
   pointer-events: none;
   font-size: var(--text-base);
   line-height: 1;
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
 }

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    Date,
     Boolean,
     ForeignKey,
     Index,
@@ -163,5 +165,9 @@ class Sponsor(Base, TimestampMixin):
     #: Off rather than deleted when a deal lapses, so it can come back next
     #: season without the logo being found and uploaded again.
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    #: The deal's dates, both optional and inclusive: shown from the first,
+    #: gone after the last, without anybody having to switch it off.
+    starts_on: Mapped[date | None] = mapped_column(Date)
+    ends_on: Mapped[date | None] = mapped_column(Date)
 
     team: Mapped[Team] = relationship(back_populates="sponsors")

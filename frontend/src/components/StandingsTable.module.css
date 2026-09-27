@@ -143,9 +143,17 @@
 }
 
 
+/* Two lines before an ellipsis: at 320px the column is ~110px and one line
+   cut "ΠΙΝΔΟΣ ΚΟΝΙΤΣΑΣ" to "ΠΙΝΔΟΣ ΚΟΝΙΤ…". */
 .teamName {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
 .teamLink:hover .teamName {
@@ -217,6 +225,20 @@
 }
 
 /* --- legend --------------------------------------------------------- */
+
+.note {
+  margin: 0;
+  padding: 8px 12px 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.deductionMark {
+  color: var(--color-loss-text);
+  font-weight: 700;
+  margin-left: 1px;
+}
 
 .key {
   margin: 0;

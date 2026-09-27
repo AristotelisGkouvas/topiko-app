@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Crest } from "./Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
-import { formatGoalDifference, listName, zoneLabel } from "@/lib/format";
+import { formatGoalDifference, listName, plural, zoneLabel } from "@/lib/format";
 import type { League, Standing, StandingZone } from "@/lib/types";
 import styles from "./StandingsTable.module.css";
 import { FormGuide } from "@/components/FormGuide";
@@ -48,12 +48,22 @@ export function StandingsTable({
   const { following } = useFavourite();
   const hydrated = useHydrated();
 
+  // Before round one every club is on 0 and the stored order is arbitrary;
+  // numbering it 1–11 reads as a table that already says something.
+  const notStarted = standings.length > 0 && standings.every((r) => r.played === 0);
+  const deducted = standings.filter((r) => (r.deduction ?? 0) > 0);
+
   const rows = useMemo(() => {
+    if (notStarted) {
+      return [...standings].sort((a, b) =>
+        listName(a.team).localeCompare(listName(b.team), "el"),
+      );
+    }
     if (sort === "position") return standings;
     // Descending for every stat column — nobody sorts a table to see who has
     // the fewest points first.
     return [...standings].sort((a, b) => b[sort] - a[sort]);
-  }, [standings, sort]);
+  }, [standings, sort, notStarted]);
 
   const toggle = (key: Exclude<SortKey, "position">) =>
     setSort((current) => (current === key ? "position" : key));
@@ -137,13 +147,13 @@ export function StandingsTable({
               <tr
                 key={row.team.id}
                 className={[
-                  row.zone ? styles[`zone_${row.zone}`] : "",
+                  row.zone && !notStarted ? styles[`zone_${row.zone}`] : "",
                   hydrated && following(row.team.slug) ? styles.mine : "",
                 ]
                   .filter(Boolean)
                   .join(" ") || undefined}
               >
-                <td className={styles.posCol}>{row.position}</td>
+                <td className={styles.posCol}>{notStarted ? "–" : row.position}</td>
                 <td className={styles.teamCol}>
                   <Link
                     href={`/somateia/${row.team.slug}`}
@@ -173,12 +183,41 @@ export function StandingsTable({
                 </td>
                 <td className={`${styles.num} ${styles.pointsCol}`}>
                   {row.points}
+                  {(row.deduction ?? 0) > 0 && (
+                    <sup className={styles.deductionMark} aria-hidden="true">
+                      *
+                    </sup>
+                  )}
+                  {(row.deduction ?? 0) > 0 && (
+                    <span className="srOnly">
+                      {" "}
+                      μετά από αφαίρεση {row.deduction}{" "}
+                      {plural(row.deduction ?? 0, "βαθμού", "βαθμών")}
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {notStarted && (
+        <p className={styles.note}>
+          Το πρωτάθλημα δεν έχει ξεκινήσει· οι ομάδες είναι σε αλφαβητική σειρά.
+        </p>
+      )}
+
+      {deducted.length > 0 && (
+        <p className={styles.note}>
+          <span className={styles.deductionMark}>*</span> Αφαίρεση βαθμών από
+          την ένωση:{" "}
+          {deducted
+            .map((r) => `${listName(r.team)} −${r.deduction}`)
+            .join(" · ")}
+          . Οι βαθμοί του πίνακα είναι μετά την αφαίρεση.
+        </p>
+      )}
 
       {/* One line: the only abbreviation a reader might not know, and the
           three form marks. The rest of the header explains itself. */}

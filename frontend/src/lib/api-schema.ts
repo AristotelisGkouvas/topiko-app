@@ -331,6 +331,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/editor/platform-sponsors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Platform Sponsors */
+        get: operations["list_platform_sponsors_api_v1__association_slug__editor_platform_sponsors_get"];
+        put?: never;
+        /** Add Platform Sponsor */
+        post: operations["add_platform_sponsor_api_v1__association_slug__editor_platform_sponsors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/platform-sponsors/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Order Platform Sponsors */
+        put: operations["order_platform_sponsors_api_v1__association_slug__editor_platform_sponsors_order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/platform-sponsors/{sponsor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Platform Sponsor */
+        delete: operations["remove_platform_sponsor_api_v1__association_slug__editor_platform_sponsors__sponsor_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Platform Sponsor */
+        patch: operations["edit_platform_sponsor_api_v1__association_slug__editor_platform_sponsors__sponsor_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/platform-sponsors/{sponsor_id}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Platform Sponsor Logo */
+        put: operations["set_platform_sponsor_logo_api_v1__association_slug__editor_platform_sponsors__sponsor_id__logo_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/editor/scrape-runs": {
         parameters: {
             query?: never;
@@ -1363,6 +1433,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/sponsors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live Sponsors
+         * @description The platform sponsors live today, optionally only those that bought
+         *     `placement`, in their order.
+         */
+        get: operations["live_sponsors_api_v1__association_slug__sponsors_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/sponsors/go/{kind}/{sponsor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Follow
+         * @description Count the click, then send the reader to the sponsor's site.
+         */
+        get: operations["follow_api_v1__association_slug__sponsors_go__kind___sponsor_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/sponsors/views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Count Views */
+        post: operations["count_views_api_v1__association_slug__sponsors_views_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/sygkrisi/{left_slug}/{right_slug}": {
         parameters: {
             query?: never;
@@ -1631,17 +1759,46 @@ export interface components {
              */
             file: string;
         };
-        /** Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post */
-        Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post: {
+        /** Body_add_platform_sponsor_api_v1__association_slug__editor_platform_sponsors_post */
+        Body_add_platform_sponsor_api_v1__association_slug__editor_platform_sponsors_post: {
+            /** Ends On */
+            ends_on?: string | null;
             /** File */
             file?: string | null;
             /** Name */
             name: string;
+            /** Note */
+            note?: string | null;
+            /** Placements */
+            placements?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /** Website Url */
+            website_url?: string | null;
+        };
+        /** Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post */
+        Body_add_sponsor_api_v1__association_slug__editor_teams__team_slug__sponsors_post: {
+            /** Ends On */
+            ends_on?: string | null;
+            /** File */
+            file?: string | null;
+            /** Name */
+            name: string;
+            /** Starts On */
+            starts_on?: string | null;
             /** Website Url */
             website_url?: string | null;
         };
         /** Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put */
         Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_set_platform_sponsor_logo_api_v1__association_slug__editor_platform_sponsors__sponsor_id__logo_put */
+        Body_set_platform_sponsor_logo_api_v1__association_slug__editor_platform_sponsors__sponsor_id__logo_put: {
             /**
              * File
              * Format: binary
@@ -2080,6 +2237,11 @@ export interface components {
         LiveStandingOut: {
             /** Actual Position */
             actual_position: number | null;
+            /**
+             * Deduction
+             * @default 0
+             */
+            deduction: number;
             /** Drawn */
             drawn: number;
             /** Form */
@@ -2250,6 +2412,8 @@ export interface components {
             is_live: boolean;
             /** Kickoff At */
             kickoff_at: string | null;
+            /** Last Scraped At */
+            last_scraped_at: string | null;
             /** League Id */
             league_id: number;
             /** Matchday */
@@ -2404,6 +2568,92 @@ export interface components {
         PhotoEdit: {
             /** Caption */
             caption?: string | null;
+        };
+        /** PlatformSponsorAdminOut */
+        PlatformSponsorAdminOut: {
+            /**
+             * Clicks 30D
+             * @default 0
+             */
+            clicks_30d: number;
+            /**
+             * Clicks Total
+             * @default 0
+             */
+            clicks_total: number;
+            /** Ends On */
+            ends_on: string | null;
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Logo Png Url */
+            logo_png_url: string | null;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Placements
+             * @default []
+             */
+            placements: string[];
+            /** Position */
+            position: number;
+            /** Starts On */
+            starts_on: string | null;
+            /**
+             * Status
+             * @default live
+             */
+            status: string;
+            /**
+             * Views 30D
+             * @default 0
+             */
+            views_30d: number;
+            /**
+             * Views Total
+             * @default 0
+             */
+            views_total: number;
+            /** Website Url */
+            website_url: string | null;
+        };
+        /** PlatformSponsorEdit */
+        PlatformSponsorEdit: {
+            /** Ends On */
+            ends_on?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Name */
+            name?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Placements */
+            placements?: ("site" | "home" | "match" | "share")[] | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /** Website Url */
+            website_url?: string | null;
+        };
+        /**
+         * PlatformSponsorOut
+         * @description A sponsor of the whole platform, as the public pages draw it.
+         */
+        PlatformSponsorOut: {
+            /** Id */
+            id: number;
+            /** Logo Png Url */
+            logo_png_url: string | null;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Website Url */
+            website_url: string | null;
         };
         /**
          * PlayerDetailOut
@@ -2606,6 +2856,8 @@ export interface components {
          * @description A match that holds a record, with the number that earned it.
          */
         RecordMatchOut: {
+            /** League Name */
+            league_name: string | null;
             match: components["schemas"]["MatchOut"];
             /** Value */
             value: number;
@@ -2810,6 +3062,13 @@ export interface components {
          * @description What the dashboard sees: the inactive ones too, and in which order.
          */
         SponsorAdminOut: {
+            /**
+             * Clicks 30D
+             * @default 0
+             */
+            clicks_30d: number;
+            /** Ends On */
+            ends_on: string | null;
             /** Id */
             id: number;
             /** Is Active */
@@ -2820,15 +3079,31 @@ export interface components {
             name: string;
             /** Position */
             position: number;
+            /** Starts On */
+            starts_on: string | null;
+            /**
+             * Status
+             * @default live
+             */
+            status: string;
+            /**
+             * Views 30D
+             * @default 0
+             */
+            views_30d: number;
             /** Website Url */
             website_url: string | null;
         };
         /** SponsorEdit */
         SponsorEdit: {
+            /** Ends On */
+            ends_on?: string | null;
             /** Is Active */
             is_active?: boolean | null;
             /** Name */
             name?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
             /** Website Url */
             website_url?: string | null;
         };
@@ -2845,6 +3120,11 @@ export interface components {
         };
         /** StandingOut */
         StandingOut: {
+            /**
+             * Deduction
+             * @default 0
+             */
+            deduction: number;
             /** Drawn */
             drawn: number;
             /** Form */
@@ -3108,6 +3388,22 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * ViewsIn
+         * @description Which sponsors were on screen. Ids, deduplicated by the client.
+         */
+        ViewsIn: {
+            /**
+             * Club
+             * @default []
+             */
+            club: number[];
+            /**
+             * Platform
+             * @default []
+             */
+            platform: number[];
         };
         /** VolunteerOut */
         VolunteerOut: {
@@ -3661,6 +3957,217 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MvpPollCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platform_sponsors_api_v1__association_slug__editor_platform_sponsors_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_platform_sponsor_api_v1__association_slug__editor_platform_sponsors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_platform_sponsor_api_v1__association_slug__editor_platform_sponsors_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_platform_sponsors_api_v1__association_slug__editor_platform_sponsors_order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_platform_sponsor_api_v1__association_slug__editor_platform_sponsors__sponsor_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_platform_sponsor_api_v1__association_slug__editor_platform_sponsors__sponsor_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformSponsorEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorAdminOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_platform_sponsor_logo_api_v1__association_slug__editor_platform_sponsors__sponsor_id__logo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_platform_sponsor_logo_api_v1__association_slug__editor_platform_sponsors__sponsor_id__logo_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorAdminOut"][];
                 };
             };
             /** @description Validation Error */
@@ -5621,6 +6128,108 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SeasonOut"][];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    live_sponsors_api_v1__association_slug__sponsors_get: {
+        parameters: {
+            query?: {
+                placement?: ("site" | "home" | "match" | "share") | null;
+            };
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSponsorOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_api_v1__association_slug__sponsors_go__kind___sponsor_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "platform" | "club";
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_views_api_v1__association_slug__sponsors_views_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

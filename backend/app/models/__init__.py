@@ -35,9 +35,13 @@ from app.models.mvp import MvpCandidate, MvpPoll, MvpVote
 from app.models.push import PushSubscription
 from app.models.volunteer import ClubAccessCode
 from app.models.scraping import ScrapeRun, TeamAlias
+from app.models.sponsorship import PLACEMENTS, PlatformSponsor, SponsorDailyStat
 from app.models.user import AuditLog, RevokedToken, User, UserAssociation
 
 __all__ = [
+    "PLACEMENTS",
+    "PlatformSponsor",
+    "SponsorDailyStat",
     "Announcement",
     "MANUAL_PRIORITY_WINDOW",
     "Association",

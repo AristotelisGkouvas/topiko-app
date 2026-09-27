@@ -9,6 +9,8 @@ import styles from "./page.module.css";
 
 export interface PickableClub extends CrestSubject {
   slug: string;
+  /** False for a club with no competition this season; absent in search hits. */
+  active?: boolean | null;
 }
 
 /** Step two: pick the club you care about.
@@ -26,34 +28,49 @@ export interface PickableClub extends CrestSubject {
 export function ClubPicker({ teams }: { teams: PickableClub[] }) {
   const { clubs, favourite, toggle } = useFavourite();
   const hydrated = useHydrated();
+  const playing = teams.filter((t) => t.active !== false);
+  const folded = teams.filter((t) => t.active === false);
+
+  const grid = (list: PickableClub[]) => (
+    <ul className={styles.grid}>
+      {list.map((team) => {
+        const chosen = hydrated && clubs.some((c) => c.slug === team.slug);
+        return (
+          <li key={team.slug}>
+            <button
+              type="button"
+              className={`${styles.tile} ${chosen ? styles.tileOn : ""}`}
+              aria-pressed={chosen}
+              onClick={() => toggle({ slug: team.slug, name: team.name })}
+            >
+              {chosen && (
+                <span className={styles.tick} aria-hidden="true">
+                  ✓
+                </span>
+              )}
+              <span className={styles.tileCrest} aria-hidden="true">
+                {team.initials ?? upper(team.name.slice(0, 2))}
+              </span>
+              <span className={styles.tileName}>{team.name}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   return (
     <>
-      <ul className={styles.grid}>
-        {teams.map((team) => {
-          const chosen = hydrated && clubs.some((c) => c.slug === team.slug);
-          return (
-            <li key={team.slug}>
-              <button
-                type="button"
-                className={`${styles.tile} ${chosen ? styles.tileOn : ""}`}
-                aria-pressed={chosen}
-                onClick={() => toggle({ slug: team.slug, name: team.name })}
-              >
-                {chosen && (
-                  <span className={styles.tick} aria-hidden="true">
-                    ✓
-                  </span>
-                )}
-                <span className={styles.tileCrest} aria-hidden="true">
-                  {team.initials ?? upper(team.name.slice(0, 2))}
-                </span>
-                <span className={styles.tileName}>{team.name}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      {grid(playing)}
+      {folded.length > 0 && (
+        <>
+          {/* A folded club picked here leaves a home page with no fixture and
+              no table, so they come after this season's, under their own
+              heading, rather than mixed in alphabetically. */}
+          <h2 className={styles.groupTitle}>Δεν συμμετέχουν φέτος</h2>
+          {grid(folded)}
+        </>
+      )}
 
       <div className={styles.footer}>
         <Link
@@ -79,8 +96,8 @@ export function ClubPicker({ teams }: { teams: PickableClub[] }) {
         )}
         {clubs.length > 1 && (
           <p className={styles.small}>
-            Πρώτη είναι ο <strong>{favourite!.name}</strong> — αυτή ανοίγει η
-            αρχική. Πάτα την ξανά για να την αφαιρέσεις.
+            Πρώτη: <strong>{favourite!.name}</strong> — αυτή ανοίγει η αρχική.
+            Πάτα την ξανά για να την αφαιρέσεις.
           </p>
         )}
       </div>

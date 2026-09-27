@@ -12,6 +12,8 @@ export interface GoalChoice {
   playerName: string | null;
   /** An own goal counts for the other side, which the server works out. */
   ownGoal: boolean;
+  /** Scored from the spot. Never together with ownGoal. */
+  penalty?: boolean;
 }
 
 /** The scorer picker from screen V3, as a bottom sheet.
@@ -39,6 +41,10 @@ export function GoalSheet({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
+  // Set before the scorer is picked, so a penalty is still two taps plus one.
+  const [penalty, setPenalty] = useState(false);
+  const pick = (choice: GoalChoice) =>
+    onPick({ ...choice, penalty: penalty && !choice.ownGoal });
   const trap = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
@@ -77,16 +83,25 @@ export function GoalSheet({
           <button
             type="button"
             className={styles.quickButton}
-            onClick={() => onPick({ playerName: null, ownGoal: false })}
+            onClick={() => pick({ playerName: null, ownGoal: false })}
           >
             Άγνωστος
           </button>
           <button
             type="button"
             className={styles.quickButton}
-            onClick={() => onPick({ playerName: null, ownGoal: true })}
+            onClick={() => pick({ playerName: null, ownGoal: true })}
+            disabled={penalty}
           >
             Αυτογκόλ
+          </button>
+          <button
+            type="button"
+            className={`${styles.quickButton} ${penalty ? styles.quickOn : ""}`}
+            aria-pressed={penalty}
+            onClick={() => setPenalty((on) => !on)}
+          >
+            {penalty ? "✓ Από πέναλτι" : "Από πέναλτι"}
           </button>
         </div>
 
@@ -112,7 +127,7 @@ export function GoalSheet({
                 <button
                   type="button"
                   className={styles.player}
-                  onClick={() => onPick({ playerName: query.trim(), ownGoal: false })}
+                  onClick={() => pick({ playerName: query.trim(), ownGoal: false })}
                 >
                   <span className={styles.playerName}>Καταχώρηση ως «{query.trim()}»</span>
                 </button>
@@ -129,7 +144,7 @@ export function GoalSheet({
                 key={player.slug}
                 type="button"
                 className={styles.player}
-                onClick={() => onPick({ playerName: player.name, ownGoal: false })}
+                onClick={() => pick({ playerName: player.name, ownGoal: false })}
               >
                 <span className={styles.playerName}>{player.name}</span>
                 {player.goals > 0 && (

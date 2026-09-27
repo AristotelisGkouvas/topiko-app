@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Crest } from "@/components/Crest";
 import { useFavourite, useHydrated } from "@/lib/favourite";
-import { formatGoalDifference, listName } from "@/lib/format";
+import { formatGoalDifference, listName, pointsLabel } from "@/lib/format";
 import type { League, Standing } from "@/lib/types";
 import styles from "./MiniStandings.module.css";
 import { FormGuide } from "@/components/FormGuide";
@@ -88,7 +88,7 @@ function Row({ row, mine }: { row: Standing; mine: boolean }) {
   // The dots are colour alone; the label says the results in words.
   const spoken = [
     `${row.position}. ${listName(row.team)}`,
-    `${row.points} βαθμοί`,
+    pointsLabel(row.points),
     `διαφορά ${formatGoalDifference(row.goal_difference)}`,
     form.length ? `φόρμα: ${form.map((r) => RESULT[r] ?? r).join(", ")}` : null,
     mine ? "η ομάδα σου" : null,

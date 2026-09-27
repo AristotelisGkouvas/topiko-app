@@ -3,28 +3,12 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-import { LEAGUE_COOKIE } from "@/lib/leagueCookie";
+import { rememberLeague as remember } from "@/lib/leagueCookie";
 import styles from "./SiteHeader.module.css";
 
 export interface PickerLeague {
   slug: string;
   label: string;
-}
-
-/** Write the choice down. Outside the component on purpose: assigning to
- *  `document.cookie` inside one is a mutation the compiler refuses, and it is
- *  not component state anyway — it is a note left for the next request.
- *
- *  A year: long enough that somebody who visits every Sunday never chooses
- *  twice, short enough to lapse for somebody who has moved on.
- */
-function remember(slug: string) {
-  try {
-    document.cookie = `${LEAGUE_COOKIE}=${encodeURIComponent(slug)}; path=/; max-age=31536000; samesite=lax`;
-  } catch {
-    // Cookies blocked. The navigation still carries the choice for this page,
-    // which is the part that matters right now.
-  }
 }
 
 /** The division chip in the phone header — "Α΄ Κατηγορία ▾".

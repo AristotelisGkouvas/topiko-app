@@ -12,12 +12,14 @@ import type {
   MatchStatus,
   Meta,
   OnThisDay,
+  PlatformSponsor,
   PlayerDetail,
   PlayerSearchResult,
   Records,
   Scorer,
   SearchResults,
   Season,
+  SponsorPlacement,
   Standing,
   Suspension,
   Team,
@@ -234,6 +236,15 @@ export const api = {
   listLiveMatches: () =>
     request<Match[]>(scoped("/matches/live"), { revalidate: 0 }),
 
+  /** The platform's sponsors live today, for one placement. A minute: long
+   *  enough to spare the API, short enough that a sponsor the office pauses
+   *  or removes is off the site before anyone asks why it is still there. */
+  listPlatformSponsors: (placement?: SponsorPlacement) =>
+    request<PlatformSponsor[]>(scoped("/sponsors"), {
+      searchParams: { placement },
+      revalidate: 60,
+    }),
+
   listTeams: (q?: string) =>
     request<Team[]>(scoped("/teams"), { searchParams: { q } }),
 
@@ -332,3 +343,14 @@ export const apiUrl = (path: string) =>
  */
 export const calendarUrl = (teamSlug: string) =>
   apiUrl(`/teams/${teamSlug}/imerologio.ics`);
+
+/** The link a sponsor's logo points at: the API's redirect, which counts the
+ *  click and sends the reader on to the sponsor's site. The browser goes
+ *  there directly — through this server, every click would come from one
+ *  address and the click throttle would count the whole audience as one. */
+export async function sponsorHref(
+  kind: "platform" | "club",
+  id: number,
+): Promise<string> {
+  return `${API_URL}/api/v1/${await currentAssociation()}/sponsors/go/${kind}/${id}`;
+}

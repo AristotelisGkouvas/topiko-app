@@ -9,7 +9,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: var(--color-surface);
-  color: var(--color-grey-600);
+  color: var(--color-text-muted);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--text-base);
@@ -28,22 +28,20 @@
 }
 
 .on .text {
-  color: var(--color-grey-800);
+  color: var(--color-highlight-ink);
 }
 
 .button:hover {
-  color: var(--color-amber-600);
-  border-color: var(--color-amber-600);
+  color: var(--color-star);
+  border-color: var(--color-star);
 }
 
-.button:focus-visible {
-  outline: 2px solid var(--color-navy-700);
-  outline-offset: 2px;
-}
+/* Focus: the site-wide ring from globals.css. A navy-700 ring here was
+   1.9:1 on the dark theme's surface. */
 
 .on {
-  color: var(--color-amber-600);
-  border-color: var(--color-amber-600);
+  color: var(--color-star);
+  border-color: var(--color-star);
   background: var(--color-highlight-surface);
 }
 

@@ -15,11 +15,13 @@ import { ScrapeRuns } from "./ScrapeRuns";
 import { MatchSheet } from "@/components/MatchSheet";
 import { VenueEditor } from "./VenueEditor";
 import { SESSION_LOST } from "./session";
+import { PlatformSponsorsAdmin } from "./PlatformSponsorsAdmin";
+import { ExpiringSponsors } from "./ExpiringSponsors";
 import { TeamsAdmin } from "./TeamsAdmin";
 import styles from "./page.module.css";
 import { confirm } from "@/components/ConfirmDialog";
 
-type Tab = "sheet" | "matches" | "codes" | "look" | "mvp" | "venues" | "audit" | "runs";
+type Tab = "sheet" | "matches" | "codes" | "look" | "sponsors" | "mvp" | "venues" | "audit" | "runs";
 
 const TABS: { id: Tab; label: string; adminOnly?: boolean }[] = [
   // First, and the default: on a Sunday this is the only screen that matters.
@@ -29,6 +31,8 @@ const TABS: { id: Tab; label: string; adminOnly?: boolean }[] = [
   // Logos, colours, photos and sponsors: what the public sees of a club is
   // the federation's call, so editors do not get the tab at all.
   { id: "look", label: "Ομάδες", adminOnly: true },
+  // The platform's own sponsors: contracts and money, so admin only too.
+  { id: "sponsors", label: "Χορηγοί", adminOnly: true },
   { id: "mvp", label: "MVP" },
   { id: "venues", label: "Γήπεδα" },
   { id: "audit", label: "Ιστορικό" },
@@ -121,6 +125,12 @@ export function EditorDashboard() {
         </section>
       )}
 
+      {/* On every tab: a deal running out is a phone call to make this
+          week, and whoever is on the dashboard should see it. */}
+      {user.role === "admin" && tab !== "sponsors" && (
+        <ExpiringSponsors onOpen={() => setTab("sponsors")} />
+      )}
+
       <nav className={styles.tabs} aria-label="Ενότητες διαχείρισης">
         {TABS.filter((t) => !t.adminOnly || user.role === "admin").map((t) => (
           <button
@@ -128,7 +138,11 @@ export function EditorDashboard() {
             type="button"
             className={`${styles.tab} ${tab === t.id ? styles.tabOn : ""}`}
             aria-current={tab === t.id ? "page" : undefined}
-            onClick={() => setTab(t.id)}
+            onClick={(e) => {
+              setTab(t.id);
+              // On a phone the strip scrolls; bring a half-hidden tab fully in.
+              e.currentTarget.scrollIntoView({ block: "nearest", inline: "nearest" });
+            }}
           >
             {t.label}
           </button>
@@ -137,8 +151,13 @@ export function EditorDashboard() {
 
       {tab === "sheet" && <MatchSheet />}
       {tab === "matches" && <MatchEditor />}
-      {tab === "codes" && <CodesEditor />}
+      {tab === "codes" && (
+        <CodesEditor
+          canIssue={user.role === "admin" || user.associations.some((a) => a.can_edit_live)}
+        />
+      )}
       {tab === "look" && user.role === "admin" && <TeamsAdmin />}
+      {tab === "sponsors" && user.role === "admin" && <PlatformSponsorsAdmin />}
       {tab === "mvp" && <MvpEditor />}
       {tab === "venues" && <VenueEditor />}
       {tab === "audit" && <AuditList />}

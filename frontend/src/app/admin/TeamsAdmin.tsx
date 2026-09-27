@@ -12,6 +12,8 @@ import { shrink } from "@/lib/shrink";
 import type { SponsorAdmin, Team, TeamLook, TeamPhoto } from "@/lib/types";
 import { noteAuthError } from "./session";
 import styles from "./TeamsAdmin.module.css";
+import ps from "./PlatformSponsorsAdmin.module.css";
+import { SPONSOR_STATUS } from "@/lib/sponsorStatus";
 import page from "./page.module.css";
 import { confirm } from "@/components/ConfirmDialog";
 
@@ -74,14 +76,17 @@ export function TeamsAdmin() {
 function useAction(onDone: (look: TeamLook) => void) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  async function run(label: string, action: () => Promise<TeamLook>) {
+  /** True when the action worked — so a form clears only after a success. */
+  async function run(label: string, action: () => Promise<TeamLook>): Promise<boolean> {
     setBusy(label);
     setError(null);
     try {
       onDone(await action());
+      return true;
     } catch (err) {
       noteAuthError(err);
       setError(err instanceof ApiError ? err.message : "Απέτυχε. Δοκίμασε ξανά.");
+      return false;
     } finally {
       setBusy(null);
     }
@@ -174,7 +179,7 @@ function TeamLookEditor({ slug, onBack }: { slug: string; onBack: () => void }) 
   );
 }
 
-type Run = (label: string, action: () => Promise<TeamLook>) => Promise<void>;
+type Run = (label: string, action: () => Promise<TeamLook>) => Promise<boolean>;
 
 function FilePick({
   label,
@@ -185,7 +190,7 @@ function FilePick({
   label: string;
   busy: boolean;
   multiple?: boolean;
-  onPick: (file: File) => Promise<void> | void;
+  onPick: (file: File) => Promise<unknown> | void;
 }) {
   return (
     <label className={`${page.save} ${styles.filePick} ${busy ? styles.disabled : ""}`}>
@@ -386,19 +391,35 @@ function SponsorsEditor({
 }) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
+  const [startsOn, setStartsOn] = useState("");
+  const [endsOn, setEndsOn] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
 
+  const [dateError, setDateError] = useState<string | null>(null);
+
   async function add() {
-    await run("sponsor-add", async () =>
+    if (startsOn && endsOn && endsOn < startsOn) {
+      // Caught before anything is sent, with everything typed kept.
+      setDateError("Η λήξη είναι πριν από την έναρξη.");
+      return;
+    }
+    setDateError(null);
+    const ok = await run("sponsor-add", async () =>
       editorApi.addSponsor(slug, {
         name: name.trim(),
         website_url: withScheme(url),
+        starts_on: startsOn || undefined,
+        ends_on: endsOn || undefined,
         file: file ? await shrink(file, "logo") : null,
       }),
     );
+    // A failed save keeps the form as typed: the fix is one field, not all.
+    if (!ok) return;
     setName("");
     setUrl("");
+    setStartsOn("");
+    setEndsOn("");
     setFile(null);
     setFileKey((k) => k + 1);
   }
@@ -452,6 +473,16 @@ function SponsorsEditor({
           onChange={(e) => setUrl(e.target.value)}
           aria-label="Ιστοσελίδα χορηγού"
         />
+        <div className={ps.dates}>
+          <label className={ps.field}>
+            Έναρξη (προαιρετική)
+            <input className={page.input} type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
+          </label>
+          <label className={ps.field}>
+            Λήξη (προαιρετική)
+            <input className={page.input} type="date" value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
+          </label>
+        </div>
         <label className={styles.fileLine}>
           Λογότυπο (προαιρετικό)
           <input
@@ -461,6 +492,11 @@ function SponsorsEditor({
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
+        {dateError && (
+          <p className={page.rowError} role="alert">
+            {dateError}
+          </p>
+        )}
         <button type="submit" className={page.save} disabled={busy !== null || !name.trim()}>
           {busy === "sponsor-add" ? "…" : "Προσθήκη χορηγού"}
         </button>
@@ -495,7 +531,14 @@ function SponsorRow({
 }) {
   const [name, setName] = useState(sponsor.name);
   const [url, setUrl] = useState(sponsor.website_url ?? "");
-  const changed = name.trim() !== sponsor.name || (withScheme(url) ?? null) !== (sponsor.website_url ?? null);
+  const [startsOn, setStartsOn] = useState(sponsor.starts_on ?? "");
+  const [endsOn, setEndsOn] = useState(sponsor.ends_on ?? "");
+  const changed =
+    name.trim() !== sponsor.name ||
+    (withScheme(url) ?? null) !== (sponsor.website_url ?? null) ||
+    (startsOn || null) !== (sponsor.starts_on ?? null) ||
+    (endsOn || null) !== (sponsor.ends_on ?? null);
+  const status = SPONSOR_STATUS[sponsor.status] ?? SPONSOR_STATUS.live;
   const logo = mediaUrl(sponsor.logo_url);
 
   return (
@@ -512,6 +555,7 @@ function SponsorRow({
           accept="image/png,image/jpeg,image/webp,image/gif"
           className={styles.hiddenInput}
           disabled={disabled}
+          aria-label={`Λογότυπο για ${sponsor.name}`}
           onChange={async (e) => {
             const picked = e.target.files?.[0];
             e.target.value = "";
@@ -538,6 +582,20 @@ function SponsorRow({
           onChange={(e) => setUrl(e.target.value)}
           aria-label="Ιστοσελίδα χορηγού"
         />
+        <div className={ps.dates}>
+          <label className={ps.field}>
+            Έναρξη
+            <input className={page.input} type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
+          </label>
+          <label className={ps.field}>
+            Λήξη
+            <input className={page.input} type="date" value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
+          </label>
+        </div>
+        <p className={ps.muted}>
+          <span className={`${ps.chip} ${ps[`chip_${status.tone}`]}`}>{status.label}</span>{" "}
+          30 ημέρες: {sponsor.views_30d} προβολές · {sponsor.clicks_30d} κλικ
+        </p>
       </div>
       <div className={styles.cardActions}>
         {changed && (
@@ -547,33 +605,41 @@ function SponsorRow({
             disabled={disabled || !name.trim()}
             onClick={() =>
               run(`sponsor-${sponsor.id}`, () =>
-                editorApi.saveSponsor(slug, sponsor.id, { name: name.trim(), website_url: withScheme(url) ?? null }),
+                editorApi.saveSponsor(slug, sponsor.id, {
+                  name: name.trim(),
+                  website_url: withScheme(url) ?? null,
+                  starts_on: startsOn || null,
+                  ends_on: endsOn || null,
+                }),
               )
             }
           >
             Αποθήκευση
           </button>
         )}
-        <button type="button" className={styles.iconButton} disabled={disabled || first} onClick={() => onMove(-1)} aria-label="Πιο πάνω">
+        <button type="button" className={styles.iconButton} disabled={disabled || first} onClick={() => onMove(-1)} aria-label={`Μετακίνηση πιο πάνω: ${sponsor.name}`}>
           ↑
         </button>
-        <button type="button" className={styles.iconButton} disabled={disabled || last} onClick={() => onMove(1)} aria-label="Πιο κάτω">
+        <button type="button" className={styles.iconButton} disabled={disabled || last} onClick={() => onMove(1)} aria-label={`Μετακίνηση πιο κάτω: ${sponsor.name}`}>
           ↓
         </button>
         <label className={styles.toggle}>
+          {/* "Σε παύση", not "Ενεργός": beside a status chip that can say
+              "Έληξε", a ticked "Ενεργός" contradicted it. */}
           <input
             type="checkbox"
-            checked={sponsor.is_active}
+            checked={!sponsor.is_active}
             disabled={disabled}
             onChange={(e) =>
-              run(`sponsor-${sponsor.id}`, () => editorApi.saveSponsor(slug, sponsor.id, { is_active: e.target.checked }))
+              run(`sponsor-${sponsor.id}`, () => editorApi.saveSponsor(slug, sponsor.id, { is_active: !e.target.checked }))
             }
           />
-          Ενεργός
+          Σε παύση
         </label>
         <button
           type="button"
           className={styles.danger}
+          aria-label={`Διαγραφή: ${sponsor.name}`}
           disabled={disabled}
           onClick={async () => {
             if (await confirm(`Διαγραφή του χορηγού «${sponsor.name}»;`, { confirmLabel: "Διαγραφή", danger: true })) {

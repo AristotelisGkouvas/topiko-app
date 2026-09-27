@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Crest } from "@/components/Crest";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
+import { plural } from "@/lib/format";
 import type { PlayerDetail } from "@/lib/types";
 import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
@@ -32,7 +33,7 @@ export async function generateMetadata({
     return {
       title: player.name,
       description: player.total_goals
-        ? `${player.total_goals} γκολ σε ${player.seasons_scored} περιόδους${club ? ` · ${club}` : ""}`
+        ? `${player.total_goals} γκολ σε ${player.seasons_scored} ${plural(player.seasons_scored, "περίοδο", "περιόδους")}${club ? ` · ${club}` : ""}`
         : club,
     };
   } catch {
@@ -65,8 +66,14 @@ export default async function PlayerPage({
 
         <dl className={styles.totals}>
           <Total value={player.total_goals} label="γκολ" />
-          <Total value={player.seasons_scored} label="περίοδοι με γκολ" />
-          <Total value={player.clubs.length} label="σωματεία" />
+          <Total
+            value={player.seasons_scored}
+            label={plural(player.seasons_scored, "περίοδος με γκολ", "περίοδοι με γκολ")}
+          />
+          <Total
+            value={player.clubs.length}
+            label={plural(player.clubs.length, "σωματείο", "σωματεία")}
+          />
           {best?.goals ? (
             <Total value={best.goals} label={`καλύτερη (${best.season.slug})`} />
           ) : null}
@@ -146,9 +153,9 @@ export default async function PlayerPage({
 
         <p className={styles.note}>
           Τα γκολ προκύπτουν από τις λίστες σκόρερ που δημοσιεύει η ένωση, όχι
-          από τα φύλλα αγώνα — οπότε είναι <strong>κατώτατο όριο</strong>. Μια
-          περίοδος χωρίς δημοσιευμένη λίστα εμφανίζεται με παύλα· δεν σημαίνει
-          ότι ο παίκτης δεν αγωνίστηκε.
+          από τα φύλλα αγώνα — οπότε είναι <strong>κατώτατο όριο</strong>. Η ένωση
+          δημοσιεύει μόνο τους πρώτους κάθε λίστας, οπότε μια περίοδος που λείπει
+          από εδώ δεν σημαίνει ότι ο παίκτης δεν αγωνίστηκε.
         </p>
       </section>
     </div>

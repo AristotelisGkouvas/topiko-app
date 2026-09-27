@@ -53,17 +53,30 @@ export function HeadToHeadBar({
 
   return (
     <div className={styles.wrap}>
+      {/* Three columns, each side over its own end of the bar: home on the
+          left, away on the right, the draws and the sample in between. */}
       <div className={styles.legend}>
         <span className={styles.side}>
-          <strong>{record.home}</strong>{" "}
-          {record.home === 1 ? "νίκη" : "νίκες"} {listName(home)}
+          <span>
+            <strong>{record.home}</strong> {record.home === 1 ? "νίκη" : "νίκες"}
+          </span>
+          <span className={styles.team}>{listName(home)}</span>
         </span>
         <span className={styles.draws}>
-          {record.draws} {record.draws === 1 ? "ισοπαλία" : "ισοπαλίες"}
+          <span>
+            {record.draws} {record.draws === 1 ? "ισοπαλία" : "ισοπαλίες"}
+          </span>
+          {/* The bar summarises only these meetings, not the whole history:
+              saying how many keeps 3–1 from reading as a century of it. */}
+          <span className={styles.sample}>
+            {total === 1 ? "στη μία συνάντηση" : `στις ${total} τελευταίες`}
+          </span>
         </span>
-        <span className={styles.side}>
-          <strong>{record.away}</strong>{" "}
-          {record.away === 1 ? "νίκη" : "νίκες"} {listName(away)}
+        <span className={`${styles.side} ${styles.sideAway}`}>
+          <span>
+            <strong>{record.away}</strong> {record.away === 1 ? "νίκη" : "νίκες"}
+          </span>
+          <span className={styles.team}>{listName(away)}</span>
         </span>
       </div>
 

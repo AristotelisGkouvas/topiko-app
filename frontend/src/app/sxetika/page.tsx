@@ -115,8 +115,8 @@ export default function AboutPage() {
             </p>
           )}
           <p>
-            Είσαι από σωματείο και θέλεις να δηλώνεις τα σκορ της ομάδας σου;{" "}
-            <Link href="/ethelontis">Δήλωση αγώνα</Link>.
+            Είσαι από σωματείο και θέλεις να δίνεις τα σκορ της ομάδας σου;{" "}
+            <Link href="/ethelontis">Live από το γήπεδο</Link>.
           </p>
         </section>
       </div>

@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 
 import { ApiError, api } from "@/lib/api";
-import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts } from "@/lib/og";
+import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts, shareSponsors } from "@/lib/og";
 import { plural } from "@/lib/format";
 
 export const alt = "Παίκτης";
@@ -39,7 +39,7 @@ export default async function Image({
 
   return new ImageResponse(
     (
-      <Card footer={footer}>
+      <Card footer={footer} sponsors={await shareSponsors()}>
         <div
           style={{
             display: "flex",

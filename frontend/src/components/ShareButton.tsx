@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { Icon } from "./Icon";
+
 /** The design's "Κοινοποίηση" button.
  *
  *  Uses the phone's own share sheet when it has one, which is where somebody
@@ -12,17 +14,24 @@ import { useState } from "react";
 export function ShareButton({
   title,
   text,
+  url: path,
   className,
+  iconOnly = false,
 }: {
   title: string;
   /** A ready sentence for the chat — "Ζίτσα–Πωγώνι, Πέμ 16:00, Δημ. Στάδιο". */
   text?: string;
+  /** What to share, when it is not this page — "/agones/123" from the
+   *  volunteer's sheet, whose own address is no use to anybody else. */
+  url?: string;
   className?: string;
+  /** The share glyph instead of the word; the word stays as its name. */
+  iconOnly?: boolean;
 }) {
   const [said, setSaid] = useState<string | null>(null);
 
   async function share() {
-    const url = window.location.href;
+    const url = path ? new URL(path, window.location.origin).href : window.location.href;
     try {
       if (navigator.share) {
         await navigator.share({ title, text, url });
@@ -41,8 +50,23 @@ ${url}` : url);
   }
 
   return (
-    <button type="button" className={className} onClick={share}>
-      {said ?? "Κοινοποίηση"}
-    </button>
+    <>
+      <button
+        type="button"
+        className={className}
+        onClick={share}
+        aria-label={iconOnly ? "Κοινοποίηση" : undefined}
+        title={iconOnly ? "Κοινοποίηση" : undefined}
+      >
+        {iconOnly ? <Icon name="share" size={22} /> : (said ?? "Κοινοποίηση")}
+      </button>
+      {/* Outside the button: a live region inside a named button is not
+          announced by several screen readers, and "Αντιγράφηκε" must be. */}
+      {iconOnly && (
+        <span className="srOnly" aria-live="polite">
+          {said ?? ""}
+        </span>
+      )}
+    </>
   );
 }

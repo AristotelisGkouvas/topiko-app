@@ -90,6 +90,7 @@ export function resolveMatchday(
   params: Record<string, string | string[] | undefined>,
   league: League,
   which: "played" | "next" = "played",
+  now = Date.now(),
 ): number {
   const total = league.total_matchdays;
   const clamp = (n: number) => Math.max(1, total ? Math.min(n, total) : n);
@@ -99,8 +100,20 @@ export function resolveMatchday(
   if (Number.isInteger(parsed) && parsed >= 1) return clamp(parsed);
 
   const played = league.current_matchday ?? 0;
-  return clamp(which === "next" ? played + 1 : played || 1);
+  // From Thursday the week belongs to the coming round: on a Friday the home
+  // page showed the 3rd's fixtures while this page opened on the 2nd's
+  // results. Sunday to Wednesday the round just played is still the news.
+  const upcoming = which === "next" || (played > 0 && WEEKEND_AHEAD.has(athensWeekday(now)));
+  return clamp(upcoming ? played + 1 : played || 1);
 }
+
+/** Thursday, Friday, Saturday. */
+const WEEKEND_AHEAD = new Set(["Thu", "Fri", "Sat"]);
+const weekdayFmt = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  timeZone: "Europe/Athens",
+});
+const athensWeekday = (now: number) => weekdayFmt.format(new Date(now));
 
 /** The competition as a reader knows it. `name` is the federation's published
  *  title, which leads with a sponsor — "ΣΤΕΦΑΝΟΣ ΓΕΡΑΣΗΣ Κ10 Α" — and puts it

@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { ApiError, api } from "@/lib/api";
 import { formatDayDate, formatTime } from "@/lib/format";
-import { COLORS, Card, DISPLAY, ogFonts } from "@/lib/og";
+import { COLORS, Card, DISPLAY, ogFonts, shareSponsors } from "@/lib/og";
 
 /** The match as a 1080×1920 picture — the shape Instagram and Facebook
  *  stories take, which the 1200×630 link card is not.
@@ -63,6 +63,8 @@ export async function GET(
     (
       <Card
         footer={[league.short_name ?? league.name, match.field?.name].filter(Boolean).join(" · ")}
+        sponsors={await shareSponsors()}
+        sponsorHeight={96}
       >
         <div
           style={{

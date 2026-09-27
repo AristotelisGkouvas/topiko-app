@@ -20,7 +20,7 @@
   display: inline-flex;
   align-items: center;
   flex: none;
-  min-height: 34px;
+  min-height: 40px;
   padding: 5px 12px;
   border-radius: var(--radius-chip, 14px);
   border: 1px solid var(--color-chip-border);

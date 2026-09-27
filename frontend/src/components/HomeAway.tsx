@@ -66,7 +66,9 @@ export function HomeAway({ record }: { record: ReturnType<typeof splitRecord> })
         <caption className="srOnly">Απόδοση εντός και εκτός έδρας</caption>
         <thead>
           <tr>
-            <th scope="col" />
+            <th scope="col">
+              <span className="srOnly">Έδρα</span>
+            </th>
             <th scope="col"><abbr title="Αγώνες">ΑΓ</abbr></th>
             <th scope="col"><abbr title="Νίκες">Ν</abbr></th>
             <th scope="col"><abbr title="Ισοπαλίες">Ι</abbr></th>
