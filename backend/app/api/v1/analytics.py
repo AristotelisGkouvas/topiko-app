@@ -519,8 +519,8 @@ async def analytics_summary(
         for s in (await db.execute(select(PlatformSponsor).where(PlatformSponsor.id.in_(pids)))).scalars():
             sponsor_names[("platform", s.id)] = s.name
     if cids:
-        for s in (await db.execute(select(Sponsor).where(Sponsor.id.in_(cids)))).scalars():
-            sponsor_names[("club", s.id)] = s.name
+        for cs in (await db.execute(select(Sponsor).where(Sponsor.id.in_(cids)))).scalars():
+            sponsor_names[("club", cs.id)] = cs.name
     sponsors = [
         SponsorLine(name=sponsor_names.get((k, i), f"#{i} (διαγράφηκε)"), kind=k, views=int(v or 0), clicks=int(c or 0))
         for k, i, v, c in sponsor_rows

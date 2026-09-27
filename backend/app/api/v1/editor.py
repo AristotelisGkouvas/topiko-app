@@ -373,9 +373,10 @@ async def edit_field(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Χρειάζονται και το γεωγραφικό πλάτος και το μήκος — ή κανένα.",
         )
-    if venue.latitude is not None and not (
-        _EPIRUS_LAT[0] <= float(venue.latitude) <= _EPIRUS_LAT[1]
-        and _EPIRUS_LON[0] <= float(venue.longitude) <= _EPIRUS_LON[1]
+    lat, lon = venue.latitude, venue.longitude
+    if lat is not None and lon is not None and not (
+        _EPIRUS_LAT[0] <= float(lat) <= _EPIRUS_LAT[1]
+        and _EPIRUS_LON[0] <= float(lon) <= _EPIRUS_LON[1]
     ):
         # 20.8 / 39.7 typed the wrong way round lands in the Horn of Africa.
         raise HTTPException(
