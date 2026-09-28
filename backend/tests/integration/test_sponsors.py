@@ -311,3 +311,46 @@ async def test_a_club_sponsor_has_a_report_too(client, world: World, db) -> None
     assert link.status_code == 200, link.text
     report = (await client.get(f"/api/v1/alpha/sponsor-report/{link.json()['token']}")).json()
     assert (report["kind"], report["club_name"]) == ("club", world.a.home.name)
+
+
+async def test_an_inquiry_is_kept_for_the_admin_and_bots_are_ignored(client, world: World) -> None:
+    sent = await client.post(
+        "/api/v1/alpha/sponsor-inquiries",
+        json={"kind": "club", "name": "Γιώργος", "contact": "6900000000", "club": "Α.Ε. Κρανούλας"},
+        headers=SAME_SITE,
+    )
+    assert sent.status_code == 201, sent.text
+    bot = await client.post(
+        "/api/v1/alpha/sponsor-inquiries",
+        json={"kind": "platform", "name": "Spam", "contact": "spam@x.gr", "website": "http://x"},
+        headers=SAME_SITE,
+    )
+    assert bot.status_code == 201
+
+    listed = await client.get(
+        "/api/v1/alpha/editor/sponsor-inquiries", cookies=session_for(world.admin), headers=SAME_SITE
+    )
+    rows = listed.json()
+    assert [r["name"] for r in rows] == ["Γιώργος"]
+    assert rows[0]["club"] == "Α.Ε. Κρανούλας" and rows[0]["handled"] is False
+
+    denied = await client.get(
+        "/api/v1/alpha/editor/sponsor-inquiries", cookies=session_for(world.editor), headers=SAME_SITE
+    )
+    assert denied.status_code == 403
+    done = await client.patch(
+        f"/api/v1/alpha/editor/sponsor-inquiries/{rows[0]['id']}",
+        json={"handled": True},
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert done.json()[0]["handled"] is True
+    # The other federation's admin view is its own.
+    assert (await client.get(
+        "/api/v1/beta/editor/sponsor-inquiries", cookies=session_for(world.admin), headers=SAME_SITE
+    )).json() == []
+
+
+async def test_audience_numbers_wait_for_a_month_of_counting(client, world: World) -> None:
+    empty = (await client.get("/api/v1/alpha/audience")).json()
+    assert empty["ready"] is False and empty["since"] is None

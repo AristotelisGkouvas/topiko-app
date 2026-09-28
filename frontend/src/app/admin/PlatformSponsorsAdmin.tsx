@@ -14,6 +14,7 @@ import type { PlatformSponsorAdmin, SponsorPlacement } from "@/lib/types";
 import { noteAuthError } from "./session";
 import { RESTRICTED, SponsorCategorySelect } from "./SponsorCategory";
 import { ReportLink } from "./ReportLink";
+import { SponsorInquiries } from "./SponsorInquiries";
 import styles from "./PlatformSponsorsAdmin.module.css";
 import page from "./page.module.css";
 
@@ -92,6 +93,7 @@ export function PlatformSponsorsAdmin() {
         φεύγουν μόνοι τους μετά τη λήξη, στις θέσεις που επιλέγεις.
       </p>
 
+      <SponsorInquiries />
       <ExpiryNotice sponsors={all} />
       <ShareNotice sponsors={current} />
 

@@ -37,7 +37,7 @@ from app.models.push import PushSubscription
 from app.models.volunteer import ClubAccessCode
 from app.models.scraping import ScrapeRun, TeamAlias
 from app.models.sheet import SHEET_KINDS, MatchLineup, MatchSheetEvent
-from app.models.sponsorship import PLACEMENTS, PlatformSponsor, SponsorDailyStat
+from app.models.sponsorship import PLACEMENTS, PlatformSponsor, SponsorDailyStat, SponsorInquiry
 from app.models.user import AuditLog, RevokedToken, User, UserAssociation
 
 __all__ = [
@@ -49,6 +49,7 @@ __all__ = [
     "MatchSheetEvent",
     "PlatformSponsor",
     "SponsorDailyStat",
+    "SponsorInquiry",
     "Announcement",
     "MANUAL_PRIORITY_WINDOW",
     "Association",

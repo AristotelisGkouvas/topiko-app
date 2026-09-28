@@ -192,6 +192,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/audience": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audience */
+        get: operations["audience_api_v1__association_slug__audience_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/editor/analytics": {
         parameters: {
             query?: never;
@@ -562,6 +579,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/sponsor-inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Inquiries */
+        get: operations["list_inquiries_api_v1__association_slug__editor_sponsor_inquiries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/sponsor-inquiries/{inquiry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Inquiry */
+        patch: operations["edit_inquiry_api_v1__association_slug__editor_sponsor_inquiries__inquiry_id__patch"];
         trace?: never;
     };
     "/api/v1/{association_slug}/editor/teams/{team_slug}": {
@@ -1609,6 +1660,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/sponsor-inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Inquiry */
+        post: operations["add_inquiry_api_v1__association_slug__sponsor_inquiries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/sponsor-report/{token}": {
         parameters: {
             query?: never;
@@ -2044,6 +2112,39 @@ export interface components {
             /** Source Url */
             source_url: string | null;
         };
+        /**
+         * AudienceOut
+         * @description The public numbers on the sponsorship page.
+         */
+        AudienceOut: {
+            /**
+             * Days
+             * @default 0
+             */
+            days: number;
+            /**
+             * Mobile Share
+             * @default 0
+             */
+            mobile_share: number;
+            /**
+             * Ready
+             * @default false
+             */
+            ready: boolean;
+            /** Since */
+            since: string | null;
+            /**
+             * Views 30D
+             * @default 0
+             */
+            views_30d: number;
+            /**
+             * Visitors 30D
+             * @default 0
+             */
+            visitors_30d: number;
+        };
         /** AuditEntryOut */
         AuditEntryOut: {
             /** Action */
@@ -2469,6 +2570,55 @@ export interface components {
              * @default 0
              */
             played: number;
+        };
+        /** InquiryEdit */
+        InquiryEdit: {
+            /** Handled */
+            handled: boolean;
+        };
+        /** InquiryIn */
+        InquiryIn: {
+            /** Business */
+            business?: string | null;
+            /** Club */
+            club?: string | null;
+            /** Contact */
+            contact: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "platform" | "club" | "other";
+            /** Message */
+            message?: string | null;
+            /** Name */
+            name: string;
+            /** Website */
+            website?: string | null;
+        };
+        /** InquiryOut */
+        InquiryOut: {
+            /** Business */
+            business: string | null;
+            /** Club */
+            club: string | null;
+            /** Contact */
+            contact: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Handled */
+            handled: boolean;
+            /** Id */
+            id: number;
+            /** Kind */
+            kind: string;
+            /** Message */
+            message: string | null;
+            /** Name */
+            name: string;
         };
         /** IssueCodeIn */
         IssueCodeIn: {
@@ -4412,6 +4562,38 @@ export interface operations {
             };
         };
     };
+    audience_api_v1__association_slug__audience_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     analytics_summary_api_v1__association_slug__editor_analytics_get: {
         parameters: {
             query?: {
@@ -5163,6 +5345,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScrapeRunOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_inquiries_api_v1__association_slug__editor_sponsor_inquiries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InquiryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_inquiry_api_v1__association_slug__editor_sponsor_inquiries__inquiry_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inquiry_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InquiryEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InquiryOut"][];
                 };
             };
             /** @description Validation Error */
@@ -7154,6 +7405,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SitemapListsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_inquiry_api_v1__association_slug__sponsor_inquiries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InquiryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
                 };
             };
             /** @description Validation Error */

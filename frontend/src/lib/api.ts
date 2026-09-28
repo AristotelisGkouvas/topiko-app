@@ -1,4 +1,5 @@
 import type {
+  Audience,
   SitemapLists,
   SponsorReport,
   Announcement,
@@ -256,6 +257,10 @@ export const api = {
    *  opening it expects today's count. */
   sponsorReport: (token: string) =>
     request<SponsorReport>(scoped(`/sponsor-report/${encodeURIComponent(token)}`), { revalidate: 0 }),
+
+  /** The public audience numbers for the sponsorship page (ready after a
+   *  month of counting). An hour's cache. */
+  audience: () => request<Audience>(scoped("/audience"), { revalidate: 3600 }),
 
   sitemapLists: () =>
     request<SitemapLists>(scoped("/sitemap-lists"), { revalidate: 3600 }),

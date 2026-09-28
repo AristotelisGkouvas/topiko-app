@@ -71,6 +71,8 @@ export type Appearance = S["AppearanceOut"];
 export type SheetSeason = S["SheetSeasonOut"];
 export type SitemapLists = S["SitemapListsOut"];
 export type SponsorReport = S["SponsorReportOut"];
+export type Audience = S["AudienceOut"];
+export type SponsorInquiry = S["InquiryOut"];
 
 export type HeadToHead = S["HeadToHeadOut"];
 

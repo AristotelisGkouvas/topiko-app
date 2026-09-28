@@ -10,7 +10,7 @@ from __future__ import annotations
 import secrets
 import time
 
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
@@ -22,7 +22,17 @@ from app.api.auth_deps import CurrentAdmin, EditableAssociation
 from app.api.deps import CurrentAssociation, DbSession
 from app.core.config import settings
 from app.core.ratelimit import RateLimit
-from app.models import PLACEMENTS, Association, PlatformSponsor, Sponsor, SponsorDailyStat, Team, User
+from app.models import (
+    PLACEMENTS,
+    Association,
+    PageView,
+    PlatformSponsor,
+    Sponsor,
+    SponsorDailyStat,
+    SponsorInquiry,
+    Team,
+    User,
+)
 from app.models.sponsorship import RESTRICTED
 from app.schemas.catalog import PlatformSponsorAdminOut, PlatformSponsorOut
 from app.schemas.editor import OrderIn, PlatformSponsorEdit
@@ -611,3 +621,138 @@ async def sponsor_report(
         views_total=sum(v for _, v, _ in months),
         clicks_total=sum(c for _, _, c in months),
     )
+
+
+# --- "Γίνε χορηγός" ----------------------------------------------------------
+
+inquiry_limit = RateLimit("sponsor-inquiries", limit=5, window=3600)
+
+#: The audience numbers are published only after this many days of counting:
+#: a first week's figures would promise what a month may not deliver.
+AUDIENCE_MIN_DAYS = 30
+
+
+class AudienceOut(BaseModel):
+    """The public numbers on the sponsorship page."""
+
+    #: The first day anything was counted, or None.
+    since: date | None = None
+    days: int = 0
+    #: False until AUDIENCE_MIN_DAYS of counting; then the numbers below.
+    ready: bool = False
+    visitors_30d: int = 0
+    views_30d: int = 0
+    mobile_share: int = 0
+
+
+@router.get("/{association_slug}/audience", response_model=AudienceOut)
+async def audience(association: CurrentAssociation, db: DbSession) -> AudienceOut:
+    first = await db.scalar(
+        select(func.min(PageView.at)).where(PageView.association_id == association.id)
+    )
+    if first is None:
+        return AudienceOut()
+    days = (sp.today() - first.date()).days + 1
+    if days < AUDIENCE_MIN_DAYS:
+        return AudienceOut(since=first.date(), days=days)
+    since = sp.today() - timedelta(days=29)
+    row = (
+        await db.execute(
+            select(
+                func.count(),
+                func.count(func.distinct(func.concat(PageView.visitor, func.date(PageView.at)))),
+                func.count().filter(PageView.device == "mobile"),
+            ).where(PageView.association_id == association.id, func.date(PageView.at) >= since)
+        )
+    ).one()
+    views, visitors, mobile = (int(x or 0) for x in row)
+    return AudienceOut(
+        since=first.date(),
+        days=days,
+        ready=True,
+        visitors_30d=visitors,
+        views_30d=views,
+        mobile_share=round(100 * mobile / views) if views else 0,
+    )
+
+
+class InquiryIn(BaseModel):
+    kind: Literal["platform", "club", "other"]
+    name: str = Field(min_length=2, max_length=120)
+    business: str | None = Field(default=None, max_length=160)
+    contact: str = Field(min_length=5, max_length=160)
+    club: str | None = Field(default=None, max_length=160)
+    message: str | None = Field(default=None, max_length=2000)
+    #: A field no person fills in; a form that arrives with it is a bot.
+    website: str | None = None
+
+
+class InquiryOut(BaseModel):
+    id: int
+    created_at: datetime
+    kind: str
+    name: str
+    business: str | None = None
+    contact: str
+    club: str | None = None
+    message: str | None = None
+    handled: bool
+
+
+@router.post(
+    "/{association_slug}/sponsor-inquiries",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(inquiry_limit)],
+)
+async def add_inquiry(association: CurrentAssociation, payload: InquiryIn, db: DbSession) -> dict[str, bool]:
+    if payload.website:
+        # Answered as if accepted, so the bot learns nothing.
+        return {"ok": True}
+    db.add(
+        SponsorInquiry(
+            association_id=association.id,
+            kind=payload.kind,
+            name=payload.name.strip(),
+            business=(payload.business or "").strip() or None,
+            contact=payload.contact.strip(),
+            club=(payload.club or "").strip() or None,
+            message=(payload.message or "").strip() or None,
+        )
+    )
+    await db.commit()
+    return {"ok": True}
+
+
+@router.get("/{association_slug}/editor/sponsor-inquiries", response_model=list[InquiryOut])
+async def list_inquiries(
+    association: EditableAssociation, _: CurrentAdmin, db: DbSession
+) -> list[SponsorInquiry]:
+    rows = await db.execute(
+        select(SponsorInquiry)
+        .where(SponsorInquiry.association_id == association.id)
+        .order_by(SponsorInquiry.handled, SponsorInquiry.created_at.desc())
+        .limit(200)
+    )
+    return list(rows.scalars())
+
+
+class InquiryEdit(BaseModel):
+    handled: bool
+
+
+@router.patch(
+    "/{association_slug}/editor/sponsor-inquiries/{inquiry_id}", response_model=list[InquiryOut]
+)
+async def edit_inquiry(
+    association: EditableAssociation,
+    _: CurrentAdmin,
+    inquiry_id: int,
+    payload: InquiryEdit,
+    db: DbSession,
+) -> list[SponsorInquiry]:
+    inquiry = await db.get(SponsorInquiry, inquiry_id)
+    if inquiry is None or inquiry.association_id != association.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Δεν βρέθηκε αίτημα.")
+    inquiry.handled = payload.handled
+    await db.commit()
+    return await list_inquiries(association, _, db)

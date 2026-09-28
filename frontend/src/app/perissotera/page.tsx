@@ -110,6 +110,20 @@ export default function MorePage() {
               ›
             </span>
           </Link>
+          <Link href="/xorigies" className={styles.row}>
+            <span className={styles.icon}>
+              <NavIcon item={{ icon: "M4 9l1.5-4h13L20 9M4 9v10h16V9M4 9h16M10 19v-5h4v5" }} size={20} />
+            </span>
+            <span className={styles.labelBlock}>
+              <span className={styles.label}>Γίνε χορηγός</span>
+              <span className={styles.description}>
+                Προβολή για την επιχείρησή σας, με μηνιαία αναφορά
+              </span>
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
         </div>
       </div>
     </>

@@ -53,6 +53,9 @@ export default function AboutPage() {
             <Link href="/ethelontis" className={styles.audienceLink}>
               Live από το γήπεδο ›
             </Link>
+            <Link href="/xorigies" className={styles.audienceLink}>
+              Χορηγοί για την ομάδα σας ›
+            </Link>
           </section>
           <section className={styles.audience} aria-labelledby="press">
             <h2 id="press" className={styles.audienceTitle}>Για συντάκτες</h2>
