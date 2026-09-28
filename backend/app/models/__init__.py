@@ -36,6 +36,7 @@ from app.models.mvp import MvpCandidate, MvpPoll, MvpVote
 from app.models.push import PushSubscription
 from app.models.volunteer import ClubAccessCode
 from app.models.scraping import ScrapeRun, TeamAlias
+from app.models.sheet import SHEET_KINDS, MatchLineup, MatchSheetEvent
 from app.models.sponsorship import PLACEMENTS, PlatformSponsor, SponsorDailyStat
 from app.models.user import AuditLog, RevokedToken, User, UserAssociation
 
@@ -43,6 +44,9 @@ __all__ = [
     "AnalyticsEvent",
     "PageView",
     "PLACEMENTS",
+    "SHEET_KINDS",
+    "MatchLineup",
+    "MatchSheetEvent",
     "PlatformSponsor",
     "SponsorDailyStat",
     "Announcement",

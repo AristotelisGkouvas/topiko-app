@@ -10,11 +10,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, time, timezone
+from datetime import datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
@@ -24,6 +24,8 @@ from app.models import (
     League,
     LeagueTeam,
     Match,
+    MatchLineup,
+    MatchSheetEvent,
     Player,
     PlayerStat,
     PlayerSuspension,
@@ -39,14 +41,16 @@ from app.models.enums import (
     DataSource,
     FieldSurface,
     LeagueKind,
+    MatchStatus,
     ScrapeRunStatus,
 )
 from app.scraper import naming
 from app.scraper.decisions import Action, plan_match
 from app.scraper.http import Fetcher
 from app.scraper.labels import LeagueLabel, describe_league, unique_label
-from app.scraper.sources.base import CatalogSource, PeopleSource, Source, TitleReader
-from app.scraper.types import ScrapedField, ScrapedMatch
+from app.scraper.sources.base import CatalogSource, PeopleSource, SheetSource, Source, TitleReader
+from app.scraper.types import ScrapedField, ScrapedMatch, ScrapedSheet
+from app.core.config import settings
 from app.services import indexnow
 from app.services.home_fields import infer_home_fields
 from app.services.standings import recompute_standings
@@ -78,6 +82,8 @@ class Stats:
     stats_rows: int = 0
     suspensions: int = 0
     conflicts_opened: int = 0
+    #: Match reports read and written this run.
+    sheets: int = 0
     #: Pages this run changed, site-relative, for IndexNow. Matches are kept
     #: as objects because a new one has no id until the session flushes.
     touched_matches: list[Any] = field(default_factory=list)
@@ -401,6 +407,8 @@ class Syncer:
         self.resolver = Resolver(db, association, self.stats)
         #: external player id -> row, filled by _load_players.
         self._players: dict[str, Player] = {}
+        #: Player slugs in use, read on first need by _sheet_player.
+        self._taken_slugs: set[str] | None = None
         #: Set by sync(). A dry run never commits, so nothing it wrote survives.
         self._dry_run = False
 
@@ -410,8 +418,13 @@ class Syncer:
         dry_run: bool = False,
         seasons: list[str] | None = None,
         all_seasons: bool = False,
+        sheets: int | None = None,
     ) -> ScrapeRun:
         """Bring this association up to date.
+
+        `sheets`: how many match reports to read this run. None means the
+        routine allowance (settings.scraper_sheets_per_run); a bigger number is
+        how the archive is filled, once.
 
         By default only the configured season is touched, because that is what
         a scheduled run needs. `seasons` names particular ones and
@@ -478,6 +491,14 @@ class Syncer:
                 if not dry_run:
                     # The season row and anything written outside a league.
                     await self.db.commit()
+
+            # After the fixtures: a report is only worth reading for a match
+            # whose final score is in.
+            await self._sync_sheets(
+                settings.scraper_sheets_per_run if sheets is None else sheets
+            )
+            if not dry_run:
+                await self.db.commit()
 
             # Derived from the fixtures that were just written, so it stays
             # right as clubs change ground. The register never states it.
@@ -1042,6 +1063,179 @@ class Syncer:
 
         await self.db.flush()
 
+    # --- Match reports ------------------------------------------------------
+
+    #: A report is read once the match has had time to be written up, and read
+    #: again for a few days in case the federation corrects it.
+    SHEET_READY_AFTER = timedelta(hours=2)
+    SHEET_RECHECK_FOR = timedelta(days=10)
+    SHEET_RECHECK_EVERY = timedelta(hours=20)
+
+    async def _sync_sheets(self, limit: int) -> None:
+        """Read the federation's report for finished matches.
+
+        Newest first, `limit` at most. A match is due when it has never been
+        read, or when it finished in the last ten days and was last read more
+        than twenty hours ago (reports are corrected, cards added late). An id
+        that returns no report is marked read unless the match is recent,
+        so an empty page is not asked for again every run.
+        """
+        if limit <= 0 or not isinstance(self.source, SheetSource):
+            return
+        now = datetime.now(timezone.utc)
+        due = (
+            select(Match)
+            .join(League, Match.league_id == League.id)
+            .where(
+                League.association_id == self.association.id,
+                Match.external_id.is_not(None),
+                Match.home_score.is_not(None),
+                Match.status.not_in((MatchStatus.CANCELLED, MatchStatus.POSTPONED)),
+                Match.kickoff_at.is_not(None),
+                Match.kickoff_at <= now - self.SHEET_READY_AFTER,
+                or_(
+                    Match.sheet_fetched_at.is_(None),
+                    (Match.kickoff_at >= now - self.SHEET_RECHECK_FOR)
+                    & (Match.sheet_fetched_at <= now - self.SHEET_RECHECK_EVERY),
+                ),
+            )
+            .order_by(Match.sheet_fetched_at.is_not(None), Match.kickoff_at.desc())
+            .limit(limit)
+        )
+        matches = list((await self.db.execute(due)).scalars())
+        for match in matches:
+            assert match.external_id is not None
+            try:
+                html = await self.fetcher.get(self.source.game_path(match.external_id))
+            except Exception as exc:  # noqa: BLE001
+                self.stats.warn(f"Δεν διαβάστηκε το φύλλο αγώνα {match.external_id}: {exc}")
+                continue
+            sheet = self.source.parse_game(html)
+            recent = match.kickoff_at is not None and match.kickoff_at >= now - timedelta(days=3)
+            if sheet is None:
+                if not recent:
+                    match.sheet_fetched_at = now
+                continue
+            await self._write_sheet(match, sheet)
+            match.sheet_fetched_at = now
+            self.stats.sheets += 1
+            self.stats.touched_paths.add(f"/agones/{match.id}")
+        if self.stats.sheets:
+            self.stats.note(f"Φύλλα αγώνων: {self.stats.sheets} διαβάστηκαν")
+        if matches and not self._dry_run:
+            await self.db.flush()
+
+    async def _write_sheet(self, match: Match, sheet: ScrapedSheet) -> None:
+        """Replace this match's timeline and line-ups with the report's."""
+        home, away = match.home_team_id, match.away_team_id
+        # The report names the clubs by the federation's own ids. If they
+        # disagree with the fixture (swapped, or a different match), nothing
+        # is written: a line-up on the wrong side is worse than none.
+        reported = (
+            self.resolver.team_by_external(sheet.home_team_external_id),
+            self.resolver.team_by_external(sheet.away_team_external_id),
+        )
+        if None not in reported and reported != (home, away):
+            self.stats.warn(
+                f"Το φύλλο αγώνα {match.external_id} δεν ταιριάζει με τον αγώνα "
+                f"(ομάδες {sheet.home_team_external_id}–{sheet.away_team_external_id})"
+            )
+            return
+        for kind in sheet.unknown:
+            self.stats.warn(f"Άγνωστο γεγονός στο φύλλο αγώνα: {kind!r}")
+
+        side = {"home": home, "away": away}
+        await self.db.execute(delete(MatchSheetEvent).where(MatchSheetEvent.match_id == match.id))
+        await self.db.execute(delete(MatchLineup).where(MatchLineup.match_id == match.id))
+        for position, event in enumerate(sheet.events):
+            player = await self._sheet_player(event.player_external_id, event.player_name, None)
+            self.db.add(
+                MatchSheetEvent(
+                    match_id=match.id,
+                    position=position,
+                    team_id=side[event.side],
+                    kind=event.kind,
+                    minute=event.minute,
+                    stoppage=event.stoppage,
+                    player_id=player.id if player else None,
+                    player_name=event.player_name,
+                    score=event.score,
+                )
+            )
+        for position, entry in enumerate(sheet.lineups):
+            player = await self._sheet_player(
+                entry.player_external_id, entry.player_name, entry.birth_year
+            )
+            self.db.add(
+                MatchLineup(
+                    match_id=match.id,
+                    position=position,
+                    team_id=side[entry.side],
+                    player_id=player.id if player else None,
+                    player_name=entry.player_name,
+                    birth_year=entry.birth_year,
+                    starter=entry.starter,
+                )
+            )
+            if player is not None:
+                self.stats.touched_paths.add(f"/paiktes/{player.slug}")
+
+        referee = sheet.officials.get("Διαιτητής")
+        if referee and not match.referee:
+            match.referee = referee[:120]
+        others = {k: v for k, v in sheet.officials.items() if k != "Διαιτητής"}
+        match.officials = others or None
+
+    async def _sheet_player(
+        self, external_id: str | None, name: str | None, birth_year: int | None
+    ) -> Player | None:
+        """The register's row for a player in a report, created if the report
+        names somebody the register does not list yet (a youth player
+        registered after the register was last read)."""
+        if not external_id:
+            return None
+        player = self._players.get(external_id)
+        if player is None:
+            # Not in this run's register (a run that did not read it, or a
+            # player added since): the database may still know them.
+            player = (
+                await self.db.execute(
+                    select(Player).where(
+                        Player.association_id == self.association.id,
+                        Player.external_id == external_id,
+                    )
+                )
+            ).scalar_one_or_none()
+            if player is not None:
+                self._players[external_id] = player
+        if player is not None:
+            return player
+        if not name or naming.is_corrupt(name):
+            return None
+        if self._taken_slugs is None:
+            self._taken_slugs = {
+                slug
+                for (slug,) in (
+                    await self.db.execute(
+                        select(Player.slug).where(Player.association_id == self.association.id)
+                    )
+                ).all()
+            }
+        slug = naming.unique_slug(naming.slugify(name), self._taken_slugs)
+        self._taken_slugs.add(slug)
+        player = Player(
+            association_id=self.association.id,
+            slug=slug,
+            external_id=external_id,
+            name=name,
+            birth_year=birth_year,
+        )
+        self.db.add(player)
+        await self.db.flush()
+        self._players[external_id] = player
+        self.stats.players_created += 1
+        return player
+
     async def _apply(
         self,
         league: League,
@@ -1242,12 +1436,14 @@ async def sync_association(
     dry_run: bool = False,
     seasons: list[str] | None = None,
     all_seasons: bool = False,
+    sheets: int | None = None,
 ) -> ScrapeRun:
     return await Syncer(db, association, source, fetcher).sync(
         league_slugs=league_slugs,
         dry_run=dry_run,
         seasons=seasons,
         all_seasons=all_seasons,
+        sheets=sheets,
     )
 
 def _apply_field_details(venue: Field, scraped: ScrapedField) -> None:

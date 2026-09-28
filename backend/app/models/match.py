@@ -104,6 +104,12 @@ class Match(Base, TimestampMixin):
     #: from last_manual_edit_at: a score correction must not freeze the venue.
     rescheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_scraped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: When the federation's match report was last read (see models.sheet).
+    #: Null: not yet, which is what the scraper looks for.
+    sheet_fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: The officials the report names beyond the referee: assistants, the
+    #: fourth official, observers. Label -> name.
+    officials: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     external_id: Mapped[str | None] = mapped_column(String(64))
 
