@@ -47,6 +47,7 @@ from app.scraper.http import Fetcher
 from app.scraper.labels import LeagueLabel, describe_league, unique_label
 from app.scraper.sources.base import CatalogSource, PeopleSource, Source, TitleReader
 from app.scraper.types import ScrapedField, ScrapedMatch
+from app.services import indexnow
 from app.services.home_fields import infer_home_fields
 from app.services.standings import recompute_standings
 
@@ -77,6 +78,10 @@ class Stats:
     stats_rows: int = 0
     suspensions: int = 0
     conflicts_opened: int = 0
+    #: Pages this run changed, site-relative, for IndexNow. Matches are kept
+    #: as objects because a new one has no id until the session flushes.
+    touched_matches: list[Any] = field(default_factory=list)
+    touched_paths: set[str] = field(default_factory=set)
     #: Something the run could not do. Any of these downgrades it to PARTIAL.
     warnings: list[str] = field(default_factory=list)
     #: Something worth telling a human that is nevertheless a success. Kept
@@ -513,6 +518,12 @@ class Syncer:
             await self.db.rollback()
         else:
             await self.db.commit()
+            # After the commit, so a search engine never fetches a page that
+            # does not show the change yet. Ids are safe to read here: the
+            # session does not expire on commit. A backfill rewrites years of
+            # archive nobody is searching for tonight, so only routine runs.
+            if not (all_seasons or seasons):
+                await indexnow.submit(self._touched_paths())
 
         return run
 
@@ -1071,6 +1082,7 @@ class Syncer:
             # created again instead of recognised.
             existing[(item.matchday, home.id, away.id)] = match
             self.stats.matches_created += 1
+            self._touch(match, home, away)
             return
 
         assert current is not None
@@ -1082,6 +1094,7 @@ class Syncer:
             if not plan.deferred:
                 current.data_source = DataSource.SCRAPER
             self.stats.matches_updated += 1
+            self._touch(current, home, away)
         else:
             self.stats.matches_unchanged += 1
 
@@ -1089,6 +1102,17 @@ class Syncer:
             self.stats.matches_deferred += 1
         if plan.conflict is not None:
             await self._record_conflict(current, plan.conflict)
+
+    def _touch(self, match: Match, home: Team, away: Team) -> None:
+        self.stats.touched_matches.append(match)
+        self.stats.touched_paths.update(
+            (f"/somateia/{home.slug}", f"/somateia/{away.slug}")
+        )
+
+    def _touched_paths(self) -> set[str]:
+        return self.stats.touched_paths | {
+            f"/agones/{m.id}" for m in self.stats.touched_matches if m.id is not None
+        }
 
     async def _record_conflict(self, match: Match, payload: dict) -> None:
         """Log a disagreement once, not once per run.
