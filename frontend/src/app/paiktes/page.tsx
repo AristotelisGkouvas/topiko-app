@@ -13,7 +13,10 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Παίκτες" };
+export const metadata: Metadata = {
+  title: "Παίκτες",
+  description: "Αναζήτηση παίκτη στο αρχείο της ΕΠΣ Ηπείρου: γκολ ανά περίοδο και τα σωματεία όπου έχει αγωνιστεί.",
+};
 
 export default async function PlayersPage({
   searchParams,
