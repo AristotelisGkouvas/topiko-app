@@ -1,16 +1,17 @@
 import type { MetadataRoute } from "next";
 
 import { api } from "@/lib/api";
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { SITE, kontraPath } from "@/lib/seo";
 
 /** Rebuilt on request, not at build time: there is no API during the build,
  *  and the clubs and divisions change with every season. */
 export const dynamic = "force-dynamic";
 
 /** The pages somebody searches for by name — "Δαφνούλας βαθμολογία", "γήπεδο
- *  Τσανακτσής" — plus each division's table and fixtures. Players are left
- *  out: fifteen thousand thin pages would drown the ones that matter. */
+ *  Τσανακτσής", "Ροδοτόπι Κεφαλόβρυσο" — plus each division's table and
+ *  fixtures. Players only if they scored this season: fifteen thousand thin
+ *  pages would drown the ones that matter. Grounds only if a club plays
+ *  there; the rest are noindex and have no business in a sitemap. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const page = (path: string, priority: number, changeFrequency: "daily" | "weekly" | "monthly" = "weekly") => ({
@@ -34,11 +35,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // A sitemap that fails takes nothing down; it just lists what it can.
-  const [leagues, teams, fields] = await Promise.all([
+  const [leagues, teams] = await Promise.all([
     api.listLeagues().catch(() => []),
     api.listTeams().catch(() => []),
-    api.listFields().catch(() => []),
   ]);
+  const [matches, scorers] = await Promise.all([
+    Promise.all(leagues.map((l) => api.listMatches(l.slug).catch(() => []))).then((m) => m.flat()),
+    Promise.all(leagues.map((l) => api.listScorers(l.slug, { limit: 200 }).catch(() => []))).then((s) => s.flat()),
+  ]);
+  const grounds = new Set(teams.flatMap((t) => (t.home_field ? [t.home_field.slug] : [])));
+  // Every pair that has met this season — the fixture people search as
+  // "Κόνιτσα Ελεούσα" — once, under its canonical order.
+  const pairs = new Set(
+    matches
+      .filter((m) => m.status === "finished")
+      .map((m) => kontraPath(m.home_team.slug, m.away_team.slug)),
+  );
+  const players = new Set(scorers.filter((s) => (s.goals ?? 0) > 0).map((s) => s.player.slug));
 
   return [
     ...fixed,
@@ -53,6 +66,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ? page(`/somateia/${t.slug}`, 0.3, "monthly")
         : page(`/somateia/${t.slug}`, 0.7, "daily"),
     ),
-    ...fields.map((f) => page(`/gipeda/${f.slug}`, 0.4, "monthly")),
+    ...[...grounds].map((slug) => page(`/gipeda/${slug}`, 0.4, "monthly")),
+    // A result is searched for the evening it happens and then for years by
+    // the two villages; a fixture changes until it is played.
+    ...matches.map((m) => ({
+      ...page(`/agones/${m.id}`, m.status === "finished" ? 0.6 : 0.5, m.status === "finished" ? "monthly" : "daily"),
+      lastModified: new Date(m.updated_at),
+    })),
+    ...[...players].map((slug) => page(`/paiktes/${slug}`, 0.3)),
+    ...[...pairs].map((path) => page(path, 0.4)),
   ];
 }

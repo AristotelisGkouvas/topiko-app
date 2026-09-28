@@ -58,12 +58,6 @@
   composes: card from "../styles/primitives.module.css";
 }
 
-.fixtureList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
 .titleBlock {
   display: grid;
   gap: 6px;

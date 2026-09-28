@@ -117,33 +117,9 @@
   color: var(--color-text-muted);
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Two buttons on one line, sized to their words; the calendar card is a
-   paragraph with its own buttons and takes a line of its own. Given one flex
-   rule for all three, the star grew into a 300px pill and the card was
-   squeezed beside it with a hole underneath. */
-.actions > * {
-  flex: 0 0 auto;
-  min-width: 0;
-}
-
-.calendar {
-  flex-basis: 100%;
-}
-
-.calendar > * {
-  margin-top: 0;
-}
-
-/* --- form ------------------------------------------------------------ */
-
-.share {
-  composes: buttonSecondary from "../../../styles/primitives.module.css";
+.numbers {
+  display: grid;
+  gap: 10px;
 }
 
 .formRow {
@@ -201,6 +177,30 @@
   composes: card from "../../../styles/primitives.module.css";
 }
 
+/* --- at a glance ------------------------------------------------------ */
+
+.faq {
+  margin: 0;
+}
+
+.faqItem {
+  padding: 12px 14px;
+}
+
+.faqItem + .faqItem {
+  border-top: 1px solid var(--color-border);
+}
+
+.faqItem dt {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.faqItem dd {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+}
+
 /* --- ground ---------------------------------------------------------- */
 
 .venue {
@@ -215,7 +215,14 @@
   text-decoration: none;
 }
 
-.venue:hover {
+@media (hover: hover) and (pointer: fine) {
+  .venue:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.venue:active {
   background: var(--color-grey-100);
 }
 
@@ -284,7 +291,14 @@
   color: var(--color-text-muted);
 }
 
-.leagueLink:hover {
+@media (hover: hover) and (pointer: fine) {
+  .leagueLink:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.leagueLink:active {
   background: var(--color-grey-100);
 }
 
@@ -310,7 +324,14 @@
   text-decoration: none;
 }
 
-.volunteer a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .volunteer a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.volunteer a:active {
   text-decoration: underline;
 }
 
@@ -322,9 +343,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "identity stats"
-      "actions  form";
-    align-items: center;
+      "identity numbers"
+      "actions  numbers";
+    align-items: start;
     gap: 16px 26px;
   }
 
@@ -332,8 +353,11 @@
     grid-area: identity;
   }
 
+  .numbers {
+    grid-area: numbers;
+  }
+
   .stats {
-    grid-area: stats;
     grid-template-columns: repeat(4, 92px);
   }
 
@@ -341,12 +365,8 @@
     grid-area: actions;
   }
 
-  /* Tucked under the numbers it summarises. Centred in its row, it floated
-     halfway down the calendar card with nothing around it. */
   .formRow {
-    grid-area: form;
     justify-self: end;
-    align-self: start;
   }
 
   .body {

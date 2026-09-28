@@ -31,7 +31,14 @@
   cursor: pointer;
 }
 
-.select:hover {
+@media (hover: hover) and (pointer: fine) {
+  .select:hover {
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.select:active {
   border-color: var(--color-green-300);
 }
 
@@ -47,4 +54,11 @@
   font-size: var(--text-base);
   line-height: 1;
   color: var(--color-text-muted);
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .select {
+    min-height: 44px;
+  }
 }

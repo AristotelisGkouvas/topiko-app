@@ -71,7 +71,14 @@
   overflow-wrap: anywhere;
 }
 
-.side:hover .sideName {
+@media (hover: hover) and (pointer: fine) {
+  .side:hover .sideName {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.side:active .sideName {
   color: var(--color-link-hover);
 }
 
@@ -211,7 +218,14 @@
   text-decoration: none;
 }
 
-.recordLink:hover {
+@media (hover: hover) and (pointer: fine) {
+  .recordLink:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.recordLink:active {
   color: var(--color-link-hover);
 }
 
@@ -222,5 +236,12 @@
 
   .vs {
     display: none;
+  }
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .select {
+    min-height: 44px;
   }
 }

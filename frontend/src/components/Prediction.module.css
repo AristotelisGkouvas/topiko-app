@@ -34,7 +34,14 @@
   cursor: pointer;
 }
 
-.choice:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) {
+  .choice:hover:not(:disabled) {
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.choice:active:not(:disabled) {
   border-color: var(--color-green-300);
 }
 
@@ -48,8 +55,20 @@
   font-size: var(--text-lg);
 }
 
-.picked,
-.picked:hover:not(:disabled) {
+.picked {
+  background: var(--color-soft);
+  border-color: var(--color-green-600);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .picked:hover:not(:disabled) {
+    background: var(--color-soft);
+    border-color: var(--color-green-600);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.picked:active:not(:disabled) {
   background: var(--color-soft);
   border-color: var(--color-green-600);
 }

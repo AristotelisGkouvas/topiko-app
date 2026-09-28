@@ -58,8 +58,16 @@
   border-bottom: none;
 }
 
-.row:hover,
-.scorerRow:hover {
+@media (hover: hover) and (pointer: fine) {
+  .row:hover,
+  .scorerRow:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.row:active,
+.scorerRow:active {
   background: var(--color-grey-100);
 }
 

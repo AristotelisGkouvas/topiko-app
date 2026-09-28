@@ -27,7 +27,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-.day:hover {
+@media (hover: hover) and (pointer: fine) {
+  .day:hover {
+    border-color: var(--color-grey-400);
+    color: var(--color-text);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.day:active {
   border-color: var(--color-grey-400);
   color: var(--color-text);
 }

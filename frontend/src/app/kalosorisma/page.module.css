@@ -1,12 +1,18 @@
 /* Screens O1–O3 of the Claude Design file, to their numbers. */
 
-/* Breaks out of <main>'s padding and takes the whole viewport below the
-   header: the welcome is a screen, not a card on a page. */
+/* Breaks out of <main>'s padding and takes the whole screen (no header or
+   tab bar here): the welcome is a screen, not a card on a page. dvh, so the
+   buttons stay above a phone's browser bar rather than under it. */
 .page {
   margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
-  min-height: calc(100vh - 60px);
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/* <main> keeps room at the bottom for the tab bar, which is hidden here. */
+:global(main):has(> .page) {
+  padding-bottom: 0;
 }
 
 /* --- O1: the striped hero ------------------------------------------- */
@@ -40,7 +46,7 @@
   /* The tracking pushes the word right by one gap; pulling it back keeps it
      optically centred under ΣΕΝΤΡΑ. */
   text-indent: 9px;
-  color: #fff;
+  color: var(--color-on-brand);
 }
 
 .heroBig {
@@ -48,7 +54,7 @@
   font-weight: 800;
   font-size: 4.375rem;
   line-height: 0.85;
-  color: #fff;
+  color: var(--color-on-brand);
 }
 
 .rule {
@@ -63,7 +69,7 @@
 .ruleLine {
   flex: 1;
   height: 2px;
-  background: #fff;
+  background: var(--color-on-brand);
 }
 
 /* The centre spot of the halfway line — the same geometry as the icons. */
@@ -71,7 +77,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-on-brand);
 }
 
 /* White on the lighter stripe is 4.3:1 — short of AA for body text, fine for
@@ -83,14 +89,14 @@
   font-weight: 700;
   font-size: 1.1875rem;
   line-height: 1.4;
-  color: #fff;
+  color: var(--color-on-brand);
   text-align: center;
   text-wrap: pretty;
 }
 
 .footerPanel {
   background: var(--color-canvas);
-  padding: 20px 20px 28px;
+  padding: 20px 20px calc(28px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -207,7 +213,14 @@
   cursor: pointer;
 }
 
-.tile:hover {
+@media (hover: hover) and (pointer: fine) {
+  .tile:hover {
+    border-color: var(--color-grey-400);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.tile:active {
   border-color: var(--color-grey-400);
 }
 
@@ -246,7 +259,7 @@
   font-weight: 800;
   font-size: var(--text-md);
   line-height: 1;
-  color: #fff;
+  color: var(--color-on-brand);
   flex: none;
   user-select: none;
 }
@@ -302,7 +315,15 @@
   text-decoration: none;
 }
 
-.skip:hover {
+@media (hover: hover) and (pointer: fine) {
+  .skip:hover {
+    color: var(--color-link);
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.skip:active {
   color: var(--color-link);
   text-decoration: underline;
 }
@@ -323,7 +344,15 @@
   text-decoration: none;
 }
 
-.back a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .back a:hover {
+    color: var(--color-link);
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.back a:active {
   color: var(--color-link);
   text-decoration: underline;
 }

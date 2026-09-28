@@ -35,6 +35,10 @@ export async function generateMetadata({
       description: player.total_goals
         ? `${player.total_goals} γκολ σε ${player.seasons_scored} ${plural(player.seasons_scored, "περίοδο", "περιόδους")}${club ? ` · ${club}` : ""}`
         : club,
+      alternates: { canonical: `/paiktes/${slug}` },
+      // Fifteen thousand names with no goal against them are the thin pages
+      // the sitemap already leaves out; this keeps them out of the index too.
+      ...(!player.total_goals && !player.live_goals && { robots: { index: false, follow: true } }),
     };
   } catch {
     return { title: "Παίκτης" };

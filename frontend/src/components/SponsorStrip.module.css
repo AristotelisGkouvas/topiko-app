@@ -9,6 +9,9 @@
 
 .window {
   overflow: hidden;
+  /* When it scrolls by hand (focus, reduced motion), a flick that reaches
+     the end stops here rather than carrying on into the page. */
+  overscroll-behavior-x: contain;
 }
 
 .label {
@@ -60,10 +63,15 @@
 
 /* Held still under a finger or a pointer, and while a plate has keyboard
    focus, so a sponsor can be tapped instead of chased. */
-.moving:hover .track,
 .moving:active .track,
 .moving[data-paused] .track {
   animation-play-state: paused;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .moving:hover .track {
+    animation-play-state: paused;
+  }
 }
 
 /* Keyboard focus on a plate: the track stops *and* returns to rest, so the
@@ -136,11 +144,18 @@
   box-sizing: border-box;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 10px);
-  background: #fff;
+  background: var(--color-plate);
   text-decoration: none;
 }
 
-a.plate:hover {
+@media (hover: hover) and (pointer: fine) {
+  a.plate:hover {
+    border-color: var(--color-link);
+  }
+}
+
+/* Touch: the same look while pressed. */
+a.plate:active {
   border-color: var(--color-link);
 }
 
@@ -160,10 +175,18 @@ a.plate:hover {
   font-size: var(--text-xs);
   line-height: 1.1;
   text-align: center;
-  color: #1a2b3c;
+  color: var(--color-plate-ink);
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .controls :global(.marqueePause) {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

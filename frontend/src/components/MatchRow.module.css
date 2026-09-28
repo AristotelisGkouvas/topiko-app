@@ -24,7 +24,14 @@
   border-bottom: none;
 }
 
-.row:hover {
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.row:active {
   background: var(--color-grey-100);
 }
 
@@ -77,6 +84,16 @@
   font-weight: 700;
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
+}
+
+/* The time chip is absolute, so a long club name would run under it. A
+   fixture keeps a gutter for it: "17:00", or "Κυρ 17:15" with the day. */
+.rowTimed {
+  padding-right: 72px;
+}
+
+.rowDayTimed {
+  padding-right: 96px;
 }
 
 /* Day and ground, for lists that span more than one weekend. */

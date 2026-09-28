@@ -14,7 +14,10 @@ import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 import { plural } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Γήπεδα" };
+export const metadata: Metadata = {
+  title: "Γήπεδα",
+  description: "Τα γήπεδα της ΕΠΣ Ηπείρου στον χάρτη: ποιες ομάδες έχουν έδρα, οι επόμενοι αγώνες και πώς θα πάτε.",
+};
 
 const SURFACE_LABELS: Record<string, string> = {
   grass: "Χλοοτάπητας",

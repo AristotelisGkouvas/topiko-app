@@ -164,3 +164,51 @@ class ScrapedAnnouncement:
     published_at: datetime | None
     body: str | None
     image_url: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedSeasonTotal:
+    """A player's full count for one club in one season, from their own page.
+
+    Unlike ScrapedPlayerStat these are complete: the federation computes them
+    from every match sheet, not from a top-ten list, so a zero here is a zero.
+    """
+
+    season: str
+    team_name: str
+    goals: int
+    own_goals: int
+    yellow_cards: int
+    red_cards: int
+    minutes: int
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedAppearance:
+    """One match a player took part in, as their page lists it."""
+
+    season: str
+    competition: str
+    league_external_id: str | None
+    match_external_id: str | None
+    played_on: date | None
+    #: "Α.Ε.ΠΡΑΜΑΝΤΩΝ - Α.Σ.ΧΑΡΑΥΓΗΣ", as printed.
+    fixture: str
+    #: The side the player was on, which the page prints in bold.
+    team_name: str | None
+    score: str | None
+    goals: int
+    yellow_cards: int
+    red_cards: int
+    minutes: int | None
+
+
+@dataclass(slots=True)
+class ScrapedProfile:
+    """Everything on a player's own page."""
+
+    birth_year: int | None = None
+    current_team_external_id: str | None = None
+    current_team_name: str | None = None
+    totals: list[ScrapedSeasonTotal] = field(default_factory=list)
+    appearances: list[ScrapedAppearance] = field(default_factory=list)

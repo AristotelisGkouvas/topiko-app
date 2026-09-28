@@ -5,6 +5,10 @@
   scrollbar-width: none;
   margin: 0 -16px;
   padding: 0 16px;
+  /* A flick that reaches the end stops here instead of carrying on into the
+     page, where Android reads it as "back"; chips settle on an edge. */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
 }
 
 .scroll::-webkit-scrollbar {
@@ -32,13 +36,35 @@
   white-space: nowrap;
 }
 
-.tab:hover {
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover {
+    color: var(--color-heading);
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.tab:active {
   color: var(--color-heading);
   border-color: var(--color-green-300);
 }
 
-.active,
-.active:hover {
+.active {
+  background: var(--color-navy-900);
+  border-color: var(--color-navy-900);
+  color: var(--color-grey-50);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .active:hover {
+    background: var(--color-navy-900);
+    border-color: var(--color-navy-900);
+    color: var(--color-grey-50);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.active:active {
   background: var(--color-navy-900);
   border-color: var(--color-navy-900);
   color: var(--color-grey-50);
@@ -56,7 +82,26 @@
   border-style: dashed;
 }
 
-.toggle:hover {
+@media (hover: hover) and (pointer: fine) {
+  .toggle:hover {
+    color: var(--color-heading);
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.toggle:active {
   color: var(--color-heading);
   border-color: var(--color-green-300);
+}
+
+.tab {
+  scroll-snap-align: start;
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .tab {
+    min-height: 44px;
+  }
 }

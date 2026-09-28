@@ -76,7 +76,15 @@
   text-decoration: none;
 }
 
-.club:hover {
+@media (hover: hover) and (pointer: fine) {
+  .club:hover {
+    border-color: var(--color-link-hover);
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.club:active {
   border-color: var(--color-link-hover);
   color: var(--color-link-hover);
 }
@@ -87,6 +95,9 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow-x: auto;
+  /* A sideways flick that reaches the end stops here instead of carrying on
+     into the page, where Android reads it as "back". */
+  overscroll-behavior-x: contain;
 }
 
 .table {
@@ -122,7 +133,14 @@
   border-bottom: none;
 }
 
-.table tbody tr:hover {
+@media (hover: hover) and (pointer: fine) {
+  .table tbody tr:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.table tbody tr:active {
   background: var(--color-grey-100);
 }
 
@@ -142,8 +160,16 @@
   text-decoration: none;
 }
 
-.leagueLink:hover,
-.teamLink:hover {
+@media (hover: hover) and (pointer: fine) {
+  .leagueLink:hover,
+  .teamLink:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.leagueLink:active,
+.teamLink:active {
   color: var(--color-link-hover);
 }
 

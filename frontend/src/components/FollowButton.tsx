@@ -5,8 +5,10 @@ import { useFavourite } from "@/lib/favourite";
 import styles from "./FollowButton.module.css";
 import { Icon } from "@/components/Icon";
 
-/** The ☆ from the team profile header in the kit.
+/** "Ακολουθώ", the club page's first action (screen 06).
  *
+ *  Green and filled until pressed, because it is the one thing the page asks
+ *  of a visitor; afterwards it goes quiet and says so, with the filled star.
  *  Following is kept in this browser and nowhere else: there are no accounts
  *  for readers, and asking someone to register before they can mark their
  *  village team would cost more than the feature is worth.
@@ -14,9 +16,11 @@ import { Icon } from "@/components/Icon";
 export function FollowButton({
   slug,
   name,
+  className = "",
 }: {
   slug: string;
   name: string;
+  className?: string;
 }) {
   const { toggle, following } = useFavourite();
   const isFollowing = following(slug);
@@ -24,31 +28,18 @@ export function FollowButton({
   return (
     <button
       type="button"
-      className={`${styles.button} ${isFollowing ? styles.on : ""}`}
+      className={`${styles.button} ${isFollowing ? styles.on : ""} ${className}`}
       onClick={() => {
         track(isFollowing ? "unfollow" : "follow", { team: slug });
         toggle({ slug, name });
       }}
-      // The label carries the state, because the only visual difference is a
-      // filled star against an outlined one.
+      // The pressed state is what a screen reader announces; the words
+      // start with what is on screen, so voice control finds it (WCAG 2.5.3).
       aria-pressed={isFollowing}
-      // Starts with the visible words, so "πάτα Η ομάδα μου" in voice control
-      // finds it (WCAG 2.5.3).
-      aria-label={
-        isFollowing
-          ? `Η ομάδα μου: ${name}. Πάτα για κατάργηση.`
-          : `Η ομάδα μου; Όρισε ως ομάδα σου: ${name}`
-      }
-      title={isFollowing ? "Η ομάδα σου" : "Όρισε ως ομάδα σου"}
+      aria-label={isFollowing ? `Ακολουθείς: ${name}` : `Ακολουθώ: ${name}`}
     >
-      <span className={styles.star} aria-hidden="true">
-        <Icon name="star" size={16} filled={isFollowing} />
-      </span>
-      {/* A word beside the star: on its own it read as decoration, and first
-          visitors did not guess it was the way to pick their club. */}
-      <span className={styles.text} aria-hidden="true">
-        {isFollowing ? "Η ομάδα μου" : "Η ομάδα μου;"}
-      </span>
+      <Icon name="star" size={16} filled={isFollowing} />
+      {isFollowing ? "Ακολουθείς" : "Ακολουθώ"}
     </button>
   );
 }

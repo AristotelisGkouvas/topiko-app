@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { NavIcon } from "@/components/NavIcon";
 import { PageHeader } from "@/components/PageHeader";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeSegmented } from "@/components/ThemeToggle";
 import { ReadabilitySettings } from "./ReadabilitySettings";
 import { SECONDARY_NAV_ITEMS } from "@/lib/nav";
 import styles from "./page.module.css";
@@ -32,7 +32,7 @@ export default function MorePage() {
           <Link href="/eidopoiiseis" className={styles.row}>
             <span className={styles.icon}>
               <NavIcon
-                item={{ icon: "M5 9v6h3l5 4V5L8 9zM17 9a4 4 0 0 1 0 6" }}
+                item={{ icon: "M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0" }}
                 size={20}
               />
             </span>
@@ -41,7 +41,7 @@ export default function MorePage() {
               ›
             </span>
           </Link>
-          <div className={styles.row}>
+          <div className={`${styles.row} ${styles.rowWrap}`}>
             <span className={styles.icon}>
               <NavIcon
                 item={{ icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 1 0-16z" }}
@@ -49,7 +49,7 @@ export default function MorePage() {
               />
             </span>
             <span className={styles.label}>Θέμα εμφάνισης</span>
-            <ThemeToggle className={styles.theme} />
+            <ThemeSegmented className={styles.segmented} />
           </div>
           <ReadabilitySettings />
         </div>

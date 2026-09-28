@@ -26,7 +26,14 @@
   color: var(--color-text-muted);
 }
 
-.input:hover {
+@media (hover: hover) and (pointer: fine) {
+  .input:hover {
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.input:active {
   border-color: var(--color-green-300);
 }
 

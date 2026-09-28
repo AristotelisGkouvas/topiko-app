@@ -52,8 +52,8 @@ export function Finish() {
       {!pushReady ? (
         <p className={styles.lead}>
           {hydrated && favourite
-            ? `${favourite.name}: θα είναι πρώτη στην αρχική. Άλλαξε ομάδα οποτεδήποτε με το ☆ στη σελίδα κάθε σωματείου.`
-            : "Διάλεξε ομάδα οποτεδήποτε με το ☆ στη σελίδα του σωματείου."}
+            ? `${favourite.name}: θα είναι πρώτη στην αρχική. Άλλαξε ομάδα οποτεδήποτε με το «Ακολουθώ» στη σελίδα κάθε σωματείου.`
+            : "Διάλεξε ομάδα οποτεδήποτε με το «Ακολουθώ» στη σελίδα του σωματείου."}
         </p>
       ) : !hydrated ? (
         // Nothing is claimed before the browser has been read: rendering

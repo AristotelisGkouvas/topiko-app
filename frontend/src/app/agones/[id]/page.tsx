@@ -8,6 +8,7 @@ import { Icon } from "@/components/Icon";
 import { LastUpdated } from "@/components/LastUpdated";
 import { LiveRefresh } from "@/components/LiveRefresh";
 import { ShareButton } from "@/components/ShareButton";
+import { ScoreFlash } from "@/components/ScoreFlash";
 import { MatchTicker } from "@/components/MatchTicker";
 import { Prediction } from "@/components/Prediction";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -23,6 +24,7 @@ import {
   pointsLabel,
 } from "@/lib/format";
 import { leagueLabel } from "@/lib/leagues";
+import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
 import type { Match, MatchDetail, Standing } from "@/lib/types";
 import styles from "./page.module.css";
 import { ClubName } from "@/components/ClubName";
@@ -43,6 +45,45 @@ async function load(id: string): Promise<MatchDetail> {
   }
 }
 
+const EVENT_STATUS: Partial<Record<Match["status"], string>> = {
+  postponed: "https://schema.org/EventPostponed",
+  cancelled: "https://schema.org/EventCancelled",
+};
+
+/** schema.org SportsEvent. Google shows nothing for a match without a date,
+ *  so an unscheduled one gets no event, only its breadcrumb. */
+function matchJsonLd(match: Match, leagueName: string) {
+  if (!match.kickoff_at) return null;
+  const team = (t: Match["home_team"]) => ({
+    "@type": "SportsTeam",
+    name: t.name,
+    url: absolute(`/somateia/${t.slug}`),
+    sport: "Soccer",
+  });
+  return {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: `${match.home_team.name} - ${match.away_team.name}`,
+    description: `${leagueName}${match.matchday ? `, ${match.matchday}η αγωνιστική` : ""}`,
+    url: absolute(`/agones/${match.id}`),
+    sport: "Soccer",
+    startDate: match.kickoff_at,
+    eventStatus: EVENT_STATUS[match.status] ?? "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    homeTeam: team(match.home_team),
+    awayTeam: team(match.away_team),
+    competitor: [team(match.home_team), team(match.away_team)],
+    ...(match.field && {
+      location: {
+        "@type": "Place",
+        name: match.field.name,
+        url: absolute(`/gipeda/${match.field.slug}`),
+        ...(match.field.city && { address: { "@type": "PostalAddress", addressLocality: match.field.city, addressCountry: "GR" } }),
+      },
+    }),
+  };
+}
+
 /** Where "Αναφορά λάθους" writes to. Set at deploy time; without it the link
  *  is not shown rather than pointing nowhere. */
 const REPORT_TO = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
@@ -56,24 +97,29 @@ export async function generateMetadata({
   try {
     const { match, league } = await load(id);
     const played = match.home_score !== null && match.away_score !== null;
-    // What the unfurled link says under the title: the state and score, the
-    // division, the ground — so a stranger from Άρτα knows what this is.
+    // What the unfurled link and the search result say under the title: the
+    // state and score, the round and division, the ground — so a stranger
+    // from Άρτα knows what this is, and "αποτέλεσμα" is there to be matched.
     const description = [
       match.is_live
         ? `LIVE ${match.home_score ?? 0}–${match.away_score ?? 0}`
         : played
-          ? `Τελικό ${match.home_score}–${match.away_score}`
+          ? `Τελικό αποτέλεσμα ${match.home_score}–${match.away_score}`
           : [formatDayDate(match.kickoff_at), formatTime(match.kickoff_at)]
               .filter(Boolean)
               .join(" "),
-      league.name,
-      match.field?.name,
+      [match.matchday ? `${match.matchday}η αγωνιστική` : null, `${leagueLabel(league)} ΕΠΣ Ηπείρου`]
+        .filter(Boolean)
+        .join(", "),
+      match.field ? `γήπεδο ${match.field.name}` : null,
     ]
       .filter(Boolean)
       .join(" · ");
+    const score = played && !match.is_live ? ` ${match.home_score}–${match.away_score}` : "";
     return {
-      title: `${match.home_team.name} - ${match.away_team.name}`,
+      title: `${match.home_team.name} - ${match.away_team.name}${score}`,
       description,
+      alternates: { canonical: `/agones/${match.id}` },
       // Next replaces, not merges, a child's openGraph — so the root's
       // fields are restated.
       openGraph: {
@@ -119,6 +165,15 @@ export default async function MatchPage({
 
   return (
     <div className={styles.page}>
+      <JsonLd
+        data={[
+          ...[matchJsonLd(match, league.name)].filter((d) => d !== null),
+          breadcrumbs([
+            { name: "Αγώνες", path: `/agones?liga=${league.slug}` },
+            { name: `${match.home_team.name} - ${match.away_team.name}`, path: `/agones/${match.id}` },
+          ]),
+        ]}
+      />
       {/* The navy band runs the full width and carries the crumb, the crests
           and the score. Screens 03 and D03 spend the page's whole block of
           brand colour here — it is the one thing the reader came for. */}
@@ -174,9 +229,9 @@ export default async function MatchPage({
         <div className={styles.middle}>
           {played ? (
             <p className={`${styles.score} ${live ? styles.scoreLive : ""}`}>
-              {match.home_score}
+              <ScoreFlash value={match.home_score} />
               <span className={styles.dash}>–</span>
-              {match.away_score}
+              <ScoreFlash value={match.away_score} />
             </p>
           ) : (
             <p className={styles.kickoff}>{formatTime(match.kickoff_at)}</p>

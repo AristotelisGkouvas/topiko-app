@@ -8,6 +8,7 @@ import { ApiError, api } from "@/lib/api";
 import { formatDayDate, plural } from "@/lib/format";
 import type { HeadToHead, Match } from "@/lib/types";
 import pageStyles from "../../../page.module.css";
+import { kontraPath } from "@/lib/seo";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +32,14 @@ export async function generateMetadata({
   const { home, away } = await params;
   try {
     const record = await load(home, away);
+    const last = record.last_meeting ? `, τελευταία ${formatDayDate(record.last_meeting)}` : "";
     return {
-      title: `${record.home.name} — ${record.away.name}`,
-      description: `${record.played} ${plural(record.played, "συνάντηση", "συναντήσεις")}: ${record.home_wins}-${record.draws}-${record.away_wins}`,
+      // The words people type: the two names and "ιστορικό".
+      title: `${record.home.name} – ${record.away.name}: όλα τα παιχνίδια και ιστορικό`,
+      description: `${record.played} ${plural(record.played, "συνάντηση", "συναντήσεις")}${last}. ${record.home.name} ${record.home_wins} ${plural(record.home_wins, "νίκη", "νίκες")}, ${record.away.name} ${record.away_wins}, ${record.draws} ${plural(record.draws, "ισοπαλία", "ισοπαλίες")} · γκολ ${record.home_goals}–${record.away_goals}.`,
+      alternates: { canonical: kontraPath(home, away) },
+      // Two clubs that never met make a page that says so — true, and thin.
+      ...(record.played === 0 && { robots: { index: false, follow: true } }),
     };
   } catch {
     return { title: "Κόντρα" };

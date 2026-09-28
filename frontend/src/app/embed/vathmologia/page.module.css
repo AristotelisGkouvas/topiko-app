@@ -37,5 +37,7 @@
   border-radius: var(--radius-sm);
   background: var(--color-surface-raised, var(--color-surface));
   overflow-wrap: anywhere;
+  /* Two lines: the iframe, then the link that sits in the host's page. */
+  white-space: pre-wrap;
   user-select: all;
 }

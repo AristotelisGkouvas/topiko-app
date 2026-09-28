@@ -22,3 +22,21 @@
   line-height: 1.5;
   color: var(--color-text-muted);
 }
+
+/* In a row of buttons the wrapper steps aside, so the button is one of the
+   row's cells and a note spans the row underneath it. */
+.compact {
+  display: contents;
+}
+
+.compact .note {
+  grid-column: 1 / -1;
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.on {
+  background: var(--color-soft);
+  color: var(--color-heading);
+  cursor: default;
+}

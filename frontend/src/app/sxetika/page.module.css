@@ -41,3 +41,121 @@
 .list li {
   margin-bottom: 4px;
 }
+
+.lead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+/* Who the site is for, side by side where there is room: three short
+   blocks with one link each, instead of a paragraph per audience buried in
+   the data-sources card. */
+.audiences {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .audiences {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.audience {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.audience p {
+  margin: 0;
+  flex: 1;
+}
+
+.audience a {
+  color: var(--color-link);
+  font-weight: 600;
+}
+
+.audienceTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--color-heading);
+}
+
+.audience .audienceLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-accent-ink);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .audience .audienceLink:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.audience .audienceLink:active {
+  text-decoration: underline;
+}
+
+.more {
+  margin-top: 4px;
+}
+
+.moreSummary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-accent-ink);
+  cursor: pointer;
+}
+
+.more[open] .moreSummary {
+  margin-bottom: 6px;
+}
+
+/* The folded detail arrives instead of snapping in. */
+.more[open] > :not(summary) {
+  animation: moreIn 200ms var(--ease-out);
+}
+
+@keyframes moreIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .more[open] > :not(summary) {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+}

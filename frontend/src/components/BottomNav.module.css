@@ -53,11 +53,25 @@
   font-size: min(1em, 3.1vw);
 }
 
-.tab:hover {
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover {
+    color: var(--color-heading);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.tab:active {
   color: var(--color-heading);
 }
 
-.tab:hover .icon {
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover .icon {
+    color: var(--color-heading);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.tab:active .icon {
   color: var(--color-heading);
 }
 

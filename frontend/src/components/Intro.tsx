@@ -8,8 +8,9 @@ import styles from "./Intro.module.css";
 /** The opening splash, from "Pame Sentra Intro": the pitch is mown in
  *  stripes, the ball rolls onto the halfway line and the wordmark rises.
  *
- *  Once per browser session, and only on the home page — a match link opened
- *  from Viber goes straight to the match. The whole timeline, fade-out
+ *  Only when the installed app starts (the CSS hides it in a browser tab),
+ *  once per session, and only on the home page — a match link opened from
+ *  Viber goes straight to the match. The whole timeline, fade-out
  *  included, is CSS, so it ends on time even while the page is still
  *  hydrating; JavaScript only records that it was seen and lets a tap or a key
  *  skip it. Readers who ask for reduced motion never see it (the CSS hides it).

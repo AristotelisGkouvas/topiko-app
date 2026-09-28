@@ -3,20 +3,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
-import { FollowButton } from "@/components/FollowButton";
+import { ClubActions } from "@/components/ClubActions";
 import { MatchRow } from "@/components/MatchRow";
 import { Empty } from "@/components/States";
 import { SectionHeader } from "@/components/SectionHeader";
-import { CalendarLink } from "@/components/CalendarLink";
-import { ShareButton } from "@/components/ShareButton";
 import { ApiError, api } from "@/lib/api";
-import { formatGoalDifference, pointsLabel } from "@/lib/format";
+import { formatDayDate, formatGoalDifference, formatKickoff, plural, pointsLabel } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
 import type { FieldRef, Match, TeamDetail } from "@/lib/types";
 import { HomeAway, splitRecord } from "@/components/HomeAway";
 import { GoalMinutes } from "@/components/GoalMinutes";
 import styles from "./page.module.css";
+import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
 import { Icon } from "@/components/Icon";
 import { FormGuide } from "@/components/FormGuide";
 import { Gallery } from "@/components/Gallery";
@@ -47,10 +46,10 @@ export async function generateMetadata({
     // What a search result should say under the name: the division and where
     // they stand, not the site's tagline repeated on 177 pages.
     const where = placement
-      ? `${placement.league.short_name ?? placement.league.name}, ${placement.standing.position}η θέση με ${pointsLabel(placement.standing.points)}`
+      ? `${placement.league.short_name ?? placement.league.name}, ${placement.standing.position}η θέση με ${placement.standing.points} ${plural(placement.standing.points, "βαθμό", "βαθμούς")}`
       : null;
     return {
-      title: team.name,
+      title: `${team.name}: αποτελέσματα, πρόγραμμα, βαθμολογία`,
       description: [
         `${team.name}: πρόγραμμα, αποτελέσματα και βαθμολογία`,
         where,
@@ -102,8 +101,45 @@ export default async function TeamPage({
     (m) => m.status === "postponed" && m.home_score === null,
   );
 
+  const faq = clubFaq(team, placement, played, upcoming, season === team.seasons[0]);
+
   return (
     <div className={styles.page}>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "SportsTeam",
+            name: team.name,
+            url: absolute(`/somateia/${team.slug}`),
+            sport: "Soccer",
+            // Uploads are stored as "/api/media/…", served from the site's own host.
+            ...(team.logo_url && {
+              logo: /^https?:\/\//.test(team.logo_url) ? team.logo_url : absolute(team.logo_url),
+            }),
+            ...(team.founded_year && { foundingDate: String(team.founded_year) }),
+            ...(team.city && { location: { "@type": "Place", name: team.city } }),
+            memberOf: { "@type": "SportsOrganization", name: "ΕΠΣ Ηπείρου" },
+          },
+          breadcrumbs([
+            { name: "Σωματεία", path: "/somateia" },
+            { name: team.name, path: `/somateia/${team.slug}` },
+          ]),
+          ...(faq.length > 0
+            ? [
+                {
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  mainEntity: faq.map(({ q, a }) => ({
+                    "@type": "Question",
+                    name: q,
+                    acceptedAnswer: { "@type": "Answer", text: a },
+                  })),
+                },
+              ]
+            : []),
+        ]}
+      />
       {/* Screen 06's hero: the crest, who they are, where they stand, and the
           two things a supporter does here — follow, and subscribe. */}
       <header
@@ -140,43 +176,41 @@ export default async function TeamPage({
           </div>
         </div>
 
+        {/* The numbers and the form that explains them, as one block: the
+            form used to float on its own in the opposite corner, drawn as
+            letters where every other page draws dots. */}
         {standing && (
-          <dl className={styles.stats}>
-            <Stat value={`${standing.position}η`} label="Θέση" />
-            <Stat value={standing.points} label="Βαθμοί" />
-            {/* Words, not "32:28": a ratio has to be decoded, and read out
-                it is "thirty-two colon twenty-eight". */}
-            <Stat
-              value={`${standing.goals_for} – ${standing.goals_against}`}
-              label="Γκολ"
-            />
-            <Stat
-              value={formatGoalDifference(standing.goal_difference)}
-              label="Διαφορά"
-            />
-          </dl>
+          <div className={styles.numbers}>
+            <dl className={styles.stats}>
+              <Stat value={`${standing.position}η`} label="Θέση" />
+              <Stat value={standing.points} label="Βαθμοί" />
+              {/* Words, not "32:28": a ratio has to be decoded, and read out
+                  it is "thirty-two colon twenty-eight". */}
+              <Stat
+                value={`${standing.goals_for} – ${standing.goals_against}`}
+                label="Γκολ"
+              />
+              <Stat
+                value={formatGoalDifference(standing.goal_difference)}
+                label="Διαφορά"
+              />
+            </dl>
+            {standing.form && (
+              <div className={styles.formRow}>
+                <span className={styles.formLabel}>ΦΟΡΜΑ</span>
+                <FormGuide form={standing.form} />
+              </div>
+            )}
+          </div>
         )}
 
         <div className={styles.actions}>
-          <FollowButton slug={team.slug} name={team.name} />
-          {/* The card this shares is the club's own OG image, which already
-              carries the crest and the standing — so the link arrives in a
-              group chat looking like something rather than like a URL. */}
-          <ShareButton
-            title={team.short_name ?? team.name}
-            className={styles.share}
+          <ClubActions
+            slug={team.slug}
+            name={team.name}
+            shareTitle={team.short_name ?? team.name}
           />
-          <div className={styles.calendar}>
-            <CalendarLink slug={team.slug} name={team.name} />
-          </div>
         </div>
-
-        {standing?.form && (
-          <div className={styles.formRow}>
-            <span className={styles.formLabel}>ΦΟΡΜΑ</span>
-            <FormGuide form={standing.form} variant="letter" />
-          </div>
-        )}
       </header>
 
       <div className={styles.body}>
@@ -288,6 +322,20 @@ export default async function TeamPage({
           <section className={styles.column} aria-labelledby="photos">
             <SectionHeader id="photos" title="ΦΩΤΟΓΡΑΦΙΕΣ" />
             <Gallery photos={team.photos} name={team.name} />
+          </section>
+        )}
+
+        {faq.length > 0 && (
+          <section className={styles.column} aria-labelledby="faq">
+            <SectionHeader id="faq" title="ΜΕ ΜΙΑ ΜΑΤΙΑ" />
+            <dl className={`${styles.card} ${styles.faq}`}>
+              {faq.map(({ q, a }) => (
+                <div key={q} className={styles.faqItem}>
+                  <dt>{q}</dt>
+                  <dd>{a}</dd>
+                </div>
+              ))}
+            </dl>
           </section>
         )}
 
@@ -416,6 +464,60 @@ function Stat({ value, label }: { value: string | number; label: string }) {
 
 /** "Έδρα · χλοοτάπητας · 800 θέσεις", dropping whatever the register left
  *  blank. Surface is filled in for every ground; capacity for three of them. */
+/** The questions people put to a search box or an assistant about a club —
+ *  where they play, when next, where they stand, how the last one went —
+ *  answered in a sentence each from data the page already has. A direct
+ *  answer near the top is what an answer engine quotes; the same pairs go
+ *  out as FAQPage. Only for the current season: "the next match" of 2019 is
+ *  not an answer. Names without an article: "η/ο/το" depends on a club's
+ *  name, and a wrong one reads worse than none. */
+function clubFaq(
+  team: TeamDetail,
+  placement: Awaited<ReturnType<typeof api.getTeamStanding>>,
+  played: Match[],
+  upcoming: Match[],
+  current: boolean,
+): { q: string; a: string }[] {
+  if (!current) return [];
+  const faq: { q: string; a: string }[] = [];
+  const opponent = (m: Match) => (m.home_team.id === team.id ? m.away_team : m.home_team);
+  const side = (m: Match) => (m.home_team.id === team.id ? "εντός έδρας" : "εκτός έδρας");
+
+  if (team.home_field) {
+    faq.push({
+      q: `${team.name}: πού είναι η έδρα;`,
+      a: `Στο γήπεδο ${team.home_field.name}${team.home_field.city ? `, ${team.home_field.city}` : ""}.`,
+    });
+  }
+  const next = upcoming[0];
+  if (next?.kickoff_at) {
+    faq.push({
+      q: `${team.name}: πότε είναι ο επόμενος αγώνας;`,
+      a: `${formatKickoff(next.kickoff_at, " στις ")}, ${side(next)} με ${opponent(next).name}${next.field ? `, στο γήπεδο ${next.field.name}` : ""}.`,
+    });
+  }
+  if (placement?.standing) {
+    const st = placement.standing;
+    faq.push({
+      q: `${team.name}: σε ποια θέση είναι στη βαθμολογία;`,
+      a: `${st.position}η στην ${leagueLabel(placement.league)} ΕΠΣ Ηπείρου, με ${st.points} ${plural(st.points, "βαθμό", "βαθμούς")} σε ${st.played} ${plural(st.played, "αγώνα", "αγώνες")} (${st.won}-${st.drawn}-${st.lost}).`,
+    });
+  }
+  const last = [...played].sort((a, b) => (b.kickoff_at ?? "").localeCompare(a.kickoff_at ?? ""))[0];
+  if (last) {
+    const home = last.home_team.id === team.id;
+    const [us, them] = home
+      ? [last.home_score ?? 0, last.away_score ?? 0]
+      : [last.away_score ?? 0, last.home_score ?? 0];
+    const outcome = us > them ? "Νίκη" : us < them ? "Ήττα" : "Ισοπαλία";
+    faq.push({
+      q: `${team.name}: ποιο ήταν το τελευταίο αποτέλεσμα;`,
+      a: `${outcome} ${us}–${them} ${side(last)} με ${opponent(last).name}${last.kickoff_at ? ` (${formatDayDate(last.kickoff_at)})` : ""}.`,
+    });
+  }
+  return faq;
+}
+
 function venueLine(field: FieldRef): string {
   const SURFACES: Record<string, string> = {
     grass: "χλοοτάπητας",

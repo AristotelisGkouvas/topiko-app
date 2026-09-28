@@ -1,0 +1,95 @@
+/* A phone: "Ακολουθώ" across the width, the rest sharing the line under it
+   (two or three of them; notifications only appear when the server can send
+   them). A wide screen: one row. Panels (the calendar, a note from the
+   notifications button) take the full width underneath. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action {
+  composes: buttonSecondary from "../styles/primitives.module.css";
+  flex: 1 1 0;
+  min-width: max-content;
+  padding: 0 12px;
+}
+
+.follow {
+  flex-basis: 100%;
+}
+
+.panel {
+  flex-basis: 100%;
+  padding: 12px 14px;
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.panelText {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.panelButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.subscribe {
+  composes: buttonPrimary from "../styles/primitives.module.css";
+}
+
+.panelHint {
+  margin: 10px 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 640px) {
+  .action,
+  .follow {
+    flex: 0 0 auto;
+  }
+}
+
+/* Subscribe-me buttons mean nothing on paper. */
+@media print {
+  .actions {
+    display: none;
+  }
+}
+
+/* Opened by a press, so it arrives rather than appears: 200ms, a few pixels
+   down from under the row. */
+.panel {
+  animation: panelIn 200ms var(--ease-out);
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+}

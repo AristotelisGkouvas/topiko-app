@@ -63,7 +63,14 @@
   font-weight: 600;
 }
 
-.breadcrumb a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.breadcrumb a:active {
   text-decoration: underline;
 }
 
@@ -132,7 +139,14 @@
   overflow-wrap: break-word;
 }
 
-.sideName:hover {
+@media (hover: hover) and (pointer: fine) {
+  .sideName:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.sideName:active {
   color: var(--color-link-hover);
 }
 
@@ -240,7 +254,14 @@
   text-decoration: none;
 }
 
-.fact dd a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .fact dd a:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.fact dd a:active {
   color: var(--color-link-hover);
 }
 
@@ -331,7 +352,14 @@
   text-decoration: none;
 }
 
-.historyLink:hover {
+@media (hover: hover) and (pointer: fine) {
+  .historyLink:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.historyLink:active {
   color: var(--color-link-hover);
 }
 
@@ -356,7 +384,14 @@
   font-weight: 600;
 }
 
-.allMeetings a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .allMeetings a:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.allMeetings a:active {
   color: var(--color-link-hover);
 }
 
@@ -484,7 +519,14 @@
   border-bottom: none;
 }
 
-.standingRow:hover {
+@media (hover: hover) and (pointer: fine) {
+  .standingRow:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.standingRow:active {
   background: var(--color-grey-100);
 }
 

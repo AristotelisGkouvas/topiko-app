@@ -14,7 +14,10 @@ import type { Team } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Σωματεία" };
+export const metadata: Metadata = {
+  title: "Σωματεία",
+  description: "Όλα τα σωματεία της ΕΠΣ Ηπείρου: έδρα, κατηγορία, πρόγραμμα, αποτελέσματα και θέση στη βαθμολογία.",
+};
 
 export default async function ClubsPage({
   searchParams,

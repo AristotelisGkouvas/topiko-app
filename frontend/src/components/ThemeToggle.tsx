@@ -120,3 +120,32 @@ export function ThemeToggle({ className }: { className?: string }) {
     </button>
   );
 }
+
+const ORDER: Theme[] = ["light", "dark", "system"];
+const WORD: Record<Theme, string> = {
+  light: "Φωτεινό",
+  dark: "Σκοτεινό",
+  system: "Αυτόματο",
+};
+
+/** The same three states, all on show: for the settings page, where there is
+ *  room. A button that cycles hides two of the three choices, and beside the
+ *  on/off switches under it, it read as a different kind of control. */
+export function ThemeSegmented({ className }: { className?: string }) {
+  const { theme, set } = useTheme();
+  return (
+    <div className={className} role="radiogroup" aria-label="Θέμα εμφάνισης">
+      {ORDER.map((t) => (
+        <button
+          key={t}
+          type="button"
+          role="radio"
+          aria-checked={theme === t}
+          onClick={() => set(t)}
+        >
+          {WORD[t]}
+        </button>
+      ))}
+    </div>
+  );
+}

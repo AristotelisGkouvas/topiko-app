@@ -59,16 +59,36 @@
   .phoneOnly {
     display: none;
   }
+}
 
-  /* Screen D02 runs the day groups in two columns — a round is fourteen
-     matches over two days, which is a lot of vertical scrolling for a screen
-     that has width going spare. */
-  .days {
+/* One column of days. On a wide screen the division's table sits beside it,
+   where the second column of days used to be; on a phone the table would be
+   a screen below the fixtures, and the tab bar reaches it in one tap. */
+.split {
+  display: grid;
+  gap: 22px;
+  align-items: start;
+}
+
+.listColumn {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.side {
+  display: none;
+}
+
+@media (min-width: 1040px) {
+  .split {
+    grid-template-columns: minmax(0, 720px) 320px;
+    justify-content: space-between;
+  }
+
+  .side {
     display: grid;
-    /* auto-fill, not auto-fit: a round played on one day stays one
-       readable column instead of stretching a two-line row to 1100px. */
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-    gap: 22px;
-    align-items: start;
+    position: sticky;
+    top: 76px;
   }
 }

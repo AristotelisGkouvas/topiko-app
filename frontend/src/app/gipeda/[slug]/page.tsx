@@ -5,11 +5,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
-import { FixtureRow } from "@/components/MatchCard";
+import { MatchRow } from "@/components/MatchRow";
 import { ShareButton } from "@/components/ShareButton";
 import { VenueMap } from "@/components/VenueMap";
 import { ApiError, api } from "@/lib/api";
 import type { FieldDetail } from "@/lib/types";
+import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,9 @@ export async function generateMetadata({
         .filter(Boolean)
         .join(" · ") + ".",
       alternates: { canonical: `/gipeda/${slug}` },
+      // A ground no club calls home is a name and a hatch — thin enough that
+      // Google would count it against the ones that matter.
+      ...(teams.length === 0 && { robots: { index: false, follow: true } }),
     };
   } catch {
     // A missing ground is handled by the page itself; metadata is not the
@@ -114,6 +118,33 @@ export default async function FieldPage({
 
   return (
     <div className={styles.page}>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "StadiumOrArena",
+            name: field.name,
+            url: absolute(`/gipeda/${field.slug}`),
+            ...((field.city || field.address) && {
+              address: {
+                "@type": "PostalAddress",
+                ...(field.address && { streetAddress: field.address }),
+                ...(field.city && { addressLocality: field.city }),
+                ...(field.postal_code && { postalCode: field.postal_code }),
+                addressCountry: "GR",
+              },
+            }),
+            ...(field.latitude && field.longitude && {
+              geo: { "@type": "GeoCoordinates", latitude: field.latitude, longitude: field.longitude },
+            }),
+            ...(field.capacity && { maximumAttendeeCapacity: field.capacity }),
+          },
+          breadcrumbs([
+            { name: "Γήπεδα", path: "/gipeda" },
+            { name: field.name, path: `/gipeda/${field.slug}` },
+          ]),
+        ]}
+      />
       {/* The design opens on a 190px band. With coordinates it is the map;
           without, the hatch the design itself draws — which is honest, since
           the federation publishes no photographs either. */}
@@ -193,11 +224,17 @@ export default async function FieldPage({
             </div>
           ) : (
             <div className={styles.card}>
-              <ul className={styles.fixtureList}>
-                {matches.map((match) => (
-                  <FixtureRow key={match.id} match={match} />
-                ))}
-              </ul>
+              {/* Two lines per match, with the date: a ground's fixtures span
+                  the whole season, so "16:00" alone would not say which
+                  Sunday. */}
+              {matches.map((match, i) => (
+                <MatchRow
+                  key={match.id}
+                  match={match}
+                  last={i === matches.length - 1}
+                  showDate
+                />
+              ))}
             </div>
           )}
         </section>

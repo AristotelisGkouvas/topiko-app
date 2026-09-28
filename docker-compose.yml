@@ -101,6 +101,9 @@ services:
       SCRAPER_USER_AGENT: ${SCRAPER_USER_AGENT:?βάλε πραγματικό email στο SCRAPER_USER_AGENT πριν τρέξει σε ζωντανό site}
       SCRAPER_LIVE_INTERVAL_SECONDS: ${SCRAPER_LIVE_INTERVAL_SECONDS:-300}
       SCRAPER_IDLE_INTERVAL_SECONDS: ${SCRAPER_IDLE_INTERVAL_SECONDS:-21600}
+      # Both needed for IndexNow: the pages it reports are addresses on the site.
+      SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      INDEXNOW_KEY: ${INDEXNOW_KEY:-}
     command: ["python", "-m", "app.scraper.schedule"]
     depends_on:
       migrate:
@@ -132,6 +135,8 @@ services:
       # host=slug pairs, for serving more than one ΕΠΣ from one deployment.
       # Empty: every host is NEXT_PUBLIC_ASSOCIATION. See src/lib/tenant.ts.
       ASSOCIATION_HOSTS: ${ASSOCIATION_HOSTS:-}
+      # Served at /indexnow.txt; the scraper sends the same one.
+      INDEXNOW_KEY: ${INDEXNOW_KEY:-}
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:

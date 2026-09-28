@@ -4,7 +4,9 @@
   /* V1 fills the screen: no card, no header, because this is a door and not a
      page of the site. */
   margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
-  min-height: calc(100vh - 60px);
+  /* dvh, not vh: on a phone 100vh counts the browser's address bar too, and
+     the bottom of the sheet sat underneath it. */
+  min-height: calc(100dvh - 60px);
   display: flex;
   flex-direction: column;
 }
@@ -222,7 +224,7 @@
   flex: none;
   min-height: 44px;
   padding: 0 14px;
-  border: 1px solid rgb(255 255 255 / 0.28);
+  border: 1px solid var(--color-on-brand-line);
   border-radius: var(--radius-md);
   background: none;
   color: var(--color-on-navy-idle);
@@ -232,9 +234,17 @@
   cursor: pointer;
 }
 
-.logout:hover {
+@media (hover: hover) and (pointer: fine) {
+  .logout:hover {
+    color: var(--color-on-navy);
+    border-color: var(--color-on-brand-line-strong);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.logout:active {
   color: var(--color-on-navy);
-  border-color: rgb(255 255 255 / 0.5);
+  border-color: var(--color-on-brand-line-strong);
 }
 
 .sheetWrap {

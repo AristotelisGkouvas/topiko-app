@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     #: to the match.
     site_url: str | None = None
 
+    #: IndexNow key (any 8-128 letters, digits or dashes). With it, and with
+    #: site_url, each scrape run tells Bing which match and club pages just
+    #: changed. The web container serves the same value at /indexnow.txt.
+    indexnow_key: str | None = None
+
     # --- Web Push -----------------------------------------------------------
     #
     # Generate once with:

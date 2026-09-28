@@ -16,7 +16,10 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Σκόρερ" };
+export const metadata: Metadata = {
+  title: "Σκόρερ",
+  description: "Οι πρώτοι σκόρερ κάθε κατηγορίας της ΕΠΣ Ηπείρου: γκολ, λεπτά συμμετοχής και κάρτες, ενημερωμένα μετά από κάθε αγωνιστική.",
+};
 
 export default async function ScorersPage({
   searchParams,

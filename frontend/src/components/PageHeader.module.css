@@ -91,7 +91,14 @@
   text-decoration: none;
 }
 
-.arrow:hover {
+@media (hover: hover) and (pointer: fine) {
+  .arrow:hover {
+    color: var(--color-on-navy);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.arrow:active {
   color: var(--color-on-navy);
 }
 
@@ -173,7 +180,14 @@
     color: var(--color-nav-idle);
   }
 
-  .arrow:hover {
+  @media (hover: hover) and (pointer: fine) {
+    .arrow:hover {
+      color: var(--color-heading);
+    }
+  }
+
+  /* Touch: the same look while pressed. */
+  .arrow:active {
     color: var(--color-heading);
   }
 }

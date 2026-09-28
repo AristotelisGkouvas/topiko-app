@@ -62,6 +62,27 @@
   cursor: pointer;
 }
 
+/* Feedback the moment a finger lands, not when it lifts: a button that only
+   changes on click reads as lag even at 0ms. Small, and fast enough for
+   something pressed many times a day. */
+.button {
+  transition: transform 120ms var(--ease-out), filter 120ms var(--ease-out),
+    background-color 120ms var(--ease-out);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Less motion asked for: the press still shows, as a darker fill with no
+   movement. */
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled) {
+    transform: none;
+    filter: brightness(0.94);
+  }
+}
+
 .button:disabled,
 .button[aria-disabled="true"] {
   opacity: 0.6;
@@ -75,7 +96,14 @@
   color: var(--color-action-ink);
 }
 
-.buttonPrimary:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) {
+  .buttonPrimary:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.buttonPrimary:active:not(:disabled) {
   filter: brightness(1.05);
 }
 
@@ -86,7 +114,14 @@
   color: var(--color-heading);
 }
 
-.buttonSecondary:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) {
+  .buttonSecondary:hover:not(:disabled) {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.buttonSecondary:active:not(:disabled) {
   background: var(--color-grey-100);
 }
 
@@ -99,7 +134,14 @@
   font-size: var(--text-md);
 }
 
-.buttonGhost:hover {
+@media (hover: hover) and (pointer: fine) {
+  .buttonGhost:hover {
+    color: var(--color-heading);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.buttonGhost:active {
   color: var(--color-heading);
 }
 
@@ -160,7 +202,14 @@
   border-top: 1px solid var(--color-hairline);
 }
 
-.listRow:hover {
+@media (hover: hover) and (pointer: fine) {
+  .listRow:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.listRow:active {
   background: var(--color-grey-100);
 }
 

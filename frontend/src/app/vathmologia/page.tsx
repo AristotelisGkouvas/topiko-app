@@ -116,17 +116,24 @@ export default async function StandingsPage({
               basePath="/vathmologia"
               season={season}
             />
-            <SeasonPicker
-              seasons={seasons}
-              active={season}
-              league={leagueLabel(league)}
-            />
+            {/* An old season is a different page, and it says so up here.
+                The current one needs no picker in front of the table: most
+                visits are "this season", and three rows of controls pushed
+                the table to the middle of a phone. */}
+            {season && (
+              <SeasonPicker
+                seasons={seasons}
+                active={season}
+                league={leagueLabel(league)}
+              />
+            )}
           </div>
 
           {/* Live projection is a current-season thing; asked for an old
               league the API answers 404, logged on every visit. */}
           {!season && <LiveStandings leagueSlug={league.slug} />}
 
+          {/* One control in three parts, not three pills: it is one choice. */}
           <nav className={styles.venueTabs} aria-label="Είδος βαθμολογίας">
             {tab(null, "Γενική")}
             {tab("entos", "Εντός έδρας")}
@@ -157,6 +164,16 @@ export default async function StandingsPage({
               title="Χωρίς βαθμολογία"
               body="Η βαθμολογία εμφανίζεται μόλις παιχτεί η πρώτη αγωνιστική."
             />
+          )}
+
+          {!season && seasons.length > 1 && (
+            <div className={styles.history}>
+              <SeasonPicker
+                seasons={seasons}
+                active={season}
+                league={leagueLabel(league)}
+              />
+            </div>
           )}
         </div>
 
