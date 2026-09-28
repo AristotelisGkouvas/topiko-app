@@ -1,4 +1,5 @@
 import type {
+  SitemapLists,
   Announcement,
   Association,
   Comparison,
@@ -246,6 +247,12 @@ export const api = {
       searchParams: { placement, youth: youth ? "true" : undefined },
       revalidate: 60,
     }),
+
+  /** Every played match, pair of clubs that has met, and player with
+   *  something on their page: the archive sitemaps. An hour's cache; the
+   *  archive grows by a round a week. */
+  sitemapLists: () =>
+    request<SitemapLists>(scoped("/sitemap-lists"), { revalidate: 3600 }),
 
   listTeams: (q?: string) =>
     request<Team[]>(scoped("/teams"), { searchParams: { q } }),

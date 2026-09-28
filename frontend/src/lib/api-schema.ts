@@ -1555,6 +1555,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/sitemap-lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sitemap Lists */
+        get: operations["sitemap_lists_api_v1__association_slug__sitemap_lists_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/sponsors": {
         parameters: {
             query?: never;
@@ -3497,6 +3514,42 @@ export interface components {
             team: components["schemas"]["TeamRef"] | null;
             /** Yellow */
             yellow: number;
+        };
+        /**
+         * SitemapListsOut
+         * @description What the archive sitemaps list: every played match, every pair of clubs
+         *     that has met, every player with something on their page. Ids and slugs
+         *     only, so twenty thousand rows stay a small response.
+         */
+        SitemapListsOut: {
+            /**
+             * Matches
+             * @default []
+             */
+            matches: components["schemas"]["SitemapMatchOut"][];
+            /**
+             * Pairs
+             * @default []
+             */
+            pairs: [
+                string,
+                string
+            ][];
+            /**
+             * Players
+             * @default []
+             */
+            players: string[];
+        };
+        /** SitemapMatchOut */
+        SitemapMatchOut: {
+            /** Id */
+            id: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /**
          * SponsorAdminOut
@@ -6895,6 +6948,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SeasonOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sitemap_lists_api_v1__association_slug__sitemap_lists_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapListsOut"];
                 };
             };
             /** @description Validation Error */

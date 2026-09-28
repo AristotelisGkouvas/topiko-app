@@ -161,3 +161,17 @@ async def test_the_match_and_player_pages_show_the_report(client, world: World, 
     app = player["appearances"][0]
     assert (app["match_id"], app["minutes"], app["goals"], app["starter"]) == (match.id, 90, 1, True)
     assert player["sheet_seasons"][0]["apps"] == 1
+
+
+async def test_the_sitemap_lists_played_matches_pairs_and_players(client, world: World, db) -> None:
+    match = await finished(db, world, "24372")
+    await syncer(db, world, FakeFetcher())._sync_sheets(10)
+    await db.commit()
+    lists = (await client.get("/api/v1/alpha/sitemap-lists")).json()
+    assert [m["id"] for m in lists["matches"]] == [match.id]
+    assert lists["pairs"] == [sorted([world.a.home.slug, world.a.away.slug])]
+    # Everyone on the report has a page worth indexing now.
+    assert len(lists["players"]) == 36
+    # And the other federation's list is its own.
+    other = (await client.get("/api/v1/beta/sitemap-lists")).json()
+    assert other["matches"] == [] and other["players"] == []

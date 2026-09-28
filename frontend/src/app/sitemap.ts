@@ -73,6 +73,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...page(`/agones/${m.id}`, m.status === "finished" ? 0.6 : 0.5, m.status === "finished" ? "monthly" : "daily"),
       lastModified: new Date(m.updated_at),
     })),
+    // Players and pairs live in their own sitemaps (/paiktes/sitemap.xml,
+    // /kontra/sitemap.xml), with the whole archive; this season's scorers and
+    // pairings stay here too, at a higher priority.
     ...[...players].map((slug) => page(`/paiktes/${slug}`, 0.3)),
     ...[...pairs].map((path) => page(path, 0.4)),
   ];

@@ -69,6 +69,7 @@ export type SheetEvent = S["SheetEventOut"];
 export type SheetPlayer = S["SheetPlayerOut"];
 export type Appearance = S["AppearanceOut"];
 export type SheetSeason = S["SheetSeasonOut"];
+export type SitemapLists = S["SitemapListsOut"];
 
 export type HeadToHead = S["HeadToHeadOut"];
 

@@ -8,6 +8,12 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/embed/", "/ethelontis"] },
-    sitemap: `${SITE}/sitemap.xml`,
+    // The main one, then the archive: every match, pair and player with a page.
+    sitemap: [
+      `${SITE}/sitemap.xml`,
+      `${SITE}/agones/sitemap.xml`,
+      `${SITE}/kontra/sitemap.xml`,
+      `${SITE}/paiktes/sitemap.xml`,
+    ],
   };
 }

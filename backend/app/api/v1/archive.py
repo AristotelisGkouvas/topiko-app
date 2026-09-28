@@ -17,7 +17,8 @@ from typing import Annotated
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
-from sqlalchemy import ColumnElement, case, extract, func, select
+from pydantic import BaseModel
+from sqlalchemy import ColumnElement, case, extract, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, CurrentLeague, DbSession
@@ -31,6 +32,7 @@ from app.models import (
     Association,
     League,
     Match,
+    MatchLineup,
     MatchEvent,
     Player,
     PlayerStat,
@@ -921,4 +923,73 @@ async def records(
         total_matches=counts[0] or 0,
         total_goals=int(counts[1] or 0),
         seasons_covered=counts[2] or 0,
+    )
+
+
+# ---------------------------------------------------------------------------
+#  Sitemap lists
+# ---------------------------------------------------------------------------
+
+
+class SitemapMatchOut(BaseModel):
+    id: int
+    updated_at: datetime
+
+
+class SitemapListsOut(BaseModel):
+    """What the archive sitemaps list: every played match, every pair of clubs
+    that has met, every player with something on their page. Ids and slugs
+    only, so twenty thousand rows stay a small response."""
+
+    matches: list[SitemapMatchOut] = []
+    #: Each pair once, in slug order (the canonical /kontra/{a}/{b}).
+    pairs: list[tuple[str, str]] = []
+    players: list[str] = []
+
+
+@router.get("/{association_slug}/sitemap-lists", response_model=SitemapListsOut)
+async def sitemap_lists(association: CurrentAssociation, db: DbSession) -> SitemapListsOut:
+    played = (
+        select(Match.id, Match.updated_at, Match.home_team_id, Match.away_team_id)
+        .join(League, Match.league_id == League.id)
+        .where(
+            League.association_id == association.id,
+            Match.home_score.is_not(None),
+            Match.away_score.is_not(None),
+        )
+        .order_by(Match.id)
+    )
+    rows = (await db.execute(played)).all()
+    slugs = {
+        t.id: t.slug
+        for t in (
+            await db.execute(select(Team).where(Team.association_id == association.id))
+        ).scalars()
+    }
+    pairs = sorted(
+        {
+            tuple(sorted((slugs[h], slugs[a])))
+            for (_, _, h, a) in rows
+            if h in slugs and a in slugs and h != a
+        }
+    )
+    with_games = select(MatchLineup.player_id).where(MatchLineup.player_id.is_not(None))
+    with_goals = select(PlayerStat.player_id).where(PlayerStat.goals > 0)
+    players = [
+        slug
+        for (slug,) in (
+            await db.execute(
+                select(Player.slug)
+                .where(
+                    Player.association_id == association.id,
+                    or_(Player.id.in_(with_games), Player.id.in_(with_goals)),
+                )
+                .order_by(Player.slug)
+            )
+        ).all()
+    ]
+    return SitemapListsOut(
+        matches=[SitemapMatchOut(id=i, updated_at=u) for (i, u, _, _) in rows],
+        pairs=[(a, b) for a, b in pairs],
+        players=players,
     )
