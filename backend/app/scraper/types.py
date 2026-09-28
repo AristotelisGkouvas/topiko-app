@@ -212,3 +212,51 @@ class ScrapedProfile:
     current_team_name: str | None = None
     totals: list[ScrapedSeasonTotal] = field(default_factory=list)
     appearances: list[ScrapedAppearance] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedSheetEvent:
+    """One line of a match report's timeline, in the order printed.
+
+    `side` is the side the player is listed under. For an own goal that is
+    the scorer's own club; the goal counts for the other one.
+    """
+
+    side: str  # "home" | "away"
+    #: goal, penalty_goal, own_goal, yellow, second_yellow, red, sub_in, sub_out
+    kind: str
+    minute: int | None
+    #: Added time: 2 for "90+2'".
+    stoppage: int | None
+    player_external_id: str | None
+    player_name: str | None
+    #: The score just after a goal ("2-0"), as printed; None otherwise.
+    score: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ScrapedLineupEntry:
+    """A player named in a match report: in the starting eleven or on the bench."""
+
+    side: str  # "home" | "away"
+    player_external_id: str | None
+    player_name: str
+    birth_year: int | None
+    starter: bool
+
+
+@dataclass(slots=True)
+class ScrapedSheet:
+    """Everything on a match report (display_game.php)."""
+
+    home_team_external_id: str | None
+    away_team_external_id: str | None
+    home_score: int | None
+    away_score: int | None
+    events: list[ScrapedSheetEvent] = field(default_factory=list)
+    lineups: list[ScrapedLineupEntry] = field(default_factory=list)
+    #: "Διαιτητής", "Α' Βοηθός Διαιτητή", … → name, the non-empty ones.
+    officials: dict[str, str] = field(default_factory=dict)
+    #: Timeline icons the parser did not recognise, by their alt text: a new
+    #: kind of event on the site should be reported, not silently dropped.
+    unknown: list[str] = field(default_factory=list)

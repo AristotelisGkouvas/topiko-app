@@ -139,7 +139,15 @@ async def scrape_once(slugs: list[str], league_slugs: list[str] | None = None) -
     ok = True
     for slug in slugs:
         try:
-            run = await run_one(slug, league_slugs=league_slugs, dry_run=False)
+            # Match reports only on the full sweep: a live-window pass comes
+            # round every five minutes, and forty reports each time would be
+            # a heavy load on the federation's site for nothing urgent.
+            run = await run_one(
+                slug,
+                league_slugs=league_slugs,
+                dry_run=False,
+                sheets=0 if league_slugs is not None else None,
+            )
         except Exception:
             # One federation being down must not stop the others, and must not
             # stop the loop either — the next tick tries again.

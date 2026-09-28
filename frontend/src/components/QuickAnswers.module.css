@@ -1,0 +1,30 @@
+/* The same card as the club page's "Με μια ματιά". */
+.block {
+  display: grid;
+}
+
+.list {
+  margin: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.item {
+  padding: 12px 14px;
+}
+
+.item + .item {
+  border-top: 1px solid var(--color-border);
+}
+
+.item dt {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.item dd {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+}

@@ -14,6 +14,7 @@ import type { Match, MatchFeed, RosterPlayer } from "./types";
 const base = () => apiUrl("/ethelontis");
 
 export type Volunteer = components["schemas"]["VolunteerOut"];
+export type ClubSelf = components["schemas"]["ClubSelfOut"];
 
 async function call<T>(
   path: string,
@@ -41,4 +42,28 @@ export const volunteerApi = {
 
   undo: (matchId: number, eventId: number) =>
     call<MatchFeed>(`/matches/${matchId}/events/${eventId}`, { method: "DELETE" }),
+
+  /** The club's own page: logo, colours, and the sponsors it proposed. */
+  club: () => call<ClubSelf>("/club"),
+
+  setColours: (primary: string | null, secondary: string | null) =>
+    call<ClubSelf>("/club", {
+      method: "PATCH",
+      json: { primary_color: primary, secondary_color: secondary },
+    }),
+
+  setLogo: (file: Blob) => {
+    const body = new FormData();
+    body.append("file", file);
+    return call<ClubSelf>("/club/logo", { method: "PUT", body });
+  },
+
+  /** Arrives switched off; the federation approves it before it shows. */
+  proposeSponsor: (name: string, website: string, file: Blob | null) => {
+    const body = new FormData();
+    body.append("name", name);
+    if (website) body.append("website_url", website);
+    if (file) body.append("file", file);
+    return call<ClubSelf>("/club/sponsors", { method: "POST", body });
+  },
 };

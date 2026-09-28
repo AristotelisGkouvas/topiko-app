@@ -1,4 +1,7 @@
 import type {
+  Audience,
+  SitemapLists,
+  SponsorReport,
   Announcement,
   Association,
   Comparison,
@@ -239,11 +242,28 @@ export const api = {
   /** The platform's sponsors live today, for one placement. A minute: long
    *  enough to spare the API, short enough that a sponsor the office pauses
    *  or removes is off the site before anyone asks why it is still there. */
-  listPlatformSponsors: (placement?: SponsorPlacement) =>
+  listPlatformSponsors: (placement?: SponsorPlacement, youth = false) =>
     request<PlatformSponsor[]>(scoped("/sponsors"), {
-      searchParams: { placement },
+      // `youth`: the page is about a youth league, so betting, alcohol and
+      // tobacco sponsors are left out (the API does the filtering).
+      searchParams: { placement, youth: youth ? "true" : undefined },
       revalidate: 60,
     }),
+
+  /** Every played match, pair of clubs that has met, and player with
+   *  something on their page: the archive sitemaps. An hour's cache; the
+   *  archive grows by a round a week. */
+  /** A sponsor's numbers by their private link. Not cached: the sponsor
+   *  opening it expects today's count. */
+  sponsorReport: (token: string) =>
+    request<SponsorReport>(scoped(`/sponsor-report/${encodeURIComponent(token)}`), { revalidate: 0 }),
+
+  /** The public audience numbers for the sponsorship page (ready after a
+   *  month of counting). An hour's cache. */
+  audience: () => request<Audience>(scoped("/audience"), { revalidate: 3600 }),
+
+  sitemapLists: () =>
+    request<SitemapLists>(scoped("/sitemap-lists"), { revalidate: 3600 }),
 
   listTeams: (q?: string) =>
     request<Team[]>(scoped("/teams"), { searchParams: { q } }),

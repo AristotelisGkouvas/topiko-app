@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   const params = searchParams ?? {};
   const { league, season } = await resolveLeague(params);
   const fonts = await ogFonts();
-  const sponsors = await shareSponsors();
+  const sponsors = await shareSponsors({ youth: !league || league.age_group !== null });
 
   if (!league) {
     return new ImageResponse(<div style={empty}>ΠΑΜΕ ΣΕΝΤΡΑ</div>, {

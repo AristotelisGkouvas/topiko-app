@@ -106,6 +106,10 @@ class Settings(BaseSettings):
     scraper_lead_minutes: int = 30
     # Ceiling for the exponential backoff applied after a failed run.
     scraper_max_backoff_seconds: int = 3600
+    #: Match reports read per routine run, newest finished matches first. At
+    #: the fetcher's two seconds a request, 40 is under a minute and a half; the
+    #: archive is filled once with `run --sheets N`, not by the schedule.
+    scraper_sheets_per_run: int = 40
 
     # --- Uploaded images ----------------------------------------------------
     #

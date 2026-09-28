@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { SiteSponsorsGate } from "@/components/SiteSponsorsGate";
 import { SponsorStrip } from "@/components/SponsorStrip";
 import { api } from "@/lib/api";
@@ -10,6 +12,9 @@ export async function SiteSponsors() {
     <SiteSponsorsGate>
       <div style={{ marginTop: 28 }}>
         <SponsorStrip sponsors={sponsors} kind="platform" label="Μεγάλοι χορηγοί" />
+        <p style={{ margin: "8px 0 0", textAlign: "center", fontSize: "var(--text-sm)" }}>
+          <Link href="/xorigies">Γίνε χορηγός ›</Link>
+        </p>
       </div>
     </SiteSponsorsGate>
   );

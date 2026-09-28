@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const searchParams = Object.fromEntries(req.nextUrl.searchParams);
   const { league, season } = await resolveLeague(searchParams ?? {});
   const fonts = await ogFonts();
-  const sponsors = await shareSponsors();
+  const sponsors = await shareSponsors({ youth: !league || league.age_group !== null });
 
   if (!league) {
     return new ImageResponse(

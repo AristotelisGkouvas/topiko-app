@@ -212,3 +212,145 @@ async def test_the_office_note_stays_out_of_the_trail(client, world: World) -> N
         await client.get("/api/v1/alpha/editor/audit", cookies=session_for(world.editor), headers=SAME_SITE)
     ).json()
     assert not any(e["entity_type"] == "platform_sponsor" for e in editor_trail)
+
+
+async def test_betting_alcohol_tobacco_stay_off_youth_football(client, world: World, db) -> None:
+    sponsor = await add(client, world, "Στοίχημα", placements="match,share")
+    edit = await client.patch(
+        f"{ADMIN}/{sponsor['id']}",
+        json={"category": "betting"},
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert edit.status_code == 200, edit.text
+
+    # On an adult match, yes; on a youth one, and in the untargeted list, no.
+    match = {s["name"] for s in (await client.get("/api/v1/alpha/sponsors?placement=match")).json()}
+    assert match == {"Στοίχημα"}
+    youth = (await client.get("/api/v1/alpha/sponsors?placement=match&youth=true")).json()
+    assert youth == []
+    assert (await client.get("/api/v1/alpha/sponsors")).json() == []
+
+    # And it can never take the placements that sit around every league.
+    refused = await client.patch(
+        f"{ADMIN}/{sponsor['id']}",
+        json={"placements": ["site", "match"]},
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert refused.status_code == 422
+
+
+async def test_a_restricted_club_sponsor_is_off_the_clubs_youth_matches(
+    client, world: World, db
+) -> None:
+    db.add_all(
+        [
+            Sponsor(team_id=world.a.home.id, name="Φούρνος", position=0, is_active=True),
+            Sponsor(
+                team_id=world.a.home.id, name="Ποτοποιία", position=1, is_active=True,
+                category="alcohol",
+            ),
+        ]
+    )
+    await db.commit()
+    url = f"/api/v1/alpha/matches/{world.a.match.id}"
+
+    adult = (await client.get(url)).json()
+    assert [s["name"] for s in adult["home_sponsors"]] == ["Φούρνος", "Ποτοποιία"]
+
+    league = await db.get(type(world.a.league), world.a.league.id)
+    assert league is not None
+    league.age_group = "Κ16"
+    await db.commit()
+    youth = (await client.get(url)).json()
+    assert [s["name"] for s in youth["home_sponsors"]] == ["Φούρνος"]
+
+
+async def test_a_sponsor_report_opens_only_by_its_own_link(client, world: World, db) -> None:
+    sponsor = await add(client, world, "Φούρνος Λάμπρου", placements="site,share")
+    await sponsorship.bump(db, association_id=world.a.association.id, kind="platform", ids=[sponsor["id"]], field="views")
+    await sponsorship.bump(db, association_id=world.a.association.id, kind="platform", ids=[sponsor["id"]], field="clicks")
+    await db.commit()
+
+    # Only an admin makes the link, and asking twice gives the same one.
+    denied = await client.post(
+        f"{ADMIN}/{sponsor['id']}/report-link", cookies=session_for(world.editor), headers=SAME_SITE
+    )
+    assert denied.status_code == 403
+    first = await client.post(
+        f"{ADMIN}/{sponsor['id']}/report-link", cookies=session_for(world.admin), headers=SAME_SITE
+    )
+    again = await client.post(
+        f"{ADMIN}/{sponsor['id']}/report-link", cookies=session_for(world.admin), headers=SAME_SITE
+    )
+    token = first.json()["token"]
+    assert token == again.json()["token"] and len(token) >= 16
+
+    report = (await client.get(f"/api/v1/alpha/sponsor-report/{token}")).json()
+    assert report["name"] == "Φούρνος Λάμπρου"
+    assert report["kind"] == "platform"
+    assert len(report["months"]) == 12
+    assert report["months"][-1]["views"] == 1 and report["months"][-1]["clicks"] == 1
+    assert (report["views_total"], report["clicks_total"]) == (1, 1)
+
+    # A made-up token, or the right one on the other federation, opens nothing.
+    assert (await client.get("/api/v1/alpha/sponsor-report/xxxxxxxxxxxxxxxxxxxxxxxx")).status_code == 404
+    assert (await client.get(f"/api/v1/beta/sponsor-report/{token}")).status_code == 404
+
+
+async def test_a_club_sponsor_has_a_report_too(client, world: World, db) -> None:
+    db.add(Sponsor(team_id=world.a.home.id, name="Συνεργείο", position=0, is_active=True))
+    await db.commit()
+    sponsor = (await db.execute(select(Sponsor).where(Sponsor.name == "Συνεργείο"))).scalar_one()
+    link = await client.post(
+        f"/api/v1/alpha/editor/teams/{world.a.home.slug}/sponsors/{sponsor.id}/report-link",
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert link.status_code == 200, link.text
+    report = (await client.get(f"/api/v1/alpha/sponsor-report/{link.json()['token']}")).json()
+    assert (report["kind"], report["club_name"]) == ("club", world.a.home.name)
+
+
+async def test_an_inquiry_is_kept_for_the_admin_and_bots_are_ignored(client, world: World) -> None:
+    sent = await client.post(
+        "/api/v1/alpha/sponsor-inquiries",
+        json={"kind": "club", "name": "Γιώργος", "contact": "6900000000", "club": "Α.Ε. Κρανούλας"},
+        headers=SAME_SITE,
+    )
+    assert sent.status_code == 201, sent.text
+    bot = await client.post(
+        "/api/v1/alpha/sponsor-inquiries",
+        json={"kind": "platform", "name": "Spam", "contact": "spam@x.gr", "website": "http://x"},
+        headers=SAME_SITE,
+    )
+    assert bot.status_code == 201
+
+    listed = await client.get(
+        "/api/v1/alpha/editor/sponsor-inquiries", cookies=session_for(world.admin), headers=SAME_SITE
+    )
+    rows = listed.json()
+    assert [r["name"] for r in rows] == ["Γιώργος"]
+    assert rows[0]["club"] == "Α.Ε. Κρανούλας" and rows[0]["handled"] is False
+
+    denied = await client.get(
+        "/api/v1/alpha/editor/sponsor-inquiries", cookies=session_for(world.editor), headers=SAME_SITE
+    )
+    assert denied.status_code == 403
+    done = await client.patch(
+        f"/api/v1/alpha/editor/sponsor-inquiries/{rows[0]['id']}",
+        json={"handled": True},
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert done.json()[0]["handled"] is True
+    # The other federation's admin view is its own.
+    assert (await client.get(
+        "/api/v1/beta/editor/sponsor-inquiries", cookies=session_for(world.admin), headers=SAME_SITE
+    )).json() == []
+
+
+async def test_audience_numbers_wait_for_a_month_of_counting(client, world: World) -> None:
+    empty = (await client.get("/api/v1/alpha/audience")).json()
+    assert empty["ready"] is False and empty["since"] is None

@@ -6,11 +6,13 @@ import useSWR from "swr";
 import { Crest } from "@/components/Crest";
 import { Empty } from "@/components/States";
 import { ApiError } from "@/lib/api";
-import { editorApi } from "@/lib/editorApi";
+import { editorApi, type SponsorEdit } from "@/lib/editorApi";
 import { mediaUrl } from "@/lib/media";
 import { shrink } from "@/lib/shrink";
 import type { SponsorAdmin, Team, TeamLook, TeamPhoto } from "@/lib/types";
 import { noteAuthError } from "./session";
+import { SponsorCategorySelect } from "./SponsorCategory";
+import { ReportLink } from "./ReportLink";
 import styles from "./TeamsAdmin.module.css";
 import ps from "./PlatformSponsorsAdmin.module.css";
 import { SPONSOR_STATUS } from "@/lib/sponsorStatus";
@@ -533,11 +535,13 @@ function SponsorRow({
   const [url, setUrl] = useState(sponsor.website_url ?? "");
   const [startsOn, setStartsOn] = useState(sponsor.starts_on ?? "");
   const [endsOn, setEndsOn] = useState(sponsor.ends_on ?? "");
+  const [category, setCategory] = useState<string>(sponsor.category ?? "general");
   const changed =
     name.trim() !== sponsor.name ||
     (withScheme(url) ?? null) !== (sponsor.website_url ?? null) ||
     (startsOn || null) !== (sponsor.starts_on ?? null) ||
-    (endsOn || null) !== (sponsor.ends_on ?? null);
+    (endsOn || null) !== (sponsor.ends_on ?? null) ||
+    category !== (sponsor.category ?? "general");
   const status = SPONSOR_STATUS[sponsor.status] ?? SPONSOR_STATUS.live;
   const logo = mediaUrl(sponsor.logo_url);
 
@@ -592,6 +596,21 @@ function SponsorRow({
             <input className={page.input} type="date" value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
           </label>
         </div>
+        <SponsorCategorySelect className={ps.field} value={category} onChange={setCategory} />
+        {sponsor.pending_approval && (
+          <p className={ps.muted}>
+            <span className={`${ps.chip} ${ps.chip_warn}`}>Πρόταση του σωματείου</span>{" "}
+            Δεν εμφανίζεται μέχρι να εγκριθεί.{" "}
+            <button
+              type="button"
+              className={page.save}
+              disabled={disabled}
+              onClick={() => run(`sponsor-${sponsor.id}`, () => editorApi.saveSponsor(slug, sponsor.id, { is_active: true }))}
+            >
+              Έγκριση
+            </button>
+          </p>
+        )}
         <p className={ps.muted}>
           <span className={`${ps.chip} ${ps[`chip_${status.tone}`]}`}>{status.label}</span>{" "}
           30 ημέρες: {sponsor.views_30d} προβολές · {sponsor.clicks_30d} κλικ
@@ -610,6 +629,7 @@ function SponsorRow({
                   website_url: withScheme(url) ?? null,
                   starts_on: startsOn || null,
                   ends_on: endsOn || null,
+                  category: category as SponsorEdit["category"],
                 }),
               )
             }
@@ -617,6 +637,7 @@ function SponsorRow({
             Αποθήκευση
           </button>
         )}
+        <ReportLink className={page.save} make={() => editorApi.clubReportLink(slug, sponsor.id)} />
         <button type="button" className={styles.iconButton} disabled={disabled || first} onClick={() => onMove(-1)} aria-label={`Μετακίνηση πιο πάνω: ${sponsor.name}`}>
           ↑
         </button>

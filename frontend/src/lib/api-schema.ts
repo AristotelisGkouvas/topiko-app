@@ -192,6 +192,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/audience": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audience */
+        get: operations["audience_api_v1__association_slug__audience_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/editor/analytics": {
         parameters: {
             query?: never;
@@ -523,6 +540,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/editor/platform-sponsors/{sponsor_id}/report-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Platform Report Link
+         * @description The sponsor's private report link, made the first time it is asked for.
+         */
+        post: operations["platform_report_link_api_v1__association_slug__editor_platform_sponsors__sponsor_id__report_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/editor/scrape-runs": {
         parameters: {
             query?: never;
@@ -542,6 +579,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/sponsor-inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Inquiries */
+        get: operations["list_inquiries_api_v1__association_slug__editor_sponsor_inquiries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/sponsor-inquiries/{inquiry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Inquiry */
+        patch: operations["edit_inquiry_api_v1__association_slug__editor_sponsor_inquiries__inquiry_id__patch"];
         trace?: never;
     };
     "/api/v1/{association_slug}/editor/teams/{team_slug}": {
@@ -695,6 +766,79 @@ export interface paths {
         /** Set Sponsor Logo */
         put: operations["set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/sponsors/{sponsor_id}/report-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Club Report Link */
+        post: operations["club_report_link_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__report_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/ethelontis/club": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Club */
+        get: operations["get_club_api_v1__association_slug__ethelontis_club_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Colours */
+        patch: operations["set_colours_api_v1__association_slug__ethelontis_club_patch"];
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/ethelontis/club/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Logo */
+        put: operations["set_logo_api_v1__association_slug__ethelontis_club_logo_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/ethelontis/club/sponsors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose Sponsor
+         * @description A sponsor the club wants shown. Stored off and pending: the admin
+         *     approves it, and only then does it appear.
+         */
+        post: operations["propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1555,6 +1699,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/sitemap-lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sitemap Lists */
+        get: operations["sitemap_lists_api_v1__association_slug__sitemap_lists_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/sponsor-inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Inquiry */
+        post: operations["add_inquiry_api_v1__association_slug__sponsor_inquiries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/sponsor-report/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sponsor Report
+         * @description A sponsor's numbers by their private link. No account: the link is the
+         *     key, and it opens nothing but this one sponsor's counts.
+         */
+        get: operations["sponsor_report_api_v1__association_slug__sponsor_report__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/sponsors": {
         parameters: {
             query?: never;
@@ -1566,6 +1765,11 @@ export interface paths {
          * Live Sponsors
          * @description The platform sponsors live today, optionally only those that bought
          *     `placement`, in their order.
+         *
+         *     `youth`: the page is about a youth league (a match, a share card), so
+         *     betting, alcohol and tobacco sponsors are left out. They never appear in
+         *     the site-wide or home placements at all; the admin refuses that pairing,
+         *     and this is the second lock.
          */
         get: operations["live_sponsors_api_v1__association_slug__sponsors_get"];
         put?: never;
@@ -1889,6 +2093,53 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * AppearanceOut
+         * @description One match a player took the field in, from its report.
+         */
+        AppearanceOut: {
+            /**
+             * Goals
+             * @default 0
+             */
+            goals: number;
+            /** Goals Against */
+            goals_against: number | null;
+            /** Goals For */
+            goals_for: number | null;
+            /** Home */
+            home: boolean;
+            /** Kickoff At */
+            kickoff_at: string | null;
+            /** League Name */
+            league_name: string;
+            /** League Slug */
+            league_slug: string;
+            /** Match Id */
+            match_id: number;
+            /** Minutes */
+            minutes: number;
+            opponent: components["schemas"]["TeamRef"] | null;
+            /**
+             * Own Goals
+             * @default 0
+             */
+            own_goals: number;
+            /**
+             * Red
+             * @default false
+             */
+            red: boolean;
+            season: components["schemas"]["SeasonOut"];
+            /** Starter */
+            starter: boolean;
+            team: components["schemas"]["TeamRef"] | null;
+            /**
+             * Yellow
+             * @default 0
+             */
+            yellow: number;
+        };
         /** AssociationGrant */
         AssociationGrant: {
             /** Can Edit Live */
@@ -1916,6 +2167,39 @@ export interface components {
             slug: string;
             /** Source Url */
             source_url: string | null;
+        };
+        /**
+         * AudienceOut
+         * @description The public numbers on the sponsorship page.
+         */
+        AudienceOut: {
+            /**
+             * Days
+             * @default 0
+             */
+            days: number;
+            /**
+             * Mobile Share
+             * @default 0
+             */
+            mobile_share: number;
+            /**
+             * Ready
+             * @default false
+             */
+            ready: boolean;
+            /** Since */
+            since: string | null;
+            /**
+             * Views 30D
+             * @default 0
+             */
+            views_30d: number;
+            /**
+             * Visitors 30D
+             * @default 0
+             */
+            visitors_30d: number;
         };
         /** AuditEntryOut */
         AuditEntryOut: {
@@ -1979,8 +2263,25 @@ export interface components {
             /** Website Url */
             website_url?: string | null;
         };
+        /** Body_propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post */
+        Body_propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post: {
+            /** File */
+            file?: string | null;
+            /** Name */
+            name: string;
+            /** Website Url */
+            website_url?: string | null;
+        };
         /** Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put */
         Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_set_logo_api_v1__association_slug__ethelontis_club_logo_put */
+        Body_set_logo_api_v1__association_slug__ethelontis_club_logo_put: {
             /**
              * File
              * Format: binary
@@ -2027,6 +2328,27 @@ export interface components {
             team_name: string;
             /** Team Slug */
             team_slug: string;
+        };
+        /** ClubSelfOut */
+        ClubSelfOut: {
+            /** Sponsors */
+            sponsors: components["schemas"]["ClubSponsorOut"][];
+            team: components["schemas"]["TeamOut"];
+        };
+        /** ClubSponsorOut */
+        ClubSponsorOut: {
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Pending Approval */
+            pending_approval: boolean;
+            /** Website Url */
+            website_url: string | null;
         };
         /** CodeIn */
         CodeIn: {
@@ -2343,6 +2665,55 @@ export interface components {
              */
             played: number;
         };
+        /** InquiryEdit */
+        InquiryEdit: {
+            /** Handled */
+            handled: boolean;
+        };
+        /** InquiryIn */
+        InquiryIn: {
+            /** Business */
+            business?: string | null;
+            /** Club */
+            club?: string | null;
+            /** Contact */
+            contact: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "platform" | "club" | "other";
+            /** Message */
+            message?: string | null;
+            /** Name */
+            name: string;
+            /** Website */
+            website?: string | null;
+        };
+        /** InquiryOut */
+        InquiryOut: {
+            /** Business */
+            business: string | null;
+            /** Club */
+            club: string | null;
+            /** Contact */
+            contact: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Handled */
+            handled: boolean;
+            /** Id */
+            id: number;
+            /** Kind */
+            kind: string;
+            /** Message */
+            message: string | null;
+            /** Name */
+            name: string;
+        };
         /** IssueCodeIn */
         IssueCodeIn: {
             /** Label */
@@ -2533,6 +2904,7 @@ export interface components {
             home_standing: components["schemas"]["StandingOut"] | null;
             league: components["schemas"]["LeagueOut"];
             match: components["schemas"]["MatchOut"];
+            sheet: components["schemas"]["MatchSheetOut"] | null;
         };
         /**
          * MatchEdit
@@ -2638,6 +3010,34 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * MatchSheetOut
+         * @description The federation's report of one match.
+         */
+        MatchSheetOut: {
+            /**
+             * Away
+             * @default []
+             */
+            away: components["schemas"]["SheetPlayerOut"][];
+            /**
+             * Events
+             * @default []
+             */
+            events: components["schemas"]["SheetEventOut"][];
+            /**
+             * Home
+             * @default []
+             */
+            home: components["schemas"]["SheetPlayerOut"][];
+            /**
+             * Officials
+             * @default {}
+             */
+            officials: {
+                [key: string]: string;
+            };
         };
         /**
          * MatchStatus
@@ -2812,6 +3212,11 @@ export interface components {
         /** PlatformSponsorAdminOut */
         PlatformSponsorAdminOut: {
             /**
+             * Category
+             * @default general
+             */
+            category: string;
+            /**
              * Clicks 30D
              * @default 0
              */
@@ -2864,6 +3269,8 @@ export interface components {
         };
         /** PlatformSponsorEdit */
         PlatformSponsorEdit: {
+            /** Category */
+            category?: ("general" | "betting" | "alcohol" | "tobacco") | null;
             /** Ends On */
             ends_on?: string | null;
             /** Is Active */
@@ -2906,6 +3313,16 @@ export interface components {
          *     did not play.
          */
         PlayerDetailOut: {
+            /**
+             * Appearances
+             * @default []
+             */
+            appearances: components["schemas"]["AppearanceOut"][];
+            /**
+             * Appearances Total
+             * @default 0
+             */
+            appearances_total: number;
             /** Birth Year */
             birth_year: number | null;
             /**
@@ -2932,6 +3349,11 @@ export interface components {
              * @default 0
              */
             seasons_scored: number;
+            /**
+             * Sheet Seasons
+             * @default []
+             */
+            sheet_seasons: components["schemas"]["SheetSeasonOut"][];
             /** Slug */
             slug: string;
             /**
@@ -3135,6 +3557,23 @@ export interface components {
              */
             total_matches: number;
         };
+        /** ReportLinkOut */
+        ReportLinkOut: {
+            /** Token */
+            token: string;
+        };
+        /** ReportMonthOut */
+        ReportMonthOut: {
+            /** Clicks */
+            clicks: number;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Views */
+            views: number;
+        };
         /** RosterPlayerOut */
         RosterPlayerOut: {
             /**
@@ -3309,10 +3748,138 @@ export interface components {
             start_date: string | null;
         };
         /**
+         * SheetEventOut
+         * @description One line of a match report's timeline.
+         */
+        SheetEventOut: {
+            /** Kind */
+            kind: string;
+            /** Minute */
+            minute: number | null;
+            player: components["schemas"]["PlayerRef"] | null;
+            /** Player Name */
+            player_name: string | null;
+            /** Score */
+            score: string | null;
+            /** Stoppage */
+            stoppage: number | null;
+            /** Team Id */
+            team_id: number | null;
+        };
+        /**
+         * SheetPlayerOut
+         * @description A player on a match report, with what the timeline says they did.
+         */
+        SheetPlayerOut: {
+            /** Birth Year */
+            birth_year: number | null;
+            /**
+             * Goals
+             * @default 0
+             */
+            goals: number;
+            /** Name */
+            name: string;
+            /** Off */
+            off: number | null;
+            /** On */
+            on: number | null;
+            /**
+             * Own Goals
+             * @default 0
+             */
+            own_goals: number;
+            /**
+             * Penalties
+             * @default 0
+             */
+            penalties: number;
+            player: components["schemas"]["PlayerRef"] | null;
+            /**
+             * Red
+             * @default false
+             */
+            red: boolean;
+            /** Starter */
+            starter: boolean;
+            /**
+             * Yellow
+             * @default 0
+             */
+            yellow: number;
+        };
+        /**
+         * SheetSeasonOut
+         * @description A player's season in one competition and club, summed from reports.
+         */
+        SheetSeasonOut: {
+            /** Apps */
+            apps: number;
+            /** Goals */
+            goals: number;
+            /** League Name */
+            league_name: string;
+            /** League Slug */
+            league_slug: string;
+            /** Minutes */
+            minutes: number;
+            /** Own Goals */
+            own_goals: number;
+            /** Red */
+            red: number;
+            season: components["schemas"]["SeasonOut"];
+            /** Starts */
+            starts: number;
+            team: components["schemas"]["TeamRef"] | null;
+            /** Yellow */
+            yellow: number;
+        };
+        /**
+         * SitemapListsOut
+         * @description What the archive sitemaps list: every played match, every pair of clubs
+         *     that has met, every player with something on their page. Ids and slugs
+         *     only, so twenty thousand rows stay a small response.
+         */
+        SitemapListsOut: {
+            /**
+             * Matches
+             * @default []
+             */
+            matches: components["schemas"]["SitemapMatchOut"][];
+            /**
+             * Pairs
+             * @default []
+             */
+            pairs: [
+                string,
+                string
+            ][];
+            /**
+             * Players
+             * @default []
+             */
+            players: string[];
+        };
+        /** SitemapMatchOut */
+        SitemapMatchOut: {
+            /** Id */
+            id: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
          * SponsorAdminOut
          * @description What the dashboard sees: the inactive ones too, and in which order.
          */
         SponsorAdminOut: {
+            /**
+             * Category
+             * @default general
+             */
+            category: string;
             /**
              * Clicks 30D
              * @default 0
@@ -3324,10 +3891,17 @@ export interface components {
             id: number;
             /** Is Active */
             is_active: boolean;
+            /** Logo Png Url */
+            logo_png_url: string | null;
             /** Logo Url */
             logo_url: string | null;
             /** Name */
             name: string;
+            /**
+             * Pending Approval
+             * @default false
+             */
+            pending_approval: boolean;
             /** Position */
             position: number;
             /** Starts On */
@@ -3347,6 +3921,8 @@ export interface components {
         };
         /** SponsorEdit */
         SponsorEdit: {
+            /** Category */
+            category?: ("general" | "betting" | "alcohol" | "tobacco") | null;
             /** Ends On */
             ends_on?: string | null;
             /** Is Active */
@@ -3373,12 +3949,46 @@ export interface components {
         SponsorOut: {
             /** Id */
             id: number;
+            /** Logo Png Url */
+            logo_png_url: string | null;
             /** Logo Url */
             logo_url: string | null;
             /** Name */
             name: string;
             /** Website Url */
             website_url: string | null;
+        };
+        /**
+         * SponsorReportOut
+         * @description What a sponsor sees on their private link: who they are on the site,
+         *     where, since when, and the months' numbers.
+         */
+        SponsorReportOut: {
+            /** Clicks Total */
+            clicks_total: number;
+            /** Club Name */
+            club_name: string | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Kind */
+            kind: string;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Months */
+            months: components["schemas"]["ReportMonthOut"][];
+            /** Name */
+            name: string;
+            /**
+             * Placements
+             * @default []
+             */
+            placements: string[];
+            /** Starts On */
+            starts_on: string | null;
+            /** Status */
+            status: string;
+            /** Views Total */
+            views_total: number;
         };
         /** StandingOut */
         StandingOut: {
@@ -4038,6 +4648,38 @@ export interface operations {
                 };
                 content: {
                     "application/rss+xml": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    audience_api_v1__association_slug__audience_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceOut"];
                 };
             };
             /** @description Validation Error */
@@ -4748,6 +5390,39 @@ export interface operations {
             };
         };
     };
+    platform_report_link_api_v1__association_slug__editor_platform_sponsors__sponsor_id__report_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_scrape_runs_api_v1__association_slug__editor_scrape_runs_get: {
         parameters: {
             query?: {
@@ -4769,6 +5444,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScrapeRunOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_inquiries_api_v1__association_slug__editor_sponsor_inquiries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InquiryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_inquiry_api_v1__association_slug__editor_sponsor_inquiries__inquiry_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inquiry_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InquiryEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InquiryOut"][];
                 };
             };
             /** @description Validation Error */
@@ -5239,6 +5983,180 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    club_report_link_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__report_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_club_api_v1__association_slug__ethelontis_club_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_colours_api_v1__association_slug__ethelontis_club_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamLookEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_logo_api_v1__association_slug__ethelontis_club_logo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_logo_api_v1__association_slug__ethelontis_club_logo_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
                 };
             };
             /** @description Validation Error */
@@ -6707,10 +7625,114 @@ export interface operations {
             };
         };
     };
+    sitemap_lists_api_v1__association_slug__sitemap_lists_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapListsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_inquiry_api_v1__association_slug__sponsor_inquiries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InquiryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sponsor_report_api_v1__association_slug__sponsor_report__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SponsorReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     live_sponsors_api_v1__association_slug__sponsors_get: {
         parameters: {
             query?: {
                 placement?: ("site" | "home" | "match" | "share") | null;
+                youth?: boolean;
             };
             header?: never;
             path: {

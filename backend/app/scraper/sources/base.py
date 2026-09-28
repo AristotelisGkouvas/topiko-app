@@ -24,6 +24,7 @@ from app.scraper.types import (
     ScrapedMatch,
     ScrapedPlayer,
     ScrapedPlayerStat,
+    ScrapedSheet,
     ScrapedStanding,
     ScrapedSuspension,
 )
@@ -121,3 +122,13 @@ class PeopleSource(Protocol):
     def forfeits_path(self, league_external_id: str) -> str: ...
 
     def parse_forfeits(self, html: str) -> list[ScrapedSuspension]: ...
+
+
+@runtime_checkable
+class SheetSource(Protocol):
+    """A source that publishes a report per match: the timeline (goals, cards,
+    substitutions) and both line-ups, keyed on its own player ids."""
+
+    def game_path(self, match_external_id: str) -> str: ...
+
+    def parse_game(self, html: str) -> ScrapedSheet | None: ...

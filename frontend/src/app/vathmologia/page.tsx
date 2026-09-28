@@ -5,6 +5,7 @@ import { LiveStandings } from "@/components/LiveStandings";
 import { MatchRow } from "@/components/MatchRow";
 import { PageHeader } from "@/components/PageHeader";
 import { ScorerRail } from "@/components/ScorerRail";
+import { QuickAnswers, type QuickAnswer } from "@/components/QuickAnswers";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { StandingsTable } from "@/components/StandingsTable";
@@ -12,7 +13,7 @@ import { VenueTable } from "@/components/VenueTable";
 import Link from "next/link";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
-import { matchdayLabel } from "@/lib/format";
+import { matchdayLabel, plural } from "@/lib/format";
 import { leagueLabel, readParam, resolveLeague, type SearchParams } from "@/lib/leagues";
 import styles from "./page.module.css";
 
@@ -166,6 +167,13 @@ export default async function StandingsPage({
             />
           )}
 
+          {!season && !venue && (
+            <QuickAnswers
+              id="standings-faq"
+              items={standingsFaq(leagueLabel(league), standings, scorers, round)}
+            />
+          )}
+
           {!season && seasons.length > 1 && (
             <div className={styles.history}>
               <SeasonPicker
@@ -190,6 +198,58 @@ export default async function StandingsPage({
       </div>
     </>
   );
+}
+
+/** The questions a table answers, in the words people ask them: who leads,
+ *  by how much, who scores most, who is bottom. */
+/** "7 βαθμούς": the accusative, which every answer below needs. */
+const points = (n: number) => `${n} ${plural(n, "βαθμό", "βαθμούς")}`;
+
+function standingsFaq(
+  label: string,
+  standings: Awaited<ReturnType<typeof api.getStandings>>,
+  scorers: Awaited<ReturnType<typeof api.listScorers>>,
+  round: number | null,
+): QuickAnswer[] {
+  const faq: QuickAnswer[] = [];
+  const [first, second] = standings;
+  const last = standings[standings.length - 1];
+  const where = `${label} ΕΠΣ Ηπείρου`;
+  const after = round ? `, μετά την ${matchdayLabel(round)}` : "";
+  if (first) {
+    faq.push({
+      q: `Ποιος είναι πρώτος στην ${where};`,
+      a: `${first.team.name}, με ${points(first.points)} σε ${first.played} ${plural(first.played, "αγώνα", "αγώνες")}${after}.`,
+    });
+  }
+  if (first && second) {
+    const gap = first.points - second.points;
+    faq.push({
+      q: `Πόσους βαθμούς μπροστά είναι ο πρώτος της ${where};`,
+      a:
+        gap === 0
+          ? `Κανέναν: ${first.team.name} και ${second.team.name} έχουν από ${points(first.points)}, και τους χωρίζουν τα κριτήρια ισοβαθμίας.`
+          : `${gap} ${plural(gap, "βαθμό", "βαθμούς")}: ${first.team.name} ${first.points}, ${second.team.name} ${second.points}.`,
+    });
+  }
+  const top = scorers[0];
+  if (top?.goals) {
+    const shared = scorers.filter((s) => s.goals === top.goals);
+    faq.push({
+      q: `Ποιος είναι ο πρώτος σκόρερ της ${where};`,
+      a:
+        shared.length > 1
+          ? `Με ${top.goals} γκολ μοιράζονται την πρώτη θέση: ${shared.map((s) => s.player.name).join(", ")}.`
+          : `${top.player.name}${top.team ? ` (${top.team.name})` : ""}, με ${top.goals} γκολ.`,
+    });
+  }
+  if (last && last !== first) {
+    faq.push({
+      q: `Ποια ομάδα είναι τελευταία στην ${where};`,
+      a: `${last.team.name}, με ${points(last.points)} σε ${last.played} ${plural(last.played, "αγώνα", "αγώνες")}.`,
+    });
+  }
+  return faq;
 }
 
 /** The scorers and the round's fixtures. */

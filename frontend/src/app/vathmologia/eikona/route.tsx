@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     (
       <Card
         footer={`Βαθμολογία · ${league.short_name ?? league.name}`}
-        sponsors={await shareSponsors()}
+        sponsors={await shareSponsors({ youth: league.age_group !== null })}
         sponsorHeight={72}
       >
         <div style={{ display: "flex", flexDirection: "column", width: "100%", fontFamily: DISPLAY }}>

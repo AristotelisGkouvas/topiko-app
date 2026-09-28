@@ -353,7 +353,7 @@ async def add_sponsor(
     if fields.name is None:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Το όνομα του χορηγού είναι υποχρεωτικό.")
     stored = (
-        await media.store(file, f"teams/{team.id}/sponsors", media.Kind.LOGO)
+        await media.store(file, f"teams/{team.id}/sponsors", media.Kind.LOGO, png=True)
         if file is not None and file.filename
         else None
     )
@@ -362,6 +362,7 @@ async def add_sponsor(
         name=fields.name,
         website_url=fields.website_url,
         logo_url=stored.url if stored else None,
+        logo_png_url=stored.png_url if stored else None,
         # At the end: the first one added is usually the main one.
         position=len(team.sponsors),
         is_active=True,
@@ -374,7 +375,7 @@ async def add_sponsor(
         db, request, user, association, "sponsor.add", "sponsor", sponsor.id,
         None, {"name": sponsor.name, "website_url": sponsor.website_url},
     )
-    await _commit(db, written=(stored.url if stored else None,))
+    await _commit(db, written=(stored.url if stored else None, stored.png_url if stored else None))
     return await _reload(db, association, team_slug)
 
 
@@ -390,15 +391,19 @@ async def edit_sponsor(
 ) -> TeamLookOut:
     team = await _team(db, association, team_slug)
     sponsor = _sponsor(team, sponsor_id)
-    keys = ("name", "website_url", "is_active", "starts_on", "ends_on")
+    keys = ("name", "website_url", "is_active", "starts_on", "ends_on", "category")
     before = {k: _plain(getattr(sponsor, k)) for k in keys}
     changes = payload.model_dump(exclude_unset=True)
     if "name" in changes and changes["name"] is None:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Το όνομα του χορηγού είναι υποχρεωτικό.")
-    if "is_active" in changes and changes["is_active"] is None:
-        del changes["is_active"]
+    for optional in ("is_active", "category"):
+        if optional in changes and changes[optional] is None:
+            del changes[optional]
     for key, value in changes.items():
         setattr(sponsor, key, value.strip() if isinstance(value, str) else value)
+    if changes.get("is_active") is True:
+        # Switching on a sponsor the club proposed is the approval.
+        sponsor.pending_approval = False
     if sponsor.starts_on and sponsor.ends_on and sponsor.ends_on < sponsor.starts_on:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Η λήξη είναι πριν από την έναρξη.")
     old, new = changed_fields(before, {k: _plain(getattr(sponsor, k)) for k in keys})
@@ -420,14 +425,15 @@ async def set_sponsor_logo(
 ) -> TeamLookOut:
     team = await _team(db, association, team_slug)
     sponsor = _sponsor(team, sponsor_id)
-    stored = await media.store(file, f"teams/{team.id}/sponsors", media.Kind.LOGO)
-    previous = sponsor.logo_url
+    stored = await media.store(file, f"teams/{team.id}/sponsors", media.Kind.LOGO, png=True)
+    previous = (sponsor.logo_url, sponsor.logo_png_url)
     sponsor.logo_url = stored.url
+    sponsor.logo_png_url = stored.png_url
     _audit(
         db, request, user, association, "sponsor.logo", "sponsor", sponsor.id,
-        {"logo_url": previous}, {"logo_url": stored.url},
+        {"logo_url": previous[0]}, {"logo_url": stored.url},
     )
-    await _commit(db, written=(stored.url,), replaced=(previous,))
+    await _commit(db, written=(stored.url, stored.png_url), replaced=previous)
     return await _reload(db, association, team_slug)
 
 
@@ -442,13 +448,13 @@ async def remove_sponsor(
 ) -> TeamLookOut:
     team = await _team(db, association, team_slug)
     sponsor = _sponsor(team, sponsor_id)
-    logo = sponsor.logo_url
+    logos = (sponsor.logo_url, sponsor.logo_png_url)
     _audit(
         db, request, user, association, "sponsor.remove", "sponsor", sponsor.id,
         {"name": sponsor.name}, None,
     )
     await db.delete(sponsor)
-    await _commit(db, written=(), replaced=(logo,))
+    await _commit(db, written=(), replaced=logos)
     return await _reload(db, association, team_slug)
 
 

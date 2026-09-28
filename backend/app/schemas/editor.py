@@ -82,6 +82,9 @@ class SponsorEdit(BaseModel):
     #: Sent as null to clear: "no end date".
     starts_on: date | None = None
     ends_on: date | None = None
+    #: What the sponsor sells: betting, alcohol and tobacco stay off youth
+    #: football (see models.sponsorship.RESTRICTED).
+    category: Literal["general", "betting", "alcohol", "tobacco"] | None = None
 
 
 class PlatformSponsorEdit(SponsorEdit):

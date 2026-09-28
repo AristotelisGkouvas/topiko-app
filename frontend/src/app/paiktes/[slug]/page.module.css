@@ -192,3 +192,83 @@
   line-height: 1.55;
   color: var(--color-text-muted);
 }
+
+/* The competition under the season, in the appearances table. */
+.leagueSmall {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* The player's matches, one row each: date, opponent, score, their part. */
+.games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "date vs score"
+    "date me score";
+  column-gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: var(--text-md);
+}
+
+li:last-child > .game {
+  border-bottom: none;
+}
+
+.gameDate {
+  grid-area: date;
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.gameVs {
+  grid-area: vs;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.gameScore {
+  grid-area: score;
+  align-self: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.gameMe {
+  grid-area: me;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .game:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+.game:active {
+  background: var(--color-grey-100);
+}

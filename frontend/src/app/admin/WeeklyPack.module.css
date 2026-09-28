@@ -1,0 +1,63 @@
+.wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.intro {
+  max-width: 65ch;
+  color: var(--color-text-muted);
+}
+
+.pick {
+  display: grid;
+  gap: 4px;
+  max-width: 280px;
+  font-weight: 600;
+}
+
+.posts {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.day {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.title {
+  font-size: var(--text-lg);
+}
+
+.images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.copy {
+  display: grid;
+  gap: 6px;
+}

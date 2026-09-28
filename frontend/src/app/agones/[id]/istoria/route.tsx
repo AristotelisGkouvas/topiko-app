@@ -63,7 +63,7 @@ export async function GET(
     (
       <Card
         footer={[league.short_name ?? league.name, match.field?.name].filter(Boolean).join(" · ")}
-        sponsors={await shareSponsors()}
+        sponsors={await shareSponsors({ youth: league.age_group !== null })}
         sponsorHeight={96}
       >
         <div

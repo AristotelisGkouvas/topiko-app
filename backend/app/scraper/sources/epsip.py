@@ -23,8 +23,11 @@ from app.scraper.types import (
     ScrapedField,
     ScrapedLeague,
     ScrapedMatch,
+    ScrapedLineupEntry,
     ScrapedPlayer,
     ScrapedPlayerStat,
+    ScrapedSheet,
+    ScrapedSheetEvent,
     ScrapedStanding,
     ScrapedSuspension,
 )
@@ -113,6 +116,62 @@ def _year(value: str) -> int | None:
     """A four-digit birth year, or nothing. The register leaves it blank."""
     m = re.fullmatch(r"\s*(\d{4})\s*", value)
     return int(m.group(1)) if m else None
+
+
+# "15'", "90+2'", "45 + 1'"
+_MINUTE = re.compile(r"(\d+)(?:\s*\+\s*(\d+))?\s*'")
+# "2 - 0" in the report's header, "1-0" beside a goal.
+_SHEET_SCORE = re.compile(r"^\s*(\d+)\s*-\s*(\d+)\s*$")
+# "(2005)" beside a name in the line-ups.
+_BIRTH = re.compile(r"\((\d{4})\)")
+
+#: The officials a report lists, as the site labels them.
+_OFFICIALS = (
+    "Διαιτητής",
+    "Α' Βοηθός Διαιτητή",
+    "Β' Βοηθός Διαιτητή",
+    "4ος Διαιτητής",
+    "Παρατηρητής Διαιτησίας",
+    "Παρατηρητής Αγώνα",
+    "Γιατρός Αγώνα",
+)
+
+
+def _sheet_kind(alt: str) -> str | None:
+    """A timeline icon's alt text, as an event kind. The order matters: an own
+    goal and a penalty both contain "Γκολ", a second yellow contains both
+    "Κίτρινη" and "Κόκκινη"."""
+    if "Αυτογκ" in alt:
+        return "own_goal"
+    if "Γκολ" in alt:
+        return "penalty_goal" if "πέναλτ" in alt else "goal"
+    if "Δεύτερη Κίτρινη" in alt:
+        return "second_yellow"
+    if "Κόκκινη" in alt:
+        return "red"
+    if "Κίτρινη" in alt:
+        return "yellow"
+    if "Μπήκε" in alt:
+        return "sub_in"
+    if "Βγήκε" in alt:
+        return "sub_out"
+    return None
+
+
+def _minute(value: str) -> tuple[int | None, int | None]:
+    m = _MINUTE.search(value)
+    if not m:
+        return None, None
+    return int(m.group(1)), (int(m.group(2)) if m.group(2) else None)
+
+
+def _person(cell: Tag) -> tuple[str | None, str | None]:
+    """(player_id, name) from a cell holding one player's link, or Nones."""
+    anchor = cell.find("a", href=re.compile(r"player_id="))
+    if not isinstance(anchor, Tag):
+        return None, None
+    name = _text(anchor)
+    return _param(anchor, "player_id"), (name or None)
 
 
 class EpsipSource:
@@ -512,6 +571,128 @@ class EpsipSource:
                 )
             )
         return out
+
+    # --- Match reports --------------------------------------------------------
+
+    def game_path(self, match_external_id: str) -> str:
+        return f"/results/display_game.php?game_id={match_external_id}"
+
+    def parse_game(self, html: str) -> ScrapedSheet | None:
+        """A match report: the timeline, both line-ups and the officials.
+
+        None when the page has no match on it (an id with no report returns
+        the site's frame and nothing else). Players are identified by the
+        site's player_id throughout, never by name.
+        """
+        soup = BeautifulSoup(html, "html.parser")
+        tables = soup.find_all("table")
+
+        header = next(
+            (t for t in tables if len(t.find_all("a", href=re.compile(r"team_id="))) >= 2),
+            None,
+        )
+        if header is None:
+            return None
+        teams = header.find_all("a", href=re.compile(r"team_id="))
+        home_score = away_score = None
+        for bold in header.find_all("b"):
+            m = _SHEET_SCORE.match(_text(bold))
+            if m:
+                home_score, away_score = int(m.group(1)), int(m.group(2))
+                break
+        home_id, away_id = _param(teams[0], "team_id"), _param(teams[1], "team_id")
+        if not home_id or not away_id:
+            return None
+        sheet = ScrapedSheet(
+            home_team_external_id=home_id,
+            away_team_external_id=away_id,
+            home_score=home_score,
+            away_score=away_score,
+        )
+
+        for table in tables:
+            if table is header:
+                continue
+            headings = " ".join(_text(th) for th in table.find_all("th"))
+            if "Αλλαγές" in headings:
+                self._parse_lineups(table, sheet)
+            elif any(_text(td).startswith("Διαιτητής") for td in table.find_all("td")):
+                self._parse_officials(table, sheet)
+            else:
+                self._parse_timeline(table, sheet)
+        return sheet
+
+    @staticmethod
+    def _parse_timeline(table: Tag, sheet: ScrapedSheet) -> None:
+        for row in table.find_all("tr"):
+            cells = row.find_all("td", recursive=False)
+            if len(cells) != 5:
+                continue
+            icon = cells[1].find("img")
+            if not isinstance(icon, Tag):
+                continue
+            alt = str(icon.get("alt") or "")
+            kind = _sheet_kind(alt)
+            if kind is None:
+                if alt:
+                    sheet.unknown.append(alt)
+                continue
+            home_id, home_name = _person(cells[0])
+            away_id, away_name = _person(cells[4])
+            side = "home" if (home_id or home_name) else "away"
+            minute, stoppage = _minute(_text(cells[3]))
+            score = _text(cells[2])
+            sheet.events.append(
+                ScrapedSheetEvent(
+                    side=side,
+                    kind=kind,
+                    minute=minute,
+                    stoppage=stoppage,
+                    player_external_id=home_id if side == "home" else away_id,
+                    player_name=home_name if side == "home" else away_name,
+                    score=score if _SHEET_SCORE.match(score) else None,
+                )
+            )
+
+    @staticmethod
+    def _parse_lineups(table: Tag, sheet: ScrapedSheet) -> None:
+        # Eleven cells a row: home changes (2), cards, goals, HOME PLAYER,
+        # number, AWAY PLAYER, goals, cards, away changes (2). The bench comes
+        # after a heading row reading "Αναπληρωματικοί".
+        starter = True
+        for row in table.find_all("tr"):
+            cells = row.find_all(["td", "th"], recursive=False)
+            if len(cells) == 1 and "Αναπληρωματικοί" in _text(cells[0]):
+                starter = False
+                continue
+            if len(cells) != 11:
+                continue
+            for side, cell in (("home", cells[4]), ("away", cells[6])):
+                player_id, name = _person(cell)
+                if not name:
+                    continue
+                born = _BIRTH.search(_text(cell))
+                sheet.lineups.append(
+                    ScrapedLineupEntry(
+                        side=side,
+                        player_external_id=player_id,
+                        player_name=name,
+                        birth_year=int(born.group(1)) if born else None,
+                        starter=starter,
+                    )
+                )
+
+    @staticmethod
+    def _parse_officials(table: Tag, sheet: ScrapedSheet) -> None:
+        for row in table.find_all("tr"):
+            cells = row.find_all("td", recursive=False)
+            if len(cells) != 2:
+                continue
+            label = _text(cells[0]).rstrip(":").strip()
+            value = _text(cells[1])
+            if label in _OFFICIALS and value:
+                sheet.officials[label] = value
+
 
 def _fold(value: str) -> str:
     """Lower-case and strip accents, so "Φυσικός" matches "φυσικος"."""

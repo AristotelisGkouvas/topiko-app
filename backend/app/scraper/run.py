@@ -34,6 +34,7 @@ async def run_one(
     dry_run: bool,
     seasons: list[str] | None = None,
     all_seasons: bool = False,
+    sheets: int | None = None,
 ) -> ScrapeRun | None:
     async with SessionLocal() as db:
         association = (
@@ -82,6 +83,7 @@ async def run_one(
                 dry_run=dry_run,
                 seasons=seasons,
                 all_seasons=all_seasons,
+                sheets=sheets,
             )
 
 
@@ -142,7 +144,7 @@ async def main_async(args: argparse.Namespace) -> int:
     for slug in slugs:
         try:
             run = await run_one(
-                slug, args.league, args.dry_run, args.season, args.all_seasons
+                slug, args.league, args.dry_run, args.season, args.all_seasons, args.sheets
             )
         except Exception as exc:  # noqa: BLE001
             # One federation being down must not stop the others.
@@ -184,6 +186,16 @@ def main() -> int:
         help=(
             "Κατέβασε κάθε περίοδο και κάθε κατηγορία που δημοσιεύει η πηγή. "
             "Για αρχικό γέμισμα, όχι για προγραμματισμένο τρέξιμο."
+        ),
+    )
+    parser.add_argument(
+        "--sheets",
+        type=int,
+        metavar="N",
+        help=(
+            "Πόσα φύλλα αγώνων (γκολ, κάρτες, αλλαγές, συνθέσεις) να διαβαστούν, "
+            "νεότερα πρώτα. Για το γέμισμα του αρχείου· το πρόγραμμα διαβάζει "
+            "λίγα σε κάθε κύκλο."
         ),
     )
     parser.add_argument(

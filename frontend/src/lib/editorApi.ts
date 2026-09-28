@@ -2,7 +2,7 @@
 
 import type { components } from "./api-schema";
 import { API_URL, apiFetch, apiUrl } from "./api";
-import type { Field, Match, MatchFeed, PlatformSponsorAdmin, Team, TeamLook } from "./types";
+import type { Field, Match, MatchFeed, PlatformSponsorAdmin, SponsorInquiry, Team, TeamLook } from "./types";
 
 /** The editor talks to the API from the browser, not through the server.
  *
@@ -155,6 +155,23 @@ export const editorApi = {
     note?: string;
     file?: Blob | null;
   }) => upload<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors`, "POST", fields),
+
+  /** People who filled in "Γίνε χορηγός", unanswered first. */
+  sponsorInquiries: () =>
+    call<SponsorInquiry[]>(`${scoped}/editor/sponsor-inquiries`),
+
+  markInquiry: (id: number, handled: boolean) =>
+    call<SponsorInquiry[]>(`${scoped}/editor/sponsor-inquiries/${id}`, {
+      method: "PATCH",
+      json: { handled },
+    }),
+
+  /** The sponsor's private report link (made on first request). */
+  platformReportLink: (id: number) =>
+    call<{ token: string }>(`${scoped}/editor/platform-sponsors/${id}/report-link`, { method: "POST" }),
+
+  clubReportLink: (slug: string, id: number) =>
+    call<{ token: string }>(`${team(slug)}/sponsors/${id}/report-link`, { method: "POST" }),
 
   savePlatformSponsor: (id: number, edit: PlatformSponsorEdit) =>
     call<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors/${id}`, {

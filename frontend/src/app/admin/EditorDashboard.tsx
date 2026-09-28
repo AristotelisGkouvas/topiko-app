@@ -17,12 +17,13 @@ import { MatchSheet } from "@/components/MatchSheet";
 import { VenueEditor } from "./VenueEditor";
 import { SESSION_LOST } from "./session";
 import { PlatformSponsorsAdmin } from "./PlatformSponsorsAdmin";
+import { WeeklyPack } from "./WeeklyPack";
 import { ExpiringSponsors } from "./ExpiringSponsors";
 import { TeamsAdmin } from "./TeamsAdmin";
 import styles from "./page.module.css";
 import { confirm } from "@/components/ConfirmDialog";
 
-type Tab = "sheet" | "matches" | "codes" | "look" | "sponsors" | "stats" | "mvp" | "venues" | "audit" | "runs";
+type Tab = "sheet" | "matches" | "codes" | "look" | "sponsors" | "stats" | "pack" | "mvp" | "venues" | "audit" | "runs";
 
 const TABS: { id: Tab; label: string; adminOnly?: boolean }[] = [
   // First, and the default: on a Sunday this is the only screen that matters.
@@ -36,6 +37,8 @@ const TABS: { id: Tab; label: string; adminOnly?: boolean }[] = [
   { id: "sponsors", label: "Χορηγοί", adminOnly: true },
   // Readership: who reads what, from where. The federation's numbers.
   { id: "stats", label: "Στατιστικά", adminOnly: true },
+  // The week's posts for Facebook, Viber and Instagram, ready to copy.
+  { id: "pack", label: "Αναρτήσεις" },
   { id: "mvp", label: "MVP" },
   { id: "venues", label: "Γήπεδα" },
   { id: "audit", label: "Ιστορικό" },
@@ -162,6 +165,7 @@ export function EditorDashboard() {
       {tab === "look" && user.role === "admin" && <TeamsAdmin />}
       {tab === "sponsors" && user.role === "admin" && <PlatformSponsorsAdmin />}
       {tab === "stats" && user.role === "admin" && <AnalyticsAdmin />}
+      {tab === "pack" && <WeeklyPack />}
       {tab === "mvp" && <MvpEditor />}
       {tab === "venues" && <VenueEditor />}
       {tab === "audit" && <AuditList />}

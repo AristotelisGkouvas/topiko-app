@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { api } from "@/lib/api";
-import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, ogFonts, shareSponsors } from "@/lib/og";
+import { Card, COLORS, OG_CONTENT_TYPE, OG_SIZE, SponsorRow, clubSponsor, ogFonts, shareSponsors, type ShareSponsor } from "@/lib/og";
 
 export const alt = "Σωματείο";
 export const size = OG_SIZE;
@@ -17,10 +17,12 @@ export default async function Image({
 
   let name = "Σωματείο";
   let footer: string | undefined;
+  let sponsor: ShareSponsor | null = null;
 
   try {
     const team = await api.getTeam(slug);
     name = team.name;
+    sponsor = clubSponsor(team.sponsors);
     footer = [
       team.founded_year ? `από το ${team.founded_year}` : null,
       team.seasons?.length ? `${team.seasons.length} ${team.seasons.length === 1 ? "περίοδος" : "περίοδοι"} στο αρχείο` : null,
@@ -47,6 +49,8 @@ export default async function Image({
         <div style={{ display: "flex", fontSize: 34, color: COLORS.canvas, opacity: 0.85 }}>
           ΕΠΣ Ηπείρου
         </div>
+        {/* The club's main sponsor: what it sells with the shirt. */}
+        {sponsor && <SponsorRow sponsors={[sponsor]} height={64} />}
       </Card>
     ),
     { ...size, fonts },

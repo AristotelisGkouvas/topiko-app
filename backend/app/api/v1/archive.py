@@ -17,18 +17,22 @@ from typing import Annotated
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
-from sqlalchemy import ColumnElement, case, extract, func, select
+from pydantic import BaseModel
+from sqlalchemy import ColumnElement, case, extract, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, CurrentLeague, DbSession
 from app.api.lookups import MATCH_LOADS, recent_season_ids, team_in
 from app.core.config import settings
 from app.models.enums import LeagueKind, MatchEventKind, MatchStatus
+from app.schemas.player import AppearanceOut, SheetSeasonOut
+from app.services import sheets
 from app.models import (
     Announcement,
     Association,
     League,
     Match,
+    MatchLineup,
     MatchEvent,
     Player,
     PlayerStat,
@@ -231,12 +235,69 @@ async def get_player(
         )
     ).scalar_one()
 
+    record = await sheets.player_record(db, player.id)
+    team_ids = {a.line.lineup.team_id for a in record} | {
+        t for a in record for t in (a.match.home_team_id, a.match.away_team_id)
+    }
+    teams = {
+        t.id: TeamRef.model_validate(t)
+        for t in (await db.execute(select(Team).where(Team.id.in_(team_ids)))).scalars()
+    } if team_ids else {}
+
+    def appearance(a: sheets.Appearance) -> AppearanceOut:
+        mine = a.line.lineup.team_id
+        home = mine == a.match.home_team_id
+        other = a.match.away_team_id if home else a.match.home_team_id
+        scored, conceded = (
+            (a.match.home_score, a.match.away_score)
+            if home
+            else (a.match.away_score, a.match.home_score)
+        )
+        return AppearanceOut(
+            match_id=a.match.id,
+            kickoff_at=a.match.kickoff_at,
+            league_slug=a.league.slug,
+            league_name=a.league.short_name or a.league.name,
+            season=a.season,
+            team=teams.get(mine) if mine else None,
+            opponent=teams.get(other),
+            home=home,
+            goals_for=scored,
+            goals_against=conceded,
+            starter=a.line.lineup.starter,
+            minutes=a.line.minutes,
+            goals=a.line.goals,
+            own_goals=a.line.own_goals,
+            yellow=a.line.yellow,
+            red=a.line.red,
+        )
+
+    sheet_seasons = [
+        SheetSeasonOut(
+            season=row.season,
+            league_slug=row.league.slug,
+            league_name=row.league.short_name or row.league.name,
+            team=teams.get(row.team_id) if row.team_id else None,
+            apps=row.apps,
+            starts=row.starts,
+            minutes=row.minutes,
+            goals=row.goals,
+            own_goals=row.own_goals,
+            yellow=row.yellow,
+            red=row.red,
+        )
+        for row in sheets.by_season(record)
+    ]
+
     return PlayerDetailOut(
         id=player.id,
         slug=player.slug,
         name=player.name,
         birth_year=player.birth_year,
         live_goals=live_goals,
+        appearances=[appearance(a) for a in record[:200]],
+        appearances_total=len(record),
+        sheet_seasons=sheet_seasons,
         seasons=seasons,
         total_goals=sum(line.goals or 0 for line in seasons),
         seasons_scored=len({line.season.slug for line in seasons if line.goals}),
@@ -862,4 +923,73 @@ async def records(
         total_matches=counts[0] or 0,
         total_goals=int(counts[1] or 0),
         seasons_covered=counts[2] or 0,
+    )
+
+
+# ---------------------------------------------------------------------------
+#  Sitemap lists
+# ---------------------------------------------------------------------------
+
+
+class SitemapMatchOut(BaseModel):
+    id: int
+    updated_at: datetime
+
+
+class SitemapListsOut(BaseModel):
+    """What the archive sitemaps list: every played match, every pair of clubs
+    that has met, every player with something on their page. Ids and slugs
+    only, so twenty thousand rows stay a small response."""
+
+    matches: list[SitemapMatchOut] = []
+    #: Each pair once, in slug order (the canonical /kontra/{a}/{b}).
+    pairs: list[tuple[str, str]] = []
+    players: list[str] = []
+
+
+@router.get("/{association_slug}/sitemap-lists", response_model=SitemapListsOut)
+async def sitemap_lists(association: CurrentAssociation, db: DbSession) -> SitemapListsOut:
+    played = (
+        select(Match.id, Match.updated_at, Match.home_team_id, Match.away_team_id)
+        .join(League, Match.league_id == League.id)
+        .where(
+            League.association_id == association.id,
+            Match.home_score.is_not(None),
+            Match.away_score.is_not(None),
+        )
+        .order_by(Match.id)
+    )
+    rows = (await db.execute(played)).all()
+    slugs = {
+        t.id: t.slug
+        for t in (
+            await db.execute(select(Team).where(Team.association_id == association.id))
+        ).scalars()
+    }
+    pairs = sorted(
+        {
+            tuple(sorted((slugs[h], slugs[a])))
+            for (_, _, h, a) in rows
+            if h in slugs and a in slugs and h != a
+        }
+    )
+    with_games = select(MatchLineup.player_id).where(MatchLineup.player_id.is_not(None))
+    with_goals = select(PlayerStat.player_id).where(PlayerStat.goals > 0)
+    players = [
+        slug
+        for (slug,) in (
+            await db.execute(
+                select(Player.slug)
+                .where(
+                    Player.association_id == association.id,
+                    or_(Player.id.in_(with_games), Player.id.in_(with_goals)),
+                )
+                .order_by(Player.slug)
+            )
+        ).all()
+    ]
+    return SitemapListsOut(
+        matches=[SitemapMatchOut(id=i, updated_at=u) for (i, u, _, _) in rows],
+        pairs=[(a, b) for a, b in pairs],
+        players=players,
     )

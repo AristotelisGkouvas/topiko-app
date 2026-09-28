@@ -91,6 +91,8 @@ class SponsorOut(ORMModel):
     name: str
     website_url: str | None = None
     logo_url: str | None = None
+    #: The PNG copy, for share images.
+    logo_png_url: str | None = None
 
 
 class SponsorAdminOut(SponsorOut):
@@ -100,6 +102,9 @@ class SponsorAdminOut(SponsorOut):
     is_active: bool
     starts_on: date | None = None
     ends_on: date | None = None
+    category: str = "general"
+    #: Proposed by the club with its code; approve by switching it on.
+    pending_approval: bool = False
     #: paused / scheduled / live / ending / ended — see services.sponsorship.
     status: str = "live"
     #: The last 30 days, for the renewal conversation.
@@ -125,6 +130,7 @@ class PlatformSponsorAdminOut(PlatformSponsorOut):
     position: int
     is_active: bool
     note: str | None = None
+    category: str = "general"
     status: str = "live"
     views_30d: int = 0
     clicks_30d: int = 0
