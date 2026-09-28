@@ -22,6 +22,7 @@ from app.api.deps import CurrentAssociation, DbSession
 from app.core.config import settings
 from app.core.ratelimit import RateLimit
 from app.models import PLACEMENTS, Association, PlatformSponsor, Sponsor, SponsorDailyStat, Team, User
+from app.models.sponsorship import RESTRICTED
 from app.schemas.catalog import PlatformSponsorAdminOut, PlatformSponsorOut
 from app.schemas.editor import OrderIn, PlatformSponsorEdit
 from app.services import media
@@ -85,15 +86,23 @@ async def live_sponsors(
     association: CurrentAssociation,
     db: DbSession,
     placement: Literal["site", "home", "match", "share"] | None = None,
+    youth: bool = False,
 ) -> list[PlatformSponsor]:
     """The platform sponsors live today, optionally only those that bought
-    `placement`, in their order."""
+    `placement`, in their order.
+
+    `youth`: the page is about a youth league (a match, a share card), so
+    betting, alcohol and tobacco sponsors are left out. They never appear in
+    the site-wide or home placements at all; the admin refuses that pairing,
+    and this is the second lock."""
     stmt = select(PlatformSponsor).where(
         PlatformSponsor.association_id == association.id,
         sp.live(PlatformSponsor, sp.today()),
     )
     if placement:
         stmt = stmt.where(PlatformSponsor.placements.contains([placement]))
+    if youth or placement in (None, "site", "home"):
+        stmt = stmt.where(PlatformSponsor.category.not_in(RESTRICTED))
     rows = await db.execute(stmt.order_by(PlatformSponsor.position, PlatformSponsor.id))
     return list(rows.scalars())
 
@@ -375,15 +384,20 @@ async def edit_platform_sponsor(
     db: DbSession,
 ) -> list[PlatformSponsorAdminOut]:
     sponsor = await _one(db, association.id, sponsor_id)
-    keys = ("name", "website_url", "is_active", "starts_on", "ends_on", "placements", "note")
+    keys = ("name", "website_url", "is_active", "starts_on", "ends_on", "placements", "note", "category")
     before = {k: getattr(sponsor, k) for k in keys}
     changes = payload.model_dump(exclude_unset=True)
-    for required in ("name", "is_active", "placements"):
+    for required in ("name", "is_active", "placements", "category"):
         if required in changes and changes[required] is None:
             del changes[required]
     for key, value in changes.items():
         setattr(sponsor, key, (value.strip() or None) if isinstance(value, str) else value)
     _check_dates(sponsor.starts_on, sponsor.ends_on)
+    if sponsor.category in RESTRICTED and {"site", "home"} & set(sponsor.placements or []):
+        raise _bad(
+            "Χορηγός στοιχήματος, αλκοόλ ή καπνού δεν μπαίνει σε «Όλο το site» ή "
+            "«Αρχική»: εμφανίζονται και δίπλα σε παιδικά πρωταθλήματα."
+        )
     if not sponsor.name:
         raise _bad("Το όνομα του χορηγού είναι υποχρεωτικό.")
     after = {k: getattr(sponsor, k) for k in keys}

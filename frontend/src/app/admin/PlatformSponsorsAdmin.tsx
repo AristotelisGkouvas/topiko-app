@@ -6,12 +6,13 @@ import useSWR from "swr";
 import { confirm } from "@/components/ConfirmDialog";
 import { Empty } from "@/components/States";
 import { ApiError } from "@/lib/api";
-import { editorApi } from "@/lib/editorApi";
+import { editorApi, type PlatformSponsorEdit } from "@/lib/editorApi";
 import { mediaUrl } from "@/lib/media";
 import { shrink } from "@/lib/shrink";
 import { SPONSOR_STATUS, dayLabel, daysUntil } from "@/lib/sponsorStatus";
 import type { PlatformSponsorAdmin, SponsorPlacement } from "@/lib/types";
 import { noteAuthError } from "./session";
+import { RESTRICTED, SponsorCategorySelect } from "./SponsorCategory";
 import styles from "./PlatformSponsorsAdmin.module.css";
 import page from "./page.module.css";
 
@@ -249,6 +250,10 @@ function SponsorCard({
   const [endsOn, setEndsOn] = useState(sponsor.ends_on ?? "");
   const [placements, setPlacements] = useState<string[]>(sponsor.placements);
   const [note, setNote] = useState(sponsor.note ?? "");
+  const [category, setCategory] = useState<string>(sponsor.category ?? "general");
+  // Restricted categories cannot take the placements that sit around youth
+  // football; the API refuses it too, this says so before saving.
+  const blocked = RESTRICTED.has(category) && placements.some((p) => p === "site" || p === "home");
   const disabled = busy !== null;
   const logo = mediaUrl(sponsor.logo_url);
   const [error, setError] = useState<string | null>(null);
@@ -271,7 +276,8 @@ function SponsorCard({
     (startsOn || null) !== (sponsor.starts_on ?? null) ||
     (endsOn || null) !== (sponsor.ends_on ?? null) ||
     [...placements].sort().join() !== [...sponsor.placements].sort().join() ||
-    (note.trim() || null) !== (sponsor.note ?? null);
+    (note.trim() || null) !== (sponsor.note ?? null) ||
+    category !== (sponsor.category ?? "general");
 
   const save = () =>
     act(`save-${sponsor.id}`, () =>
@@ -282,6 +288,7 @@ function SponsorCard({
         ends_on: endsOn || null,
         placements: placements as SponsorPlacement[],
         note: note.trim() || null,
+        category: category as PlatformSponsorEdit["category"],
       }),
     );
 
@@ -359,6 +366,7 @@ function SponsorCard({
             </label>
           </div>
           <PlacementPicker value={placements} onChange={setPlacements} />
+          <SponsorCategorySelect className={styles.field} value={category} onChange={setCategory} />
           <label className={styles.field}>
             Σημειώσεις γραφείου (δεν εμφανίζονται)
             <textarea
@@ -387,11 +395,14 @@ function SponsorCard({
         {changed && placements.length === 0 && (
           <span className={page.rowError}>Διάλεξε τουλάχιστον μία θέση.</span>
         )}
+        {changed && blocked && (
+          <span className={page.rowError}>Βγάλε το «Όλο το site» και την «Αρχική» για αυτή την κατηγορία.</span>
+        )}
         {changed && (
           <button
             type="button"
             className={page.save}
-            disabled={disabled || !name.trim() || placements.length === 0}
+            disabled={disabled || !name.trim() || placements.length === 0 || blocked}
             onClick={save}
           >
             {busy === `save-${sponsor.id}` ? "Αποθήκευση…" : "Αποθήκευση"}

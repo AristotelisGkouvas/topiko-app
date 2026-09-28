@@ -1566,6 +1566,11 @@ export interface paths {
          * Live Sponsors
          * @description The platform sponsors live today, optionally only those that bought
          *     `placement`, in their order.
+         *
+         *     `youth`: the page is about a youth league (a match, a share card), so
+         *     betting, alcohol and tobacco sponsors are left out. They never appear in
+         *     the site-wide or home placements at all; the admin refuses that pairing,
+         *     and this is the second lock.
          */
         get: operations["live_sponsors_api_v1__association_slug__sponsors_get"];
         put?: never;
@@ -2812,6 +2817,11 @@ export interface components {
         /** PlatformSponsorAdminOut */
         PlatformSponsorAdminOut: {
             /**
+             * Category
+             * @default general
+             */
+            category: string;
+            /**
              * Clicks 30D
              * @default 0
              */
@@ -2864,6 +2874,8 @@ export interface components {
         };
         /** PlatformSponsorEdit */
         PlatformSponsorEdit: {
+            /** Category */
+            category?: ("general" | "betting" | "alcohol" | "tobacco") | null;
             /** Ends On */
             ends_on?: string | null;
             /** Is Active */
@@ -3314,6 +3326,11 @@ export interface components {
          */
         SponsorAdminOut: {
             /**
+             * Category
+             * @default general
+             */
+            category: string;
+            /**
              * Clicks 30D
              * @default 0
              */
@@ -3324,6 +3341,8 @@ export interface components {
             id: number;
             /** Is Active */
             is_active: boolean;
+            /** Logo Png Url */
+            logo_png_url: string | null;
             /** Logo Url */
             logo_url: string | null;
             /** Name */
@@ -3347,6 +3366,8 @@ export interface components {
         };
         /** SponsorEdit */
         SponsorEdit: {
+            /** Category */
+            category?: ("general" | "betting" | "alcohol" | "tobacco") | null;
             /** Ends On */
             ends_on?: string | null;
             /** Is Active */
@@ -3373,6 +3394,8 @@ export interface components {
         SponsorOut: {
             /** Id */
             id: number;
+            /** Logo Png Url */
+            logo_png_url: string | null;
             /** Logo Url */
             logo_url: string | null;
             /** Name */
@@ -6711,6 +6734,7 @@ export interface operations {
         parameters: {
             query?: {
                 placement?: ("site" | "home" | "match" | "share") | null;
+                youth?: boolean;
             };
             header?: never;
             path: {

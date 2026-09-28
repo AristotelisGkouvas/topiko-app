@@ -160,6 +160,8 @@ class Sponsor(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     website_url: Mapped[str | None] = mapped_column(String(255))
     logo_url: Mapped[str | None] = mapped_column(String(255))
+    #: PNG, for the share images: the image renderer reads PNG and JPEG only.
+    logo_png_url: Mapped[str | None] = mapped_column(String(255))
     #: Lower first — the main sponsor at the top.
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     #: Off rather than deleted when a deal lapses, so it can come back next
@@ -169,5 +171,10 @@ class Sponsor(Base, TimestampMixin):
     #: gone after the last, without anybody having to switch it off.
     starts_on: Mapped[date | None] = mapped_column(Date)
     ends_on: Mapped[date | None] = mapped_column(Date)
+    #: One of sponsorship.CATEGORIES. A RESTRICTED one is not shown on the
+    #: club's youth matches (a club often fields a youth side too).
+    category: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="general", server_default="general"
+    )
 
     team: Mapped[Team] = relationship(back_populates="sponsors")

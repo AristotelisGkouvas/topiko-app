@@ -239,9 +239,11 @@ export const api = {
   /** The platform's sponsors live today, for one placement. A minute: long
    *  enough to spare the API, short enough that a sponsor the office pauses
    *  or removes is off the site before anyone asks why it is still there. */
-  listPlatformSponsors: (placement?: SponsorPlacement) =>
+  listPlatformSponsors: (placement?: SponsorPlacement, youth = false) =>
     request<PlatformSponsor[]>(scoped("/sponsors"), {
-      searchParams: { placement },
+      // `youth`: the page is about a youth league, so betting, alcohol and
+      // tobacco sponsors are left out (the API does the filtering).
+      searchParams: { placement, youth: youth ? "true" : undefined },
       revalidate: 60,
     }),
 

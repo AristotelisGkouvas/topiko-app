@@ -150,7 +150,9 @@ export default async function MatchPage({
     away_sponsors,
   } = await load(id);
   // A sponsor that failed to load costs its line, not the match page.
-  const presenters = await api.listPlatformSponsors("match").catch(() => []);
+  const presenters = await api
+    .listPlatformSponsors("match", league.age_group !== null)
+    .catch(() => []);
   const presenter = presenters.length ? presenters[match.id % presenters.length] : null;
 
   const played = match.home_score !== null && match.away_score !== null;

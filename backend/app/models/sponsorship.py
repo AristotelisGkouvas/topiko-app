@@ -27,6 +27,12 @@ from app.models.base import Base, TimestampMixin
 #: Where a platform sponsor can be shown. Bought one by one.
 PLACEMENTS = ("site", "home", "match", "share")
 
+#: What a sponsor sells, as far as where it may appear is concerned.
+CATEGORIES = ("general", "betting", "alcohol", "tobacco")
+#: Never beside children's football: not on a youth league's matches, and not
+#: in the site-wide or home placements, which sit around every league.
+RESTRICTED = frozenset({"betting", "alcohol", "tobacco"})
+
 
 class PlatformSponsor(Base, TimestampMixin):
     """A sponsor of the whole platform, live between `starts_on` and `ends_on`.
@@ -66,6 +72,10 @@ class PlatformSponsor(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     #: For the office: contact, amount, invoice number. Never shown publicly.
     note: Mapped[str | None] = mapped_column(String(500))
+    #: One of CATEGORIES. RESTRICTED ones are kept off youth football.
+    category: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="general", server_default="general"
+    )
 
 
 class SponsorDailyStat(Base):

@@ -212,3 +212,56 @@ async def test_the_office_note_stays_out_of_the_trail(client, world: World) -> N
         await client.get("/api/v1/alpha/editor/audit", cookies=session_for(world.editor), headers=SAME_SITE)
     ).json()
     assert not any(e["entity_type"] == "platform_sponsor" for e in editor_trail)
+
+
+async def test_betting_alcohol_tobacco_stay_off_youth_football(client, world: World, db) -> None:
+    sponsor = await add(client, world, "Στοίχημα", placements="match,share")
+    edit = await client.patch(
+        f"{ADMIN}/{sponsor['id']}",
+        json={"category": "betting"},
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert edit.status_code == 200, edit.text
+
+    # On an adult match, yes; on a youth one, and in the untargeted list, no.
+    match = {s["name"] for s in (await client.get("/api/v1/alpha/sponsors?placement=match")).json()}
+    assert match == {"Στοίχημα"}
+    youth = (await client.get("/api/v1/alpha/sponsors?placement=match&youth=true")).json()
+    assert youth == []
+    assert (await client.get("/api/v1/alpha/sponsors")).json() == []
+
+    # And it can never take the placements that sit around every league.
+    refused = await client.patch(
+        f"{ADMIN}/{sponsor['id']}",
+        json={"placements": ["site", "match"]},
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert refused.status_code == 422
+
+
+async def test_a_restricted_club_sponsor_is_off_the_clubs_youth_matches(
+    client, world: World, db
+) -> None:
+    db.add_all(
+        [
+            Sponsor(team_id=world.a.home.id, name="Φούρνος", position=0, is_active=True),
+            Sponsor(
+                team_id=world.a.home.id, name="Ποτοποιία", position=1, is_active=True,
+                category="alcohol",
+            ),
+        ]
+    )
+    await db.commit()
+    url = f"/api/v1/alpha/matches/{world.a.match.id}"
+
+    adult = (await client.get(url)).json()
+    assert [s["name"] for s in adult["home_sponsors"]] == ["Φούρνος", "Ποτοποιία"]
+
+    league = await db.get(type(world.a.league), world.a.league.id)
+    assert league is not None
+    league.age_group = "Κ16"
+    await db.commit()
+    youth = (await client.get(url)).json()
+    assert [s["name"] for s in youth["home_sponsors"]] == ["Φούρνος"]

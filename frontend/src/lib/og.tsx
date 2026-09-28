@@ -93,12 +93,24 @@ export interface ShareSponsor {
 /** The sponsors who bought the share images: up to four, those with a PNG
  *  logo (the renderer cannot read WebP). Never throws — a card with no
  *  sponsors beats a card that failed to render. */
-export async function shareSponsors(): Promise<ShareSponsor[]> {
-  const list = await api.listPlatformSponsors("share").catch(() => []);
+export async function shareSponsors({ youth = true }: { youth?: boolean } = {}): Promise<ShareSponsor[]> {
+  // Youth unless the caller knows otherwise: a club's or a player's card can
+  // be about a youth side, and a betting logo on it is the mistake to avoid.
+  const list = await api.listPlatformSponsors("share", youth).catch(() => []);
   return list
     .filter((s) => s.logo_png_url)
     .slice(0, 4)
     .map((s) => ({ name: s.name, src: mediaUrl(s.logo_png_url!) }));
+}
+
+/** A club's main sponsor, for that club's own cards: the first live one with
+ *  a PNG logo, or null. The club sells this spot with its shirt; it is what
+ *  the village sees on Facebook, where the page itself is rarely opened. */
+export function clubSponsor(
+  sponsors: { name: string; logo_png_url?: string | null }[] | undefined,
+): ShareSponsor | null {
+  const main = sponsors?.find((s) => s.logo_png_url);
+  return main ? { name: main.name, src: mediaUrl(main.logo_png_url!) } : null;
 }
 
 /** Logos on white plates, in a row. White on the navy card too: logos are

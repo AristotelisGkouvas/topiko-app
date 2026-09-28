@@ -41,6 +41,7 @@ from app.models import (
 from app.models.enums import MatchEventKind, MatchStatus, ScrapeRunStatus
 from app.services import search as search_service
 from app.services import sponsorship
+from app.models.sponsorship import RESTRICTED
 from app.services.greek import fold, words
 from app.services.live import LIVE_WINDOW
 from app.services.standings import project_live_standings
@@ -499,15 +500,19 @@ async def get_team(
     )
 
 
-async def _active_sponsors(db: DbSession, team_ids: list[int]) -> dict[int, list[Sponsor]]:
-    """Each club's live sponsors, main one first."""
-    rows = (
-        await db.execute(
-            select(Sponsor)
-            .where(Sponsor.team_id.in_(team_ids), sponsorship.live(Sponsor, sponsorship.today()))
-            .order_by(Sponsor.position, Sponsor.id)
-        )
-    ).scalars()
+async def _active_sponsors(
+    db: DbSession, team_ids: list[int], *, youth: bool = False
+) -> dict[int, list[Sponsor]]:
+    """Each club's live sponsors, main one first. `youth`: for a youth
+    league's match, without betting, alcohol and tobacco."""
+    stmt = (
+        select(Sponsor)
+        .where(Sponsor.team_id.in_(team_ids), sponsorship.live(Sponsor, sponsorship.today()))
+        .order_by(Sponsor.position, Sponsor.id)
+    )
+    if youth:
+        stmt = stmt.where(Sponsor.category.not_in(RESTRICTED))
+    rows = (await db.execute(stmt)).scalars()
     grouped: dict[int, list[Sponsor]] = {team_id: [] for team_id in team_ids}
     for sponsor in rows:
         grouped[sponsor.team_id].append(sponsor)
@@ -851,7 +856,7 @@ async def get_match(
         ).scalars()
     }
 
-    sponsors = await _active_sponsors(db, list(pair))
+    sponsors = await _active_sponsors(db, list(pair), youth=match.league.age_group is not None)
 
     return MatchDetailOut(
         home_sponsors=[SponsorOut.model_validate(s) for s in sponsors[match.home_team_id]],
