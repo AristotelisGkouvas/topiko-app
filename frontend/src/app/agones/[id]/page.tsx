@@ -12,6 +12,7 @@ import { ScoreFlash } from "@/components/ScoreFlash";
 import { MatchTicker } from "@/components/MatchTicker";
 import { Prediction } from "@/components/Prediction";
 import { SectionHeader } from "@/components/SectionHeader";
+import { MatchSheetView } from "@/components/MatchSheetView";
 import { MatchPresenter } from "@/components/MatchPresenter";
 import { SponsorStrip, alternate } from "@/components/SponsorStrip";
 import { ApiError, api } from "@/lib/api";
@@ -148,6 +149,7 @@ export default async function MatchPage({
     away_standing,
     home_sponsors,
     away_sponsors,
+    sheet,
   } = await load(id);
   // A sponsor that failed to load costs its line, not the match page.
   const presenters = await api
@@ -371,6 +373,15 @@ export default async function MatchPage({
           />
 
           <Prediction matchId={match.id} home={match.home_team} away={match.away_team} />
+
+          {sheet && (
+            <MatchSheetView
+              sheet={sheet}
+              homeTeamId={match.home_team.id}
+              homeName={match.home_team.short_name ?? match.home_team.name}
+              awayName={match.away_team.short_name ?? match.away_team.name}
+            />
+          )}
 
           {head_to_head.length > 0 && (
             <section className={styles.history}>

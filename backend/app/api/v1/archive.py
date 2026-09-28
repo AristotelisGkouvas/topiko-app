@@ -24,6 +24,8 @@ from app.api.deps import CurrentAssociation, CurrentLeague, DbSession
 from app.api.lookups import MATCH_LOADS, recent_season_ids, team_in
 from app.core.config import settings
 from app.models.enums import LeagueKind, MatchEventKind, MatchStatus
+from app.schemas.player import AppearanceOut, SheetSeasonOut
+from app.services import sheets
 from app.models import (
     Announcement,
     Association,
@@ -231,12 +233,69 @@ async def get_player(
         )
     ).scalar_one()
 
+    record = await sheets.player_record(db, player.id)
+    team_ids = {a.line.lineup.team_id for a in record} | {
+        t for a in record for t in (a.match.home_team_id, a.match.away_team_id)
+    }
+    teams = {
+        t.id: TeamRef.model_validate(t)
+        for t in (await db.execute(select(Team).where(Team.id.in_(team_ids)))).scalars()
+    } if team_ids else {}
+
+    def appearance(a: sheets.Appearance) -> AppearanceOut:
+        mine = a.line.lineup.team_id
+        home = mine == a.match.home_team_id
+        other = a.match.away_team_id if home else a.match.home_team_id
+        scored, conceded = (
+            (a.match.home_score, a.match.away_score)
+            if home
+            else (a.match.away_score, a.match.home_score)
+        )
+        return AppearanceOut(
+            match_id=a.match.id,
+            kickoff_at=a.match.kickoff_at,
+            league_slug=a.league.slug,
+            league_name=a.league.short_name or a.league.name,
+            season=a.season,
+            team=teams.get(mine) if mine else None,
+            opponent=teams.get(other),
+            home=home,
+            goals_for=scored,
+            goals_against=conceded,
+            starter=a.line.lineup.starter,
+            minutes=a.line.minutes,
+            goals=a.line.goals,
+            own_goals=a.line.own_goals,
+            yellow=a.line.yellow,
+            red=a.line.red,
+        )
+
+    sheet_seasons = [
+        SheetSeasonOut(
+            season=row.season,
+            league_slug=row.league.slug,
+            league_name=row.league.short_name or row.league.name,
+            team=teams.get(row.team_id) if row.team_id else None,
+            apps=row.apps,
+            starts=row.starts,
+            minutes=row.minutes,
+            goals=row.goals,
+            own_goals=row.own_goals,
+            yellow=row.yellow,
+            red=row.red,
+        )
+        for row in sheets.by_season(record)
+    ]
+
     return PlayerDetailOut(
         id=player.id,
         slug=player.slug,
         name=player.name,
         birth_year=player.birth_year,
         live_goals=live_goals,
+        appearances=[appearance(a) for a in record[:200]],
+        appearances_total=len(record),
+        sheet_seasons=sheet_seasons,
         seasons=seasons,
         total_goals=sum(line.goals or 0 for line in seasons),
         seasons_scored=len({line.season.slug for line in seasons if line.goals}),

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Crest } from "@/components/Crest";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
-import { plural } from "@/lib/format";
+import { formatDayDate, plural } from "@/lib/format";
 import type { PlayerDetail } from "@/lib/types";
 import pageStyles from "../../page.module.css";
 import styles from "./page.module.css";
@@ -32,13 +32,21 @@ export async function generateMetadata({
     const club = player.clubs[0]?.name;
     return {
       title: player.name,
-      description: player.total_goals
-        ? `${player.total_goals} γκολ σε ${player.seasons_scored} ${plural(player.seasons_scored, "περίοδο", "περιόδους")}${club ? ` · ${club}` : ""}`
-        : club,
+      description: player.appearances_total
+        ? `${player.appearances_total} ${plural(player.appearances_total, "συμμετοχή", "συμμετοχές")}${
+            sheetGoals(player) ? `, ${sheetGoals(player)} γκολ` : ""
+          }${club ? ` · ${club}` : ""}`
+        : player.total_goals
+          ? `${player.total_goals} γκολ σε ${player.seasons_scored} ${plural(player.seasons_scored, "περίοδο", "περιόδους")}${club ? ` · ${club}` : ""}`
+          : club,
       alternates: { canonical: `/paiktes/${slug}` },
       // Fifteen thousand names with no goal against them are the thin pages
       // the sitemap already leaves out; this keeps them out of the index too.
-      ...(!player.total_goals && !player.live_goals && { robots: { index: false, follow: true } }),
+      // Indexed once there is something to read: a goal on a published list,
+      // or a match on a report. The rest are names and nothing else.
+      ...(!player.total_goals && !player.live_goals && !player.appearances_total && {
+        robots: { index: false, follow: true },
+      }),
     };
   } catch {
     return { title: "Παίκτης" };
@@ -69,7 +77,16 @@ export default async function PlayerPage({
         </p>
 
         <dl className={styles.totals}>
-          <Total value={player.total_goals} label="γκολ" />
+          {player.appearances_total > 0 && (
+            <>
+              <Total
+                value={player.appearances_total}
+                label={plural(player.appearances_total, "συμμετοχή", "συμμετοχές")}
+              />
+              <Total value={minutesTotal(player)} label="λεπτά" />
+            </>
+          )}
+          <Total value={Math.max(player.total_goals, sheetGoals(player))} label="γκολ" />
           <Total
             value={player.seasons_scored}
             label={plural(player.seasons_scored, "περίοδος με γκολ", "περίοδοι με γκολ")}
@@ -102,8 +119,87 @@ export default async function PlayerPage({
         </ul>
       )}
 
+      {player.sheet_seasons.length > 0 && (
+        <section>
+          <SectionHeader title="Συμμετοχές" />
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col">Περίοδος</th>
+                  <th scope="col">Σωματείο</th>
+                  <th scope="col" className={styles.num}><abbr title="Συμμετοχές">Σ</abbr></th>
+                  <th scope="col" className={styles.num}><abbr title="Βασικός">Β</abbr></th>
+                  <th scope="col" className={styles.num}><abbr title="Λεπτά">Λ</abbr></th>
+                  <th scope="col" className={styles.num}><abbr title="Γκολ">Γ</abbr></th>
+                  <th scope="col" className={styles.num}><abbr title="Κίτρινες">Κ</abbr></th>
+                  <th scope="col" className={styles.num}><abbr title="Αποβολές">Α</abbr></th>
+                </tr>
+              </thead>
+              <tbody>
+                {player.sheet_seasons.map((line, index) => (
+                  <tr key={`${line.season.slug}-${line.league_slug}-${index}`}>
+                    <td className={styles.season}>
+                      {line.season.slug}
+                      <span className={styles.leagueSmall}>{line.league_name}</span>
+                    </td>
+                    <td className={styles.teamCell}>
+                      {line.team ? (
+                        <Link href={`/somateia/${line.team.slug}`} className={styles.teamLink}>
+                          {line.team.name}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className={styles.num}>{line.apps}</td>
+                    <td className={styles.num}>{line.starts}</td>
+                    <td className={styles.num}>{line.minutes}</td>
+                    <td className={`${styles.num} ${styles.goals}`}>{line.goals}</td>
+                    <td className={styles.num}>{line.yellow}</td>
+                    <td className={styles.num}>{line.red}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {player.appearances.length > 0 && (
+        <section>
+          <SectionHeader title="Αγώνες" />
+          <ul className={styles.games}>
+            {player.appearances.slice(0, 30).map((a) => (
+              <li key={a.match_id}>
+                <Link href={`/agones/${a.match_id}`} className={styles.game}>
+                  <span className={styles.gameDate}>
+                    {a.kickoff_at ? formatDayDate(a.kickoff_at) : a.season.slug}
+                  </span>
+                  <span className={styles.gameVs}>
+                    {a.home ? "εντός" : "εκτός"} με {a.opponent?.name ?? "—"}
+                  </span>
+                  <span className={styles.gameScore}>
+                    {a.goals_for ?? "–"}–{a.goals_against ?? "–"}
+                  </span>
+                  <span className={styles.gameMe}>
+                    {a.minutes}′{a.goals ? ` · ${a.goals} γκολ` : ""}
+                    {a.red ? " · αποβολή" : a.yellow ? " · κίτρινη" : ""}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {player.appearances_total > 30 && (
+            <p className={styles.note}>
+              Οι 30 πιο πρόσφατοι από {player.appearances_total} αγώνες.
+            </p>
+          )}
+        </section>
+      )}
+
       <section>
-        <SectionHeader title="Ανά περίοδο" />
+        <SectionHeader title="Γκολ ανά περίοδο (λίστες σκόρερ)" />
         {player.seasons.length > 0 ? (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -156,14 +252,23 @@ export default async function PlayerPage({
         )}
 
         <p className={styles.note}>
-          Τα γκολ προκύπτουν από τις λίστες σκόρερ που δημοσιεύει η ένωση, όχι
-          από τα φύλλα αγώνα — οπότε είναι <strong>κατώτατο όριο</strong>. Η ένωση
-          δημοσιεύει μόνο τους πρώτους κάθε λίστας, οπότε μια περίοδος που λείπει
-          από εδώ δεν σημαίνει ότι ο παίκτης δεν αγωνίστηκε.
+          Αυτός ο πίνακας βγαίνει από τις λίστες σκόρερ της ένωσης, που έχουν
+          μόνο τους πρώτους κάθε λίστας, οπότε είναι <strong>κατώτατο όριο</strong>.
+          Οι «Συμμετοχές» και οι «Αγώνες» βγαίνουν από τα φύλλα αγώνα, που το site
+          διαβάζει έναν έναν: όσο γεμίζει το αρχείο, μεγαλώνουν.
         </p>
       </section>
     </div>
   );
+}
+
+/** Goals counted from the match reports the site has read. */
+function sheetGoals(player: PlayerDetail): number {
+  return player.sheet_seasons.reduce((sum, line) => sum + line.goals, 0);
+}
+
+function minutesTotal(player: PlayerDetail): number {
+  return player.sheet_seasons.reduce((sum, line) => sum + line.minutes, 0);
 }
 
 function Total({ value, label }: { value: number; label: string }) {

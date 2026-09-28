@@ -1894,6 +1894,53 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * AppearanceOut
+         * @description One match a player took the field in, from its report.
+         */
+        AppearanceOut: {
+            /**
+             * Goals
+             * @default 0
+             */
+            goals: number;
+            /** Goals Against */
+            goals_against: number | null;
+            /** Goals For */
+            goals_for: number | null;
+            /** Home */
+            home: boolean;
+            /** Kickoff At */
+            kickoff_at: string | null;
+            /** League Name */
+            league_name: string;
+            /** League Slug */
+            league_slug: string;
+            /** Match Id */
+            match_id: number;
+            /** Minutes */
+            minutes: number;
+            opponent: components["schemas"]["TeamRef"] | null;
+            /**
+             * Own Goals
+             * @default 0
+             */
+            own_goals: number;
+            /**
+             * Red
+             * @default false
+             */
+            red: boolean;
+            season: components["schemas"]["SeasonOut"];
+            /** Starter */
+            starter: boolean;
+            team: components["schemas"]["TeamRef"] | null;
+            /**
+             * Yellow
+             * @default 0
+             */
+            yellow: number;
+        };
         /** AssociationGrant */
         AssociationGrant: {
             /** Can Edit Live */
@@ -2538,6 +2585,7 @@ export interface components {
             home_standing: components["schemas"]["StandingOut"] | null;
             league: components["schemas"]["LeagueOut"];
             match: components["schemas"]["MatchOut"];
+            sheet: components["schemas"]["MatchSheetOut"] | null;
         };
         /**
          * MatchEdit
@@ -2643,6 +2691,34 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * MatchSheetOut
+         * @description The federation's report of one match.
+         */
+        MatchSheetOut: {
+            /**
+             * Away
+             * @default []
+             */
+            away: components["schemas"]["SheetPlayerOut"][];
+            /**
+             * Events
+             * @default []
+             */
+            events: components["schemas"]["SheetEventOut"][];
+            /**
+             * Home
+             * @default []
+             */
+            home: components["schemas"]["SheetPlayerOut"][];
+            /**
+             * Officials
+             * @default {}
+             */
+            officials: {
+                [key: string]: string;
+            };
         };
         /**
          * MatchStatus
@@ -2918,6 +2994,16 @@ export interface components {
          *     did not play.
          */
         PlayerDetailOut: {
+            /**
+             * Appearances
+             * @default []
+             */
+            appearances: components["schemas"]["AppearanceOut"][];
+            /**
+             * Appearances Total
+             * @default 0
+             */
+            appearances_total: number;
             /** Birth Year */
             birth_year: number | null;
             /**
@@ -2944,6 +3030,11 @@ export interface components {
              * @default 0
              */
             seasons_scored: number;
+            /**
+             * Sheet Seasons
+             * @default []
+             */
+            sheet_seasons: components["schemas"]["SheetSeasonOut"][];
             /** Slug */
             slug: string;
             /**
@@ -3319,6 +3410,93 @@ export interface components {
             slug: string;
             /** Start Date */
             start_date: string | null;
+        };
+        /**
+         * SheetEventOut
+         * @description One line of a match report's timeline.
+         */
+        SheetEventOut: {
+            /** Kind */
+            kind: string;
+            /** Minute */
+            minute: number | null;
+            player: components["schemas"]["PlayerRef"] | null;
+            /** Player Name */
+            player_name: string | null;
+            /** Score */
+            score: string | null;
+            /** Stoppage */
+            stoppage: number | null;
+            /** Team Id */
+            team_id: number | null;
+        };
+        /**
+         * SheetPlayerOut
+         * @description A player on a match report, with what the timeline says they did.
+         */
+        SheetPlayerOut: {
+            /** Birth Year */
+            birth_year: number | null;
+            /**
+             * Goals
+             * @default 0
+             */
+            goals: number;
+            /** Name */
+            name: string;
+            /** Off */
+            off: number | null;
+            /** On */
+            on: number | null;
+            /**
+             * Own Goals
+             * @default 0
+             */
+            own_goals: number;
+            /**
+             * Penalties
+             * @default 0
+             */
+            penalties: number;
+            player: components["schemas"]["PlayerRef"] | null;
+            /**
+             * Red
+             * @default false
+             */
+            red: boolean;
+            /** Starter */
+            starter: boolean;
+            /**
+             * Yellow
+             * @default 0
+             */
+            yellow: number;
+        };
+        /**
+         * SheetSeasonOut
+         * @description A player's season in one competition and club, summed from reports.
+         */
+        SheetSeasonOut: {
+            /** Apps */
+            apps: number;
+            /** Goals */
+            goals: number;
+            /** League Name */
+            league_name: string;
+            /** League Slug */
+            league_slug: string;
+            /** Minutes */
+            minutes: number;
+            /** Own Goals */
+            own_goals: number;
+            /** Red */
+            red: number;
+            season: components["schemas"]["SeasonOut"];
+            /** Starts */
+            starts: number;
+            team: components["schemas"]["TeamRef"] | null;
+            /** Yellow */
+            yellow: number;
         };
         /**
          * SponsorAdminOut

@@ -137,3 +137,27 @@ async def test_unplayed_and_just_finished_matches_wait(client, world: World, db)
     await db.commit()  # scored, but the report is not written up yet
     await syncer(db, world, fetcher)._sync_sheets(10)
     assert fetcher.request_count == 0
+
+
+async def test_the_match_and_player_pages_show_the_report(client, world: World, db) -> None:
+    match = await finished(db, world, "24372")
+    await syncer(db, world, FakeFetcher())._sync_sheets(10)
+    await db.commit()
+
+    detail = (await client.get(f"/api/v1/alpha/matches/{match.id}")).json()
+    sheet = detail["sheet"]
+    assert [e["minute"] for e in sheet["events"] if e["kind"] == "goal"] == [15, 48]
+    assert len([p for p in sheet["home"] if p["starter"]]) == 11
+    scorer = next(p for p in sheet["home"] if p["name"] == "ΠΑΝΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ")
+    assert (scorer["goals"], scorer["on"]) == (1, 0)
+    # A starter taken off at 17 played 17 minutes; his replacement came on then.
+    off = next(p for p in sheet["home"] if p["name"] == "ΚΟΥΤΣΟΣ ΧΡΗΣΤΟΣ")
+    assert off["off"] == 17
+    assert sheet["officials"]["Α' Βοηθός Διαιτητή"] == "ΚΑΤΣΟΥΛΙΔΟΥ ΠΟΛΥΞΕΝΗ"
+
+    slug = scorer["player"]["slug"]
+    player = (await client.get(f"/api/v1/alpha/players/{slug}")).json()
+    assert player["appearances_total"] == 1
+    app = player["appearances"][0]
+    assert (app["match_id"], app["minutes"], app["goals"], app["starter"]) == (match.id, 90, 1, True)
+    assert player["sheet_seasons"][0]["apps"] == 1

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from app.schemas.catalog import SeasonOut, TeamRef
 from app.schemas.common import ORMModel
@@ -112,6 +112,85 @@ class PlayerSeasonOut(ORMModel):
     red_cards: int | None = None
 
 
+class SheetEventOut(ORMModel):
+    """One line of a match report's timeline."""
+
+    kind: str
+    minute: int | None = None
+    stoppage: int | None = None
+    team_id: int | None = None
+    player: PlayerRef | None = None
+    #: As printed, when the register does not know the player.
+    player_name: str | None = None
+    score: str | None = None
+
+
+class SheetPlayerOut(ORMModel):
+    """A player on a match report, with what the timeline says they did."""
+
+    player: PlayerRef | None = None
+    name: str
+    birth_year: int | None = None
+    starter: bool
+    #: Minute they came on (0 for a starter); None: stayed on the bench.
+    on: int | None = None
+    #: Minute they went off or were sent off; None: to the end.
+    off: int | None = None
+    goals: int = 0
+    penalties: int = 0
+    own_goals: int = 0
+    yellow: int = 0
+    red: bool = False
+
+
+class MatchSheetOut(ORMModel):
+    """The federation's report of one match."""
+
+    events: list[SheetEventOut] = []
+    home: list[SheetPlayerOut] = []
+    away: list[SheetPlayerOut] = []
+    #: Assistants, fourth official, observers: label -> name.
+    officials: dict[str, str] = {}
+
+
+class AppearanceOut(ORMModel):
+    """One match a player took the field in, from its report."""
+
+    match_id: int
+    kickoff_at: datetime | None = None
+    league_slug: str
+    league_name: str
+    season: SeasonOut
+    team: TeamRef | None = None
+    opponent: TeamRef | None = None
+    home: bool
+    #: The match's score, from this player's side.
+    goals_for: int | None = None
+    goals_against: int | None = None
+    starter: bool
+    minutes: int
+    goals: int = 0
+    own_goals: int = 0
+    yellow: int = 0
+    red: bool = False
+
+
+class SheetSeasonOut(ORMModel):
+    """A player's season in one competition and club, summed from reports."""
+
+    season: SeasonOut
+    league_slug: str
+    league_name: str
+    team: TeamRef | None = None
+    apps: int
+    starts: int
+    minutes: int
+    goals: int
+    own_goals: int
+    yellow: int
+    red: int
+
+
 class PlayerDetailOut(ORMModel):
     """A footballer's page.
 
@@ -136,6 +215,11 @@ class PlayerDetailOut(ORMModel):
     #: player named. Unofficial and never added to `total_goals`: it is what
     #: the page can say on Sunday evening, before the federation publishes.
     live_goals: int = 0
+    #: From the match reports: every match played, newest first (the latest
+    #: 200), and the same summed per season, competition and club.
+    appearances: list[AppearanceOut] = []
+    appearances_total: int = 0
+    sheet_seasons: list[SheetSeasonOut] = []
 
 
 class SuspensionOut(ORMModel):

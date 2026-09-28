@@ -63,6 +63,13 @@ export type PlayerSeason = S["PlayerSeasonOut"];
 
 export type PlayerDetail = S["PlayerDetailOut"];
 
+/** A finished match's report, as the federation published it. */
+export type MatchSheet = S["MatchSheetOut"];
+export type SheetEvent = S["SheetEventOut"];
+export type SheetPlayer = S["SheetPlayerOut"];
+export type Appearance = S["AppearanceOut"];
+export type SheetSeason = S["SheetSeasonOut"];
+
 export type HeadToHead = S["HeadToHeadOut"];
 
 export type OnThisDay = S["OnThisDayOut"];

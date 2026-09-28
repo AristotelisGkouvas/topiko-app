@@ -40,12 +40,14 @@ from app.models import (
 )
 from app.models.enums import MatchEventKind, MatchStatus, ScrapeRunStatus
 from app.services import search as search_service
-from app.services import sponsorship
+from app.services import sheets, sponsorship
+from app.models.sheet import MatchSheetEvent
 from app.models.sponsorship import RESTRICTED
 from app.services.greek import fold, words
 from app.services.live import LIVE_WINDOW
 from app.services.standings import project_live_standings
 from app.schemas.catalog import SponsorOut, TeamPhotoOut
+from app.schemas.player import MatchSheetOut, PlayerRef, SheetEventOut, SheetPlayerOut
 from app.schemas import (
     AssociationOut,
     FieldDetailOut,
@@ -858,7 +860,10 @@ async def get_match(
 
     sponsors = await _active_sponsors(db, list(pair), youth=match.league.age_group is not None)
 
+    sheet = await sheets.match_sheet(db, match.id)
+
     return MatchDetailOut(
+        sheet=_sheet_out(sheet, match) if sheet else None,
         home_sponsors=[SponsorOut.model_validate(s) for s in sponsors[match.home_team_id]],
         away_sponsors=[SponsorOut.model_validate(s) for s in sponsors[match.away_team_id]],
         match=MatchOut.model_validate(match),
@@ -916,4 +921,44 @@ async def get_meta(association: CurrentAssociation, db: DbSession) -> Meta:
         live_matches=live_count or 0,
         last_run_status=last_run.status.value if last_run else None,
         last_run_at=last_run.finished_at if last_run else None,
+    )
+
+
+def _sheet_out(
+    sheet: tuple[list[MatchSheetEvent], list[sheets.Line]], match: Match
+) -> MatchSheetOut:
+    events, lines = sheet
+
+    def person(line: sheets.Line) -> SheetPlayerOut:
+        row = line.lineup
+        return SheetPlayerOut(
+            player=PlayerRef.model_validate(row.player) if row.player else None,
+            name=row.player_name,
+            birth_year=row.birth_year,
+            starter=row.starter,
+            on=line.on,
+            off=line.off,
+            goals=line.goals,
+            penalties=line.penalties,
+            own_goals=line.own_goals,
+            yellow=line.yellow,
+            red=line.red,
+        )
+
+    return MatchSheetOut(
+        events=[
+            SheetEventOut(
+                kind=e.kind,
+                minute=e.minute,
+                stoppage=e.stoppage,
+                team_id=e.team_id,
+                player=PlayerRef.model_validate(e.player) if e.player else None,
+                player_name=e.player_name,
+                score=e.score,
+            )
+            for e in events
+        ],
+        home=[person(x) for x in lines if x.lineup.team_id == match.home_team_id],
+        away=[person(x) for x in lines if x.lineup.team_id == match.away_team_id],
+        officials={k: str(v) for k, v in (match.officials or {}).items()},
     )
