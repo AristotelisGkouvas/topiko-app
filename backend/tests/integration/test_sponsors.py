@@ -265,3 +265,49 @@ async def test_a_restricted_club_sponsor_is_off_the_clubs_youth_matches(
     await db.commit()
     youth = (await client.get(url)).json()
     assert [s["name"] for s in youth["home_sponsors"]] == ["Φούρνος"]
+
+
+async def test_a_sponsor_report_opens_only_by_its_own_link(client, world: World, db) -> None:
+    sponsor = await add(client, world, "Φούρνος Λάμπρου", placements="site,share")
+    await sponsorship.bump(db, association_id=world.a.association.id, kind="platform", ids=[sponsor["id"]], field="views")
+    await sponsorship.bump(db, association_id=world.a.association.id, kind="platform", ids=[sponsor["id"]], field="clicks")
+    await db.commit()
+
+    # Only an admin makes the link, and asking twice gives the same one.
+    denied = await client.post(
+        f"{ADMIN}/{sponsor['id']}/report-link", cookies=session_for(world.editor), headers=SAME_SITE
+    )
+    assert denied.status_code == 403
+    first = await client.post(
+        f"{ADMIN}/{sponsor['id']}/report-link", cookies=session_for(world.admin), headers=SAME_SITE
+    )
+    again = await client.post(
+        f"{ADMIN}/{sponsor['id']}/report-link", cookies=session_for(world.admin), headers=SAME_SITE
+    )
+    token = first.json()["token"]
+    assert token == again.json()["token"] and len(token) >= 16
+
+    report = (await client.get(f"/api/v1/alpha/sponsor-report/{token}")).json()
+    assert report["name"] == "Φούρνος Λάμπρου"
+    assert report["kind"] == "platform"
+    assert len(report["months"]) == 12
+    assert report["months"][-1]["views"] == 1 and report["months"][-1]["clicks"] == 1
+    assert (report["views_total"], report["clicks_total"]) == (1, 1)
+
+    # A made-up token, or the right one on the other federation, opens nothing.
+    assert (await client.get("/api/v1/alpha/sponsor-report/xxxxxxxxxxxxxxxxxxxxxxxx")).status_code == 404
+    assert (await client.get(f"/api/v1/beta/sponsor-report/{token}")).status_code == 404
+
+
+async def test_a_club_sponsor_has_a_report_too(client, world: World, db) -> None:
+    db.add(Sponsor(team_id=world.a.home.id, name="Συνεργείο", position=0, is_active=True))
+    await db.commit()
+    sponsor = (await db.execute(select(Sponsor).where(Sponsor.name == "Συνεργείο"))).scalar_one()
+    link = await client.post(
+        f"/api/v1/alpha/editor/teams/{world.a.home.slug}/sponsors/{sponsor.id}/report-link",
+        cookies=session_for(world.admin),
+        headers=SAME_SITE,
+    )
+    assert link.status_code == 200, link.text
+    report = (await client.get(f"/api/v1/alpha/sponsor-report/{link.json()['token']}")).json()
+    assert (report["kind"], report["club_name"]) == ("club", world.a.home.name)

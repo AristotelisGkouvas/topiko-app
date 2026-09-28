@@ -7,6 +7,7 @@ Club sponsors are edited in club_admin.py; they share the counters here.
 
 from __future__ import annotations
 
+import secrets
 import time
 
 from datetime import date
@@ -480,3 +481,133 @@ async def order_platform_sponsors(
         by_id[row_id].position = position
     await db.commit()
     return await _rows(db, association.id)
+
+
+# --- Reports -----------------------------------------------------------------
+
+
+class ReportMonthOut(BaseModel):
+    month: date
+    views: int
+    clicks: int
+
+
+class SponsorReportOut(BaseModel):
+    """What a sponsor sees on their private link: who they are on the site,
+    where, since when, and the months' numbers."""
+
+    name: str
+    logo_url: str | None = None
+    #: "platform" (the whole site) or "club" (one club's pages).
+    kind: str
+    #: The club, for a club sponsor.
+    club_name: str | None = None
+    placements: list[str] = []
+    starts_on: date | None = None
+    ends_on: date | None = None
+    status: str
+    months: list[ReportMonthOut]
+    views_total: int
+    clicks_total: int
+
+
+class ReportLinkOut(BaseModel):
+    token: str
+
+
+def _new_token() -> str:
+    return secrets.token_urlsafe(18)[:24]
+
+
+@router.post(f"{ADMIN}/{{sponsor_id}}/report-link", response_model=ReportLinkOut)
+async def platform_report_link(
+    association: EditableAssociation, _: CurrentAdmin, sponsor_id: int, db: DbSession
+) -> ReportLinkOut:
+    """The sponsor's private report link, made the first time it is asked for."""
+    sponsor = await _one(db, association.id, sponsor_id)
+    if not sponsor.report_token:
+        sponsor.report_token = _new_token()
+        await db.commit()
+    return ReportLinkOut(token=sponsor.report_token)
+
+
+@router.post(
+    "/{association_slug}/editor/teams/{team_slug}/sponsors/{sponsor_id}/report-link",
+    response_model=ReportLinkOut,
+)
+async def club_report_link(
+    association: EditableAssociation,
+    _: CurrentAdmin,
+    team_slug: str,
+    sponsor_id: int,
+    db: DbSession,
+) -> ReportLinkOut:
+    sponsor = (
+        await db.execute(
+            select(Sponsor)
+            .join(Team, Sponsor.team_id == Team.id)
+            .where(
+                Team.association_id == association.id,
+                Team.slug == team_slug,
+                Sponsor.id == sponsor_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if sponsor is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Δεν βρέθηκε χορηγός.")
+    if not sponsor.report_token:
+        sponsor.report_token = _new_token()
+        await db.commit()
+    return ReportLinkOut(token=sponsor.report_token)
+
+
+@router.get("/{association_slug}/sponsor-report/{token}", response_model=SponsorReportOut)
+async def sponsor_report(
+    association: CurrentAssociation, token: str, db: DbSession
+) -> SponsorReportOut:
+    """A sponsor's numbers by their private link. No account: the link is the
+    key, and it opens nothing but this one sponsor's counts."""
+    if len(token) < 16:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Δεν βρέθηκε αναφορά.")
+    platform = (
+        await db.execute(
+            select(PlatformSponsor).where(
+                PlatformSponsor.association_id == association.id,
+                PlatformSponsor.report_token == token,
+            )
+        )
+    ).scalar_one_or_none()
+    club: Sponsor | None = None
+    team: Team | None = None
+    if platform is None:
+        row = (
+            await db.execute(
+                select(Sponsor, Team)
+                .join(Team, Sponsor.team_id == Team.id)
+                .where(Team.association_id == association.id, Sponsor.report_token == token)
+            )
+        ).first()
+        if row is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Δεν βρέθηκε αναφορά.")
+        club, team = row
+    sponsor: PlatformSponsor | Sponsor
+    if platform is not None:
+        sponsor = platform
+    else:
+        assert club is not None
+        sponsor = club
+    kind = "platform" if platform else "club"
+    months = await sp.monthly(db, kind=kind, ref_id=sponsor.id)
+    return SponsorReportOut(
+        name=sponsor.name,
+        logo_url=sponsor.logo_url,
+        kind=kind,
+        club_name=team.name if team else None,
+        placements=list(platform.placements or []) if platform else ["club", "match"],
+        starts_on=sponsor.starts_on,
+        ends_on=sponsor.ends_on,
+        status=sp.status(sponsor, sp.today()),
+        months=[ReportMonthOut(month=m, views=v, clicks=c) for m, v, c in months],
+        views_total=sum(v for _, v, _ in months),
+        clicks_total=sum(c for _, _, c in months),
+    )

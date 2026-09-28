@@ -1,5 +1,6 @@
 import type {
   SitemapLists,
+  SponsorReport,
   Announcement,
   Association,
   Comparison,
@@ -251,6 +252,11 @@ export const api = {
   /** Every played match, pair of clubs that has met, and player with
    *  something on their page: the archive sitemaps. An hour's cache; the
    *  archive grows by a round a week. */
+  /** A sponsor's numbers by their private link. Not cached: the sponsor
+   *  opening it expects today's count. */
+  sponsorReport: (token: string) =>
+    request<SponsorReport>(scoped(`/sponsor-report/${encodeURIComponent(token)}`), { revalidate: 0 }),
+
   sitemapLists: () =>
     request<SitemapLists>(scoped("/sitemap-lists"), { revalidate: 3600 }),
 

@@ -156,6 +156,13 @@ export const editorApi = {
     file?: Blob | null;
   }) => upload<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors`, "POST", fields),
 
+  /** The sponsor's private report link (made on first request). */
+  platformReportLink: (id: number) =>
+    call<{ token: string }>(`${scoped}/editor/platform-sponsors/${id}/report-link`, { method: "POST" }),
+
+  clubReportLink: (slug: string, id: number) =>
+    call<{ token: string }>(`${team(slug)}/sponsors/${id}/report-link`, { method: "POST" }),
+
   savePlatformSponsor: (id: number, edit: PlatformSponsorEdit) =>
     call<PlatformSponsorAdmin[]>(`${scoped}/editor/platform-sponsors/${id}`, {
       method: "PATCH",

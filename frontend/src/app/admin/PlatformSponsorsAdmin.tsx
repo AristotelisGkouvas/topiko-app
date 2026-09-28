@@ -13,6 +13,7 @@ import { SPONSOR_STATUS, dayLabel, daysUntil } from "@/lib/sponsorStatus";
 import type { PlatformSponsorAdmin, SponsorPlacement } from "@/lib/types";
 import { noteAuthError } from "./session";
 import { RESTRICTED, SponsorCategorySelect } from "./SponsorCategory";
+import { ReportLink } from "./ReportLink";
 import styles from "./PlatformSponsorsAdmin.module.css";
 import page from "./page.module.css";
 
@@ -418,6 +419,7 @@ function SponsorCard({
             ))}
           </span>
         )}
+        <ReportLink className={styles.small} make={() => editorApi.platformReportLink(sponsor.id)} />
         <button
           type="button"
           className={styles.small}

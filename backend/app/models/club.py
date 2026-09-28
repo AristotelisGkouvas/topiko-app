@@ -176,5 +176,8 @@ class Sponsor(Base, TimestampMixin):
     category: Mapped[str] = mapped_column(
         String(16), nullable=False, default="general", server_default="general"
     )
+    #: The private link to this sponsor's numbers (/xorigos/<token>): made on
+    #: first request from the dashboard, unguessable, and the only way in.
+    report_token: Mapped[str | None] = mapped_column(String(32), unique=True, index=True)
 
     team: Mapped[Team] = relationship(back_populates="sponsors")

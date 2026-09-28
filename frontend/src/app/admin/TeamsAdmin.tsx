@@ -12,6 +12,7 @@ import { shrink } from "@/lib/shrink";
 import type { SponsorAdmin, Team, TeamLook, TeamPhoto } from "@/lib/types";
 import { noteAuthError } from "./session";
 import { SponsorCategorySelect } from "./SponsorCategory";
+import { ReportLink } from "./ReportLink";
 import styles from "./TeamsAdmin.module.css";
 import ps from "./PlatformSponsorsAdmin.module.css";
 import { SPONSOR_STATUS } from "@/lib/sponsorStatus";
@@ -622,6 +623,7 @@ function SponsorRow({
             Αποθήκευση
           </button>
         )}
+        <ReportLink className={page.save} make={() => editorApi.clubReportLink(slug, sponsor.id)} />
         <button type="button" className={styles.iconButton} disabled={disabled || first} onClick={() => onMove(-1)} aria-label={`Μετακίνηση πιο πάνω: ${sponsor.name}`}>
           ↑
         </button>

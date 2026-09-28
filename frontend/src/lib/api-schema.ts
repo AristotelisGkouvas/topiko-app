@@ -523,6 +523,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/editor/platform-sponsors/{sponsor_id}/report-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Platform Report Link
+         * @description The sponsor's private report link, made the first time it is asked for.
+         */
+        post: operations["platform_report_link_api_v1__association_slug__editor_platform_sponsors__sponsor_id__report_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/editor/scrape-runs": {
         parameters: {
             query?: never;
@@ -695,6 +715,23 @@ export interface paths {
         /** Set Sponsor Logo */
         put: operations["set_sponsor_logo_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__logo_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/editor/teams/{team_slug}/sponsors/{sponsor_id}/report-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Club Report Link */
+        post: operations["club_report_link_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__report_link_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1564,6 +1601,27 @@ export interface paths {
         };
         /** Sitemap Lists */
         get: operations["sitemap_lists_api_v1__association_slug__sitemap_lists_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/sponsor-report/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sponsor Report
+         * @description A sponsor's numbers by their private link. No account: the link is the
+         *     key, and it opens nothing but this one sponsor's counts.
+         */
+        get: operations["sponsor_report_api_v1__association_slug__sponsor_report__token__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3255,6 +3313,23 @@ export interface components {
              */
             total_matches: number;
         };
+        /** ReportLinkOut */
+        ReportLinkOut: {
+            /** Token */
+            token: string;
+        };
+        /** ReportMonthOut */
+        ReportMonthOut: {
+            /** Clicks */
+            clicks: number;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Views */
+            views: number;
+        };
         /** RosterPlayerOut */
         RosterPlayerOut: {
             /**
@@ -3633,6 +3708,38 @@ export interface components {
             name: string;
             /** Website Url */
             website_url: string | null;
+        };
+        /**
+         * SponsorReportOut
+         * @description What a sponsor sees on their private link: who they are on the site,
+         *     where, since when, and the months' numbers.
+         */
+        SponsorReportOut: {
+            /** Clicks Total */
+            clicks_total: number;
+            /** Club Name */
+            club_name: string | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Kind */
+            kind: string;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Months */
+            months: components["schemas"]["ReportMonthOut"][];
+            /** Name */
+            name: string;
+            /**
+             * Placements
+             * @default []
+             */
+            placements: string[];
+            /** Starts On */
+            starts_on: string | null;
+            /** Status */
+            status: string;
+            /** Views Total */
+            views_total: number;
         };
         /** StandingOut */
         StandingOut: {
@@ -5002,6 +5109,39 @@ export interface operations {
             };
         };
     };
+    platform_report_link_api_v1__association_slug__editor_platform_sponsors__sponsor_id__report_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_scrape_runs_api_v1__association_slug__editor_scrape_runs_get: {
         parameters: {
             query?: {
@@ -5493,6 +5633,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TeamLookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    club_report_link_api_v1__association_slug__editor_teams__team_slug__sponsors__sponsor_id__report_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_slug: string;
+                sponsor_id: number;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportLinkOut"];
                 };
             };
             /** @description Validation Error */
@@ -6980,6 +7154,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SitemapListsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sponsor_report_api_v1__association_slug__sponsor_report__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SponsorReportOut"];
                 };
             };
             /** @description Validation Error */

@@ -96,3 +96,36 @@ async def totals(
         )
     ).all()
     return {ref: (int(v), int(c)) for ref, v, c in rows}
+
+
+async def monthly(
+    db: AsyncSession, *, kind: str, ref_id: int, months: int = 12
+) -> list[tuple[date, int, int]]:
+    """(first day of month, views, clicks) for the last `months` months, the
+    current one included, oldest first. Months with nothing are zero rows, so
+    a quiet month shows as quiet rather than vanishing from the report."""
+    first = today().replace(day=1)
+    starts: list[date] = []
+    cursor = first
+    for _ in range(months):
+        starts.append(cursor)
+        cursor = (cursor - timedelta(days=1)).replace(day=1)
+    starts.reverse()
+    month = func.date_trunc("month", SponsorDailyStat.day)
+    rows = (
+        await db.execute(
+            select(
+                month,
+                func.coalesce(func.sum(SponsorDailyStat.views), 0),
+                func.coalesce(func.sum(SponsorDailyStat.clicks), 0),
+            )
+            .where(
+                SponsorDailyStat.kind == kind,
+                SponsorDailyStat.ref_id == ref_id,
+                SponsorDailyStat.day >= starts[0],
+            )
+            .group_by(month)
+        )
+    ).all()
+    found = {m.date() if isinstance(m, datetime) else m: (int(v), int(c)) for m, v, c in rows}
+    return [(m, *found.get(m, (0, 0))) for m in starts]
