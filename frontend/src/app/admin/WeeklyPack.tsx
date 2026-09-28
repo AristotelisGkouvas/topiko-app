@@ -4,7 +4,6 @@ import { useState } from "react";
 import useSWR from "swr";
 
 import { apiUrl, jsonFetcher } from "@/lib/api";
-import { leagueLabel } from "@/lib/leagues";
 import { SITE } from "@/lib/seo";
 import type { League } from "@/lib/types";
 import page from "./page.module.css";
@@ -17,6 +16,10 @@ const CHANNELS: { id: Channel; label: string }[] = [
   { id: "viber", label: "Viber" },
   { id: "instagram", label: "Instagram" },
 ];
+
+/** The division as readers know it. Not imported from lib/leagues, which
+ *  reads cookies and so cannot load in the browser. */
+const leagueLabel = (league: League) => league.short_name ?? league.name;
 
 /** A link to the site that says, in the analytics, which post brought the
  *  reader: the channel as source, "social" as medium, the post as campaign. */
