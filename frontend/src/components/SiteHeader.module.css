@@ -74,7 +74,14 @@
   display: none;
 }
 
-.pill:hover {
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover {
+    color: var(--color-on-navy);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.pill:active {
   color: var(--color-on-navy);
 }
 
@@ -106,7 +113,7 @@
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  box-shadow: 0 24px 60px rgb(0 30 60 / 0.3);
+  box-shadow: var(--shadow-overlay);
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -126,7 +133,14 @@
   text-decoration: none;
 }
 
-.menuItem:hover {
+@media (hover: hover) and (pointer: fine) {
+  .menuItem:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.menuItem:active {
   background: var(--color-grey-100);
 }
 
@@ -169,7 +183,15 @@
   cursor: pointer;
 }
 
-.theme:hover {
+@media (hover: hover) and (pointer: fine) {
+  .theme:hover {
+    color: var(--color-text);
+    border-color: var(--color-grey-400);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.theme:active {
   color: var(--color-text);
   border-color: var(--color-grey-400);
 }
@@ -225,7 +247,14 @@
   white-space: nowrap;
 }
 
-.search:hover {
+@media (hover: hover) and (pointer: fine) {
+  .search:hover {
+    color: var(--color-on-navy);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.search:active {
   color: var(--color-on-navy);
 }
 
@@ -283,7 +312,7 @@
     width: 18px;
     height: 18px;
     border-radius: var(--radius-tag);
-    background: rgb(255 255 255 / 0.14);
+    background: var(--color-on-brand-fill);
     color: var(--color-on-navy-idle);
     font-family: var(--font-display);
     font-weight: 700;
@@ -368,7 +397,14 @@
   min-height: 40px;
 }
 
-.leagueItem:hover {
+@media (hover: hover) and (pointer: fine) {
+  .leagueItem:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.leagueItem:active {
   background: var(--color-grey-100);
 }
 
@@ -391,4 +427,41 @@
   padding: 8px 12px 4px;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+/* The menu grows out of its button (top left, where it hangs from) instead
+   of appearing whole: 150ms, so a mouse never waits for it. Closing is
+   instant; the reader has already moved on. */
+.menu[open] .menuPanel {
+  transform-origin: top left;
+  animation: menuIn 150ms var(--ease-out);
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .menu[open] .menuPanel {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .leagueItem {
+    min-height: 44px;
+  }
 }

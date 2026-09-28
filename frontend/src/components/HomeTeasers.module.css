@@ -17,7 +17,14 @@
   color: var(--color-text);
 }
 
-.card:hover {
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.card:active {
   border-color: var(--color-link-hover);
 }
 

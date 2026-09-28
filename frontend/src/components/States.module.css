@@ -66,3 +66,22 @@
 .skeletonRow:last-child {
   border-bottom: none;
 }
+
+/* The home page's shapes: the club card, and a two-line match row (the
+   height MatchRow draws). */
+.skeletonBlock {
+  height: 112px;
+  background-image: linear-gradient(
+    90deg,
+    var(--color-grey-100) 0%,
+    var(--color-grey-200) 40%,
+    var(--color-grey-100) 80%
+  );
+  background-size: 480px 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeletonMatch {
+  height: 64px;
+}

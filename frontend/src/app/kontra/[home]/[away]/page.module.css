@@ -33,7 +33,14 @@
   overflow-wrap: anywhere;
 }
 
-.side:hover .sideName {
+@media (hover: hover) and (pointer: fine) {
+  .side:hover .sideName {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.side:active .sideName {
   color: var(--color-link-hover);
 }
 
@@ -174,7 +181,14 @@
   text-decoration: none;
 }
 
-.link:hover {
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.link:active {
   color: var(--color-link-hover);
 }
 
@@ -215,6 +229,13 @@
   text-decoration: none;
 }
 
-.onwardLink:hover {
+@media (hover: hover) and (pointer: fine) {
+  .onwardLink:hover {
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.onwardLink:active {
   border-color: var(--color-green-300);
 }

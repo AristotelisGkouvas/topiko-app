@@ -12,6 +12,49 @@ body {
   padding: 0;
 }
 
+/* The phone layer: what separates an installed app from a website in a
+   browser. The browser's own grey/blue box on every tap goes (each control
+   draws its own :active state instead); no font inflation in landscape. */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* No double-tap-zoom wait on anything tappable, so a tap fires at once. */
+a,
+button,
+summary,
+label,
+select,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* A control's label is not content: a long press on a button, a tab or a
+   chip selected the word or opened the copy menu, mostly on the volunteer's
+   sheet, pressed in a hurry. Links keep theirs (they carry names and
+   scores people copy), and so does all page text. */
+button,
+summary,
+[role="button"],
+[role="tab"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* iOS zooms into any field set under 16px and does not zoom back out: the
+   search box was 14px, the volunteer's scorer search 15px. Only where the
+   pointer is a finger, so desktop keeps the design's sizes. Zoom itself is
+   never locked. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 body {
   background: var(--color-canvas);
   color: var(--color-text);
@@ -62,8 +105,10 @@ a {
 /* The kit specifies green-600 on hover. It is 4.3:1 on white, which clears
    AA only for large text — acceptable for a transient state that is always
    accompanied by the pointer, but it is why green never sets resting text. */
-a:hover {
-  color: var(--color-link-hover);
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    color: var(--color-link-hover);
+  }
 }
 
 button {
@@ -94,9 +139,10 @@ table {
 }
 
 :focus-visible {
-  /* Terra on a light ground; navy bars set --focus-ring to the light green,
-     because terra on navy is 2.9:1 and the ring vanishes. */
-  outline: 2px solid var(--focus-ring, var(--color-terra-500));
+  /* --color-focus: navy on a light ground, light green in the dark theme.
+     Navy bars set --focus-ring to the light green, where navy would vanish;
+     high contrast sets it to yellow. */
+  outline: 2px solid var(--focus-ring, var(--color-focus));
   outline-offset: 2px;
   border-radius: 3px;
 }

@@ -66,20 +66,32 @@
   composes: buttonSecondary from "../../styles/primitives.module.css";
 }
 
+/* A segmented control: three equal parts in one outline, as wide as the
+   table under it. */
 .venueTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.history {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .venueTab {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--color-chip-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 8px;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: none;
+  white-space: nowrap;
   color: var(--color-heading);
   font-family: var(--font-display);
   font-weight: 600;
@@ -91,4 +103,11 @@
   background: var(--color-navy-900);
   border-color: var(--color-navy-900);
   color: var(--color-on-navy);
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .venueTab {
+    min-height: 44px;
+  }
 }

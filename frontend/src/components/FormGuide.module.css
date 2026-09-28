@@ -31,36 +31,3 @@
 .mark .loss {
   background: var(--color-form-loss);
 }
-
-/* --- letter: a club's own page --------------------------------------- */
-
-.letter {
-  gap: 4px;
-}
-
-.letter .item {
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: var(--text-2xs);
-  line-height: 1;
-}
-
-.letter .win {
-  background: var(--color-win-surface);
-  color: var(--color-win-ink);
-}
-
-.letter .draw {
-  background: var(--color-form-draw-surface);
-  color: var(--color-highlight-ink);
-}
-
-.letter .loss {
-  background: var(--color-loss-surface);
-  color: var(--color-loss-ink);
-}

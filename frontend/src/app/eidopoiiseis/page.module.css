@@ -104,7 +104,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-plate);
   transition: transform 0.15s ease;
 }
 
@@ -139,6 +139,13 @@
   text-decoration: none;
 }
 
-.footnote a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .footnote a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.footnote a:active {
   text-decoration: underline;
 }

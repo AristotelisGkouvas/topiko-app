@@ -1,52 +1,14 @@
+/* Primary until pressed, then quiet: the star filled, the word changed. */
 .button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  /* 44px: the kit's hit target, and the smallest thing a thumb finds. */
-  min-height: 44px;
-  padding: 0 16px 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-base);
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color 120ms ease, border-color 120ms ease;
+  composes: buttonPrimary from "../styles/primitives.module.css";
 }
 
-.star {
-  font-size: 1.25rem;
-}
-
-.text {
-  color: var(--color-heading);
-}
-
-.on .text {
+.button.on {
+  background: var(--color-highlight-surface);
+  border-color: var(--color-star);
   color: var(--color-highlight-ink);
 }
 
-.button:hover {
+.button.on svg {
   color: var(--color-star);
-  border-color: var(--color-star);
-}
-
-/* Focus: the site-wide ring from globals.css. A navy-700 ring here was
-   1.9:1 on the dark theme's surface. */
-
-.on {
-  color: var(--color-star);
-  border-color: var(--color-star);
-  background: var(--color-highlight-surface);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
-  }
 }

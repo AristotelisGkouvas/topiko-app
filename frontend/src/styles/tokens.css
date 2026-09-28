@@ -109,10 +109,47 @@
      13–14px buttons use; green-700 is 5.2:1 and still reads as the brand. */
   --color-action: var(--color-green-700);
   --color-action-ink: var(--color-grey-50);
-  /* The club monogram disc. Same reasoning: white initials on green-600
-     are 4.3:1. */
-  --color-crest-surface: var(--color-green-700);
-  --color-crest-ink: var(--color-grey-50);
+  /* The club monogram disc, for a club with neither a logo nor a colour.
+     Neutral, not green: green is the colour of "press here", and a list of
+     twelve green discs made every row look like a button and every club look
+     the same. A club's own colour or uploaded logo (set in /admin) replaces
+     it. Navy on this grey is 9.6:1. */
+  --color-crest-surface: #e3e7ec;
+  --color-crest-ink: var(--color-navy-900);
+  /* The keyboard focus ring. Navy, not terra: terra means LIVE, ΝΕΟ and
+     urgent, and a terra ring made a focused close button look like an
+     error. 11:1 on white. */
+  --color-focus: var(--color-navy-900);
+
+  /* --- Fixed surfaces -----------------------------------------------
+     Colours that stay the same in every theme on purpose, named so they are
+     not mistaken for forgotten literals.
+     on-brand: text, rules and fills drawn on the grass, the navy bars and
+     photos, where white is the design in both themes.
+     plate: the white card under an uploaded logo, a map pin, a switch knob;
+     logos are drawn for white, so the plate stays white in the dark theme. */
+  --color-on-brand: #fff;
+  --color-on-brand-hairline: rgb(255 255 255 / 0.15);
+  --color-on-brand-line: rgb(255 255 255 / 0.28);
+  --color-on-brand-line-strong: rgb(255 255 255 / 0.5);
+  --color-on-brand-fill: rgb(255 255 255 / 0.14);
+  --color-on-brand-fill-strong: rgb(255 255 255 / 0.26);
+  --color-plate: #fff;
+  --color-plate-ink: #1a2b3c;
+  --color-plate-edge: rgb(0 0 0 / 0.08);
+
+  /* What sits behind a dialog, a sheet or a photo. */
+  --color-scrim: rgb(0 20 40 / 0.55);
+  --color-scrim-soft: rgb(0 30 60 / 0.45);
+  --color-scrim-photo: rgb(0 0 0 / 0.92);
+  --color-scrim-photo-soft: rgb(0 0 0 / 0.6);
+
+  /* Elevation for things that float over the page. */
+  --shadow-overlay: 0 24px 60px rgb(0 30 60 / 0.3);
+  --shadow-dialog: 0 20px 50px rgb(0 0 0 / 0.3);
+  --shadow-sheet: 0 -18px 50px rgb(0 30 60 / 0.25);
+  --shadow-pin: 0 1px 4px rgb(0 0 0 / 0.35);
+  --shadow-on-brand-text: 0 0.02em 0.05em rgb(0 0 0 / 0.3);
 
   /* --- Loss, softer -------------------------------------------------
      loss-surface is a solid pill fill. These are the quiet versions:
@@ -202,6 +239,16 @@
   /* Chips, segmented tabs, round buttons. */
   --radius-pill: 999px;
 
+  /* --- Motion -------------------------------------------------------
+     Three curves and nothing else, so everything that moves moves alike.
+     ease-out for anything the reader caused (a press, a panel opening): it
+     starts fast, which reads as instant. ease-drawer for sheets that come
+     from an edge. Durations stay under 300ms for UI; the reduced-motion
+     block at the end of this file flattens all of it. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
   /* --- Space --------------------------------------------------------
      The kit's spacing scale (design handoff, --ps-s1…s7). The primitives
      use it; module paddings still hold px values and move over as they are
@@ -257,6 +304,9 @@
   }
 }
 
+/* Less motion asked for: everything is flattened here. The few changes that
+   carry information (a goal's flash, a press, a panel or dialog arriving)
+   opt back in, in their own modules, as short fades with nothing moving. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -288,6 +338,9 @@
     /* One step up from surface, for rows and chips that sit on a card. */
     --color-surface-raised: #1a2e47;
     --color-border: #1f3550;
+    --color-crest-surface: #2a4262;
+    --color-crest-ink: #e4e8ec;
+    --color-focus: var(--color-green-400);
 
     --color-text: #e4e8ec;
     --color-text-muted: #93a3b5;
@@ -346,6 +399,9 @@
   --color-surface: #13243a;
   --color-surface-raised: #1a2e47;
   --color-border: #1f3550;
+  --color-crest-surface: #2a4262;
+  --color-crest-ink: #e4e8ec;
+  --color-focus: var(--color-green-400);
 
   --color-text: #e4e8ec;
   --color-text-muted: #93a3b5;

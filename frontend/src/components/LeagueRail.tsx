@@ -45,10 +45,36 @@ export function LeagueRail({
 
       {matchday !== null && (
         <>
-          <p className={styles.label}>ΑΓΩΝΙΣΤΙΚΗ</p>
-          <p className={styles.matchday}>
-            {matchday}η{totalMatchdays ? ` από ${totalMatchdays}` : ""}
-          </p>
+          <p className={styles.label} id="rail-matchday">ΑΓΩΝΙΣΤΙΚΗ</p>
+          {/* It looked like a control and was a caption. Now it is one: the
+              home page's middle column shows the round picked here. */}
+          <nav className={styles.stepper} aria-labelledby="rail-matchday">
+            {matchday > 1 ? (
+              <Link
+                href={`/?liga=${active}&agonistiki=${matchday - 1}`}
+                className={styles.step}
+                aria-label={`${matchday - 1}η αγωνιστική`}
+              >
+                ‹
+              </Link>
+            ) : (
+              <span className={`${styles.step} ${styles.stepOff}`} aria-hidden="true">‹</span>
+            )}
+            <span className={styles.matchday} aria-current="page">
+              {matchday}η{totalMatchdays ? ` από ${totalMatchdays}` : ""}
+            </span>
+            {totalMatchdays === null || matchday < totalMatchdays ? (
+              <Link
+                href={`/?liga=${active}&agonistiki=${matchday + 1}`}
+                className={styles.step}
+                aria-label={`${matchday + 1}η αγωνιστική`}
+              >
+                ›
+              </Link>
+            ) : (
+              <span className={`${styles.step} ${styles.stepOff}`} aria-hidden="true">›</span>
+            )}
+          </nav>
         </>
       )}
 

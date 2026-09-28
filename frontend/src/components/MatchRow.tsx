@@ -3,9 +3,10 @@
 import Link from "next/link";
 
 import { Crest } from "@/components/Crest";
+import { ScoreFlash } from "@/components/ScoreFlash";
 import { useFavourite, useHydrated } from "@/lib/favourite";
 
-import { formatKickoff, formatTime, isDecided, listName, matchStatusLabel } from "@/lib/format";
+import { formatKickoff, formatShortKickoff, formatTime, isDecided, listName, matchStatusLabel } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchRow.module.css";
 
@@ -22,16 +23,20 @@ import styles from "./MatchRow.module.css";
  *
  *  `showDate` is for lists that span weeks — a club's fixtures, a volunteer's
  *  matches — where "16:00" alone does not say which Sunday. It adds a third
- *  line with the day and the ground.
+ *  line with the day and the ground. `showDay` is the lighter version for a
+ *  single round that spans a weekend, the home page's: "Σάβ 17:00" in the
+ *  time chip instead of "17:00".
  */
 export function MatchRow({
   match,
   last = false,
   showDate = false,
+  showDay = false,
 }: {
   match: Match;
   last?: boolean;
   showDate?: boolean;
+  showDay?: boolean;
 }) {
   // The reader's own club stands out in every list, not just the home page.
   const { following } = useFavourite();
@@ -49,7 +54,7 @@ export function MatchRow({
   return (
     <Link
       href={`/agones/${match.id}`}
-      className={`${styles.row} ${last ? styles.rowLast : ""} ${match.is_live ? styles.rowLive : ""} ${mine ? styles.rowMine : ""}`}
+      className={`${styles.row} ${last ? styles.rowLast : ""} ${match.is_live ? styles.rowLive : ""} ${!played ? (showDay ? styles.rowDayTimed : styles.rowTimed) : ""} ${mine ? styles.rowMine : ""}`}
     >
       <Side
         team={match.home_team}
@@ -74,7 +79,7 @@ export function MatchRow({
             // showing "21:00" as if it were still to come.
             const state = matchStatusLabel(match.status, match.kickoff_at);
             return match.status === "scheduled" && state !== "ΧΩΡΙΣ ΑΠΟΤΕΛΕΣΜΑ"
-              ? formatTime(match.kickoff_at) || "—"
+              ? (showDay ? formatShortKickoff(match.kickoff_at) : formatTime(match.kickoff_at)) || "—"
               : state;
           })()}
         </span>
@@ -113,7 +118,11 @@ function Side({
     >
       <Crest team={team} size="xs" />
       <span className={styles.name}>{listName(team)}</span>
-      {score !== null && <span className={styles.score}>{score}</span>}
+      {score !== null && (
+        <span className={styles.score}>
+          <ScoreFlash value={score} />
+        </span>
+      )}
     </span>
   );
 }

@@ -37,7 +37,14 @@
   border-bottom: none;
 }
 
-.row:hover {
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.row:active {
   background: var(--color-grey-100);
 }
 
@@ -78,21 +85,50 @@
   line-height: 1;
 }
 
-.theme {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text-muted);
-  font-size: var(--text-body);
-  cursor: pointer;
+
+
+
+/* The theme row: the three choices move under the label when the row is
+   too narrow for both, rather than squeezing the words. */
+.rowWrap {
+  flex-wrap: wrap;
 }
 
-.theme:hover {
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  /* Its own line on a phone, under the label; beside it where it fits. */
+  flex: 1 1 100%;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.segmented button {
+  min-height: 40px;
+  padding: 0 6px;
+  border-radius: calc(var(--radius-md) - 2px);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
   color: var(--color-text);
-  border-color: var(--color-grey-400);
+  white-space: nowrap;
+}
+
+.segmented button[aria-checked="true"] {
+  background: var(--color-navy-900);
+  color: var(--color-on-navy);
+}
+
+@media (min-width: 520px) {
+  .segmented {
+    flex: 0 0 260px;
+  }
+}
+
+@media (pointer: coarse) {
+  .segmented button {
+    min-height: 44px;
+  }
 }

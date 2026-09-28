@@ -10,6 +10,10 @@
   /* A chip running off the edge fades out rather than being sliced through
      mid-word, which also says "there is more this way". */
   mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+  /* A flick that reaches the end stops here instead of carrying on into the
+     page, where Android reads it as "back"; chips settle on an edge. */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
 }
 
 .chips::-webkit-scrollbar {
@@ -35,7 +39,14 @@
   box-sizing: border-box;
 }
 
-.chip:hover {
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    border-color: var(--color-grey-400);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.chip:active {
   border-color: var(--color-grey-400);
 }
 
@@ -44,4 +55,15 @@
   border-color: var(--color-navy-900);
   color: var(--color-grey-50);
   font-weight: 700;
+}
+
+.chip {
+  scroll-snap-align: start;
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .chip {
+    min-height: 44px;
+  }
 }

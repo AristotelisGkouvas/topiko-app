@@ -6,6 +6,9 @@
   overflow: hidden;
   /* The table scrolls sideways on a narrow phone; the page never does. */
   overflow-x: auto;
+  /* A sideways flick that reaches the end stops here instead of carrying on
+     into the page, where Android reads it as "back". */
+  overscroll-behavior-x: contain;
 }
 
 .table {
@@ -54,7 +57,14 @@
   border-bottom: none;
 }
 
-.table tbody tr:hover {
+@media (hover: hover) and (pointer: fine) {
+  .table tbody tr:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.table tbody tr:active {
   background: var(--color-grey-100);
 }
 
@@ -114,8 +124,16 @@
   white-space: nowrap;
 }
 
-.teamName:hover,
-.playerName:hover {
+@media (hover: hover) and (pointer: fine) {
+  .teamName:hover,
+  .playerName:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.teamName:active,
+.playerName:active {
   color: var(--color-link-hover);
 }
 

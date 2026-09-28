@@ -4,8 +4,8 @@ import type { CrestSubject } from "@/lib/types";
 import styles from "./Crest.module.css";
 
 /** A club's badge: its logo when the federation has uploaded one, otherwise
- *  the monogram on a disc — in the club's own colour when it has one, in the
- *  site's green when it does not. Same box either way, so nothing around it
+ *  the monogram on a disc — in the club's own colour when it has one, in a
+ *  neutral grey when it does not. Same box either way, so nothing around it
  *  moves when a logo arrives. */
 export function Crest({
   team,

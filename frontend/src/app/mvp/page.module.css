@@ -47,7 +47,14 @@
   cursor: pointer;
 }
 
-.candidate:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) {
+  .candidate:hover:not(:disabled) {
+    border-color: var(--color-grey-400);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.candidate:active:not(:disabled) {
   border-color: var(--color-grey-400);
 }
 
@@ -89,7 +96,7 @@
   font-family: var(--font-display);
   font-weight: 800;
   font-size: var(--text-sm);
-  color: #fff;
+  color: var(--color-on-navy);
   user-select: none;
 }
 
@@ -183,6 +190,13 @@
   text-decoration: none;
 }
 
-.small a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .small a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.small a:active {
   text-decoration: underline;
 }

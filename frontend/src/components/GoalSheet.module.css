@@ -5,7 +5,7 @@
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgb(0 30 60 / 0.45);
+  background: var(--color-scrim-soft);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -21,7 +21,7 @@
   padding: 10px 16px calc(18px + env(safe-area-inset-bottom));
   background: var(--color-surface);
   border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
-  box-shadow: 0 -18px 50px rgb(0 30 60 / 0.25);
+  box-shadow: var(--shadow-sheet);
 }
 
 @media (min-width: 640px) {
@@ -86,7 +86,14 @@
   cursor: pointer;
 }
 
-.quickButton:hover {
+@media (hover: hover) and (pointer: fine) {
+  .quickButton:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.quickButton:active {
   background: var(--color-grey-100);
 }
 
@@ -135,7 +142,14 @@
   border-bottom: none;
 }
 
-.player:hover {
+@media (hover: hover) and (pointer: fine) {
+  .player:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.player:active {
   background: var(--color-grey-100);
 }
 
@@ -184,7 +198,15 @@
   cursor: pointer;
 }
 
-.cancel:hover {
+@media (hover: hover) and (pointer: fine) {
+  .cancel:hover {
+    background: var(--color-grey-100);
+    color: var(--color-text);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.cancel:active {
   background: var(--color-grey-100);
   color: var(--color-text);
 }
@@ -198,4 +220,59 @@
 .quickButton:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* It comes up from the edge the thumb is at, which is what makes it read as
+   a sheet over the match rather than a new page. 250ms on the drawer curve:
+   fast out of the gate, so the volunteer is never waiting on it. Closing is
+   instant, for the same reason. */
+.backdrop {
+  animation: backdropIn 200ms var(--ease-out);
+}
+
+.sheet {
+  animation: sheetUp 250ms var(--ease-drawer);
+}
+
+@media (min-width: 640px) {
+  /* Centred on a wide screen, so it scales in instead of rising. */
+  .sheet {
+    animation-name: sheetIn;
+    animation-duration: 200ms;
+  }
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .sheet {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
 }

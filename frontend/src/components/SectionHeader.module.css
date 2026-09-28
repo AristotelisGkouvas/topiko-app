@@ -39,6 +39,13 @@
   text-decoration: none;
 }
 
-.action:hover {
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.action:active {
   text-decoration: underline;
 }

@@ -67,7 +67,14 @@
   overflow-wrap: anywhere;
 }
 
-.player:hover {
+@media (hover: hover) and (pointer: fine) {
+  .player:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.player:active {
   color: var(--color-link-hover);
 }
 
@@ -84,7 +91,14 @@
   text-decoration: none;
 }
 
-.team:hover {
+@media (hover: hover) and (pointer: fine) {
+  .team:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.team:active {
   color: var(--color-link-hover);
 }
 

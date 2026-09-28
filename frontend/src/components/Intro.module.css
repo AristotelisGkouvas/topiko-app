@@ -10,7 +10,7 @@
   overflow: hidden;
   cursor: pointer;
   background: var(--color-green-600);
-  color: #fff;
+  color: var(--color-on-brand);
   font-family: var(--font-display);
   animation: out 0.4s ease-in 2.4s both;
 }
@@ -25,6 +25,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+  }
+}
+
+/* A splash screen belongs to an app being launched. In a browser tab, most
+   often opened from a link on Facebook or Viber, it was 2.8 seconds between
+   the reader and the score, followed by a dialog. So it plays only when the
+   installed app starts. */
+@media not all and (display-mode: standalone) {
   .intro {
     display: none;
   }
@@ -80,7 +90,7 @@
 .rule {
   flex: 1;
   height: max(2px, 0.032em);
-  background: #fff;
+  background: var(--color-on-brand);
   animation: draw 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 0.72s both;
 }
 
@@ -101,7 +111,7 @@
   border-radius: 50%;
   background: url("/brand/ball.webp") -0.082em -0.066em / 0.404em 0.404em
     no-repeat;
-  box-shadow: 0 0.02em 0.05em rgb(0 0 0 / 0.3);
+  box-shadow: var(--shadow-on-brand-text);
   animation: roll 0.75s cubic-bezier(0.15, 0.7, 0.25, 1) 0.05s both;
 }
 

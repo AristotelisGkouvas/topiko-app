@@ -15,7 +15,14 @@
   text-decoration: none;
 }
 
-a.card:hover {
+@media (hover: hover) and (pointer: fine) {
+  a.card:hover {
+    border-color: var(--color-green-300);
+  }
+}
+
+/* Touch: the same look while pressed. */
+a.card:active {
   border-color: var(--color-green-300);
 }
 
@@ -31,7 +38,7 @@ a.card:hover {
   box-sizing: border-box;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 10px);
-  background: #fff;
+  background: var(--color-plate);
   overflow: hidden;
 }
 
@@ -51,7 +58,7 @@ a.card:hover {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: var(--text-base);
-  color: #1a2b3c;
+  color: var(--color-plate-ink);
   text-align: center;
 }
 

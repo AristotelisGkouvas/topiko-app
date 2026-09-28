@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { Crest } from "./Crest";
+import { ScoreFlash } from "./ScoreFlash";
 import {
   formatDayDate,
-  formatShortKickoff,
   formatTime,
   formatWeekday,
   isDecided,
@@ -12,9 +12,6 @@ import {
 } from "@/lib/format";
 import type { Match } from "@/lib/types";
 import styles from "./MatchCard.module.css";
-
-const isPlayed = (m: Match) =>
-  m.home_score !== null && m.away_score !== null;
 
 /** The chip in the card header. Its wording carries the date for anything that
  *  is not currently running, because that is the first thing a reader checks. */
@@ -62,7 +59,7 @@ function TeamRow({
       <Link href={`/somateia/${team.slug}`} className={styles.teamName}>
         {listName(team)}
       </Link>
-      <span className={styles.score}>{score ?? "–"}</span>
+      <span className={styles.score}>{score === null ? "–" : <ScoreFlash value={score} />}</span>
     </div>
   );
 }
@@ -148,34 +145,5 @@ export function MatchCard({ match }: { match: Match }) {
         </Link>
       </footer>
     </article>
-  );
-}
-
-/** One line per fixture — the compact form used in "Επόμενη αγωνιστική".
- *
- *  The whole line links to the match. On the right: the score once there is
- *  one, LIVE while it is being played, the kickoff otherwise. */
-export function FixtureRow({ match }: { match: Match }) {
-  const scored = isPlayed(match);
-  return (
-    <li>
-      <Link href={`/agones/${match.id}`} className={styles.fixtureRow}>
-        <span className={styles.fixtureRowTeams}>
-          {listName(match.home_team)} — {listName(match.away_team)}
-        </span>
-        {match.is_live && (
-          <span className={styles.fixtureRowLive}>LIVE</span>
-        )}
-        <span
-          className={scored ? styles.fixtureRowScore : styles.fixtureRowTime}
-        >
-          {scored
-            ? `${match.home_score}–${match.away_score}`
-            : match.status === "scheduled"
-              ? formatShortKickoff(match.kickoff_at)
-              : matchStatusLabel(match.status, match.kickoff_at)}
-        </span>
-      </Link>
-    </li>
   );
 }

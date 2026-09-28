@@ -21,7 +21,15 @@
   color: var(--color-heading);
 }
 
-.card:hover {
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: var(--color-green-300);
+    color: var(--color-heading);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.card:active {
   border-color: var(--color-green-300);
   color: var(--color-heading);
 }

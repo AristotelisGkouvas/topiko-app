@@ -7,14 +7,14 @@ import useSWR from "swr";
 
 import { apiFetch, apiUrl, jsonFetcher } from "@/lib/api";
 import { useFavourite, useHydrated } from "@/lib/favourite";
-import { useWelcomed } from "@/lib/onboarding";
+import { dismissInvite, useInviteDismissed } from "@/lib/onboarding";
 import { rememberLeague, rememberedLeagueInBrowser } from "@/lib/leagueCookie";
 import { formatDayDate, formatKickoff, plural } from "@/lib/format";
-import type { Match, TeamStanding } from "@/lib/types";
+import type { Match, TeamRef, TeamStanding } from "@/lib/types";
 import { Crest } from "./Crest";
+import { ScoreFlash } from "./ScoreFlash";
 import styles from "./MyClub.module.css";
 import { pollEvery } from "@/lib/network";
-import { Icon } from "@/components/Icon";
 
 interface ClubForm {
   live?: Match;
@@ -57,10 +57,21 @@ const fetchForm = async (url: string): Promise<ClubForm> => {
  *  idea who is asking, and a personalised panel rendered on the server would
  *  either need an account or poison the cache for everyone else.
  */
-export function MyClub() {
-  const { favourite } = useFavourite();
+export function MyClub({
+  clubs = [],
+  leagueName,
+}: {
+  /** The clubs of the division on screen, offered when nobody is followed. */
+  clubs?: TeamRef[];
+  leagueName?: string;
+}) {
+  const { favourite, toggle } = useFavourite();
   const hydrated = useHydrated();
-  const welcomed = useWelcomed();
+  const dismissed = useInviteDismissed();
+  // Set when a club is picked from the invitation on this page, so the club
+  // card that replaces it fades in. Only then: on an ordinary visit the card
+  // is simply there, every day, and must not animate.
+  const [justPicked, setJustPicked] = useState(false);
 
   const { data } = useSWR<ClubForm>(
     favourite ? apiUrl(`/teams/${favourite.slug}/matches`) : null,
@@ -116,25 +127,19 @@ export function MyClub() {
   // people who already follow somebody.
   if (!hydrated) return null;
 
-  // The welcome card above asks the same question; two "pick your club"
-  // boxes one under the other read as a glitch. It wins until dismissed.
-  if (!favourite && !welcomed) return null;
-
   if (!favourite) {
+    // "Όχι τώρα" is an answer, and it holds: the question does not come back
+    // on every visit to somebody who follows no single club.
+    if (dismissed) return null;
     return (
-      <section className={styles.invite}>
-        <p className={styles.inviteText}>
-          Διάλεξε την ομάδα σου με το{" "}
-          <span className={styles.inlineIcon} aria-hidden="true">
-            <Icon name="star" size={14} />
-          </span>{" "}
-          στη
-          σελίδα του σωματείου, και θα σε περιμένει εδώ.
-        </p>
-        <Link href="/somateia" className={styles.inviteLink}>
-          Δες τα σωματεία →
-        </Link>
-      </section>
+      <ClubInvite
+        clubs={clubs}
+        leagueName={leagueName}
+        onPick={(team) => {
+          setJustPicked(true);
+          toggle({ slug: team.slug, name: team.name });
+        }}
+      />
     );
   }
 
@@ -171,7 +176,7 @@ export function MyClub() {
     .join(". ");
 
   return (
-    <section className={styles.wrap}>
+    <section className={`${styles.wrap} ${justPicked ? styles.arrive : ""}`}>
       <p className="srOnly">{summary}.</p>
       <p className="srOnly" role="alert" aria-live="assertive">
         {goalNews}
@@ -207,9 +212,13 @@ export function MyClub() {
           <div className={styles.fixture}>
             <Side team={shown.home_team} />
             <span className={styles.vs}>
-              {shown.home_score !== null && shown.away_score !== null
-                ? `${shown.home_score}–${shown.away_score}`
-                : "vs"}
+              {shown.home_score !== null && shown.away_score !== null ? (
+                <>
+                  <ScoreFlash value={shown.home_score} />–<ScoreFlash value={shown.away_score} />
+                </>
+              ) : (
+                "vs"
+              )}
             </span>
             <Side team={shown.away_team} />
           </div>
@@ -252,5 +261,54 @@ function Side({ team }: { team: Match["home_team"] }) {
       </span>
       <span className={styles.sideName}>{team.short_name ?? team.name}</span>
     </span>
+  );
+}
+
+/** No club followed yet: the division's clubs, one tap each.
+ *
+ *  It used to say "pick your club with the star on the club's page" and link
+ *  to the list of clubs: three taps and a search for what most readers can do
+ *  from here. Picking writes to the same store as that star, so the card
+ *  turns into the reader's club card the moment one is pressed. */
+function ClubInvite({
+  clubs,
+  leagueName,
+  onPick,
+}: {
+  clubs: TeamRef[];
+  leagueName?: string;
+  onPick: (team: TeamRef) => void;
+}) {
+  return (
+    <section className={styles.invite} aria-labelledby="invite-title">
+      <div className={styles.inviteHead}>
+        <h2 id="invite-title" className={styles.inviteTitle}>
+          Ποια είναι η ομάδα σου;
+        </h2>
+        <p className={styles.inviteText}>
+          Θα τη βλέπεις πρώτη εδώ: επόμενος αγώνας, θέση, αποτελέσματα.
+        </p>
+      </div>
+      {clubs.length > 0 && (
+        <ul className={styles.inviteClubs} aria-label={leagueName ? `Σωματεία ${leagueName}` : "Σωματεία"}>
+          {clubs.map((team) => (
+            <li key={team.slug}>
+              <button type="button" className={styles.inviteClub} onClick={() => onPick(team)}>
+                <Crest team={team} size="xs" />
+                <span className={styles.inviteClubName}>{team.name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className={styles.inviteFoot}>
+        <Link href="/somateia" className={styles.inviteLink}>
+          Άλλη κατηγορία ›
+        </Link>
+        <button type="button" className={styles.inviteLater} onClick={dismissInvite}>
+          Όχι τώρα
+        </button>
+      </div>
+    </section>
   );
 }

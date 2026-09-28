@@ -14,7 +14,14 @@
   text-decoration: none;
 }
 
-.row:hover {
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.row:active {
   background: var(--color-grey-100);
 }
 
@@ -71,7 +78,15 @@
   text-decoration: none;
 }
 
-.all:hover {
+@media (hover: hover) and (pointer: fine) {
+  .all:hover {
+    background: var(--color-grey-100);
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.all:active {
   background: var(--color-grey-100);
   text-decoration: underline;
 }

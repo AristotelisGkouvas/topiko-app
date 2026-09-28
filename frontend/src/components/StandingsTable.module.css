@@ -156,7 +156,14 @@
   line-height: 1.2;
 }
 
-.teamLink:hover .teamName {
+@media (hover: hover) and (pointer: fine) {
+  .teamLink:hover .teamName {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.teamLink:active .teamName {
   text-decoration: underline;
 }
 
@@ -309,7 +316,14 @@
   white-space: nowrap;
 }
 
-.sortButton:hover {
+@media (hover: hover) and (pointer: fine) {
+  .sortButton:hover {
+    color: var(--color-heading);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.sortButton:active {
   color: var(--color-heading);
 }
 

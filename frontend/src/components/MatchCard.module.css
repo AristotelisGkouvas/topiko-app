@@ -97,7 +97,14 @@
   white-space: nowrap;
 }
 
-.teamName:hover {
+@media (hover: hover) and (pointer: fine) {
+  .teamName:hover {
+    color: var(--color-terra-700);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.teamName:active {
   color: var(--color-terra-700);
 }
 
@@ -204,52 +211,13 @@
   font-weight: 600;
 }
 
-.detail:hover {
+@media (hover: hover) and (pointer: fine) {
+  .detail:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.detail:active {
   color: var(--color-link-hover);
-}
-
-.fixtureRow {
-  display: flex;
-  gap: 12px;
-  min-height: 44px;
-  align-items: center;
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--color-border);
-  text-decoration: none;
-}
-
-li:last-child > .fixtureRow {
-  border-bottom: none;
-}
-
-.fixtureRow:hover .fixtureRowTeams {
-  text-decoration: underline;
-}
-
-.fixtureRowTeams {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--text-base);
-  color: var(--color-heading);
-}
-
-.fixtureRowTime {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.fixtureRowScore {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: var(--text-body);
-  color: var(--color-heading);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.fixtureRowLive {
-  composes: tagLive from "../styles/primitives.module.css";
 }

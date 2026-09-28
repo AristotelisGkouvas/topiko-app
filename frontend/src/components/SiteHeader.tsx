@@ -65,6 +65,9 @@ export function SiteHeader({
 
   // Embedded in another site's iframe: no chrome around the table.
   if (pathname.startsWith("/embed")) return null;
+  // The welcome draws the mark itself, full screen; a header above it put two
+  // logos one under the other. Each step has its own way back or out.
+  if (pathname.startsWith("/kalosorisma")) return null;
 
   return (
     <header className={styles.header}>

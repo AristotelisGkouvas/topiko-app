@@ -88,6 +88,9 @@ export const viewport: Viewport = {
   // nav's inset padding did nothing: in the installed app the tabs sat on the
   // home indicator.
   viewportFit: "cover",
+  // Android's keyboard shrinks the page instead of covering it, as iOS
+  // already does: the volunteer typing a minute still sees the buttons.
+  interactiveWidget: "resizes-content",
 };
 
 export default async function RootLayout({

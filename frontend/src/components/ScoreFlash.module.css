@@ -1,0 +1,35 @@
+/* The live colour behind the digits, fading out: behind, not over, so the
+   new number is readable from the first frame. Opacity only. */
+.flash {
+  position: relative;
+  isolation: isolate;
+}
+
+.flash::after {
+  content: "";
+  position: absolute;
+  inset: -2px -5px;
+  z-index: -1;
+  border-radius: var(--radius-sm);
+  background: var(--color-live);
+  opacity: 0;
+  pointer-events: none;
+  animation: scoreFlash 600ms var(--ease-out);
+}
+
+@keyframes scoreFlash {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Less motion asked for: the flash is information (a goal), not decoration,
+   so it stays, as a slightly longer fade with nothing moving. */
+@media (prefers-reduced-motion: reduce) {
+  .flash::after {
+    animation-duration: 800ms !important;
+  }
+}

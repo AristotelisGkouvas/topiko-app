@@ -6,11 +6,11 @@
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: 0 20px 50px rgb(0 0 0 / 0.3);
+  box-shadow: var(--shadow-dialog);
 }
 
 .dialog::backdrop {
-  background: rgb(0 20 40 / 0.55);
+  background: var(--color-scrim);
 }
 
 .question {
@@ -48,5 +48,44 @@
   composes: button from "../styles/primitives.module.css";
   background: var(--color-loss);
   border-color: var(--color-loss);
-  color: #fff;
+  color: var(--color-loss-ink);
+}
+
+/* In the centre, so no origin to grow from: a short fade and a slight rise
+   in scale, never from scale(0). */
+.dialog[open] {
+  animation: dialogIn 200ms var(--ease-out);
+}
+
+.dialog[open]::backdrop {
+  animation: backdropIn 200ms var(--ease-out);
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open],
+  .dialog[open]::backdrop {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
 }

@@ -31,7 +31,19 @@ type State = "idle" | "working" | "on" | "denied" | "unsupported";
  *  is refused by most people and cannot be asked again, so the one chance is
  *  spent on somebody who has just said they want it.
  */
-export function NotifyButton({ slug, name }: { slug: string; name: string }) {
+export function NotifyButton({
+  slug,
+  name,
+  compact = false,
+  buttonClassName,
+}: {
+  slug: string;
+  name: string;
+  /** One word, for a row of equal buttons (the club page). The notes still
+   *  appear, under the row. */
+  compact?: boolean;
+  buttonClassName?: string;
+}) {
   const { data: config } = useSWR<PushConfig>(
     apiUrl("/push/config"),
     jsonFetcher<PushConfig>,
@@ -86,8 +98,13 @@ export function NotifyButton({ slug, name }: { slug: string; name: string }) {
   if (state === "unsupported") return null;
 
   return (
-    <div className={styles.box}>
-      {state === "on" ? (
+    <div className={compact ? styles.compact : styles.box}>
+      {state === "on" && compact ? (
+        <span className={`${buttonClassName ?? styles.button} ${styles.on}`} role="status">
+          <Icon name="bell" size={16} />
+          Ενεργές
+        </span>
+      ) : state === "on" ? (
         <p className={styles.done}>
           ✓ Θα ειδοποιείσαι για τα γκολ του {name}.
         </p>
@@ -95,16 +112,17 @@ export function NotifyButton({ slug, name }: { slug: string; name: string }) {
         <>
           <button
             type="button"
-            className={styles.button}
+            className={buttonClassName ?? styles.button}
             disabled={state === "working"}
             onClick={enable}
+            aria-label={compact ? `Ειδοποιήσεις για τα γκολ του ${name}` : undefined}
           >
             {state === "working" ? (
               "…"
             ) : (
               <>
                 <Icon name="bell" size={16} />
-                {`Ειδοποιήσεις για το ${name}`}
+                {compact ? "Ειδοποιήσεις" : `Ειδοποιήσεις για το ${name}`}
               </>
             )}
           </button>

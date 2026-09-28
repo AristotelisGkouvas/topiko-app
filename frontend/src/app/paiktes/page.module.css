@@ -24,7 +24,14 @@
   border-bottom: none;
 }
 
-.row:hover {
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.row:active {
   background: var(--color-grey-100);
 }
 

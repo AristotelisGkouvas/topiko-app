@@ -1,6 +1,7 @@
-/* The design file draws a club as a solid green disc with two Greek initials
-   in white — not a tinted rounded square. Screen SR1: 30px, radius 50%,
-   background #128C40, Fira 800 11px/1, colour #FFFFFF. */
+/* A club as a disc with two Greek initials — not a tinted rounded square.
+   Screen SR1: 30px, radius 50%, Fira 800 11px/1. The design filled it green;
+   it is neutral now (see --color-crest-surface), so the club's own colour or
+   logo is what tells clubs apart. */
 .crest {
   display: grid;
   place-items: center;
@@ -55,8 +56,8 @@
    disc instead of being cropped by one; the disc stays light in the dark
    theme, because most crests are drawn for a white background. */
 .logo {
-  background: #fff;
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-plate-edge);
   overflow: hidden;
 }
 

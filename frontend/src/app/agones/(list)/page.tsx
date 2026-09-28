@@ -6,6 +6,8 @@ import { ApiLink } from "@/components/ApiLink";
 import { LeagueChips } from "@/components/LeagueChips";
 import { MatchRow } from "@/components/MatchRow";
 import { MatchdayStrip } from "@/components/MatchdayStrip";
+import { MiniStandings } from "@/components/MiniStandings";
+import { SectionHeader } from "@/components/SectionHeader";
 import { PageHeader, PageHeaderStepper } from "@/components/PageHeader";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
@@ -90,7 +92,10 @@ export default async function MatchesPage({
   // Opens on the round the league is on, which for most of a weekend is half
   // result and half fixture — the reason the two pages became one.
   const matchday = resolveMatchday(params, league);
-  const matches = await api.listMatches(league.slug, { matchday });
+  const [matches, standings] = await Promise.all([
+    api.listMatches(league.slug, { matchday }),
+    api.getStandings(league.slug),
+  ]);
 
   const days = groupByDay(matches);
   const span = dateSpan(matches);
@@ -140,29 +145,43 @@ export default async function MatchesPage({
           />
         )}
 
-        {days.length === 0 ? (
-          <Empty
-            title="Καμία αναμέτρηση"
-            body={`Το πρόγραμμα της ${matchday}ης αγωνιστικής δεν έχει ανακοινωθεί ακόμη.`}
-          />
-        ) : (
-          <div className={styles.days}>
-            {days.map(([day, dayMatches]) => (
-              <section key={day} className={styles.day}>
-                <p className={styles.dayLabel}>{day}</p>
-                <div className={styles.card}>
-                  {dayMatches.map((match, i) => (
-                    <MatchRow
-                      key={match.id}
-                      match={match}
-                      last={i === dayMatches.length - 1}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+        {/* One column of days, with the table beside it on a wide screen.
+            The days used to sit side by side, and a round is rarely split
+            evenly: one Saturday match beside six on Sunday left a hole the
+            height of the page. */}
+        <div className={styles.split}>
+          <div className={styles.listColumn}>
+            {days.length === 0 ? (
+              <Empty
+                title="Καμία αναμέτρηση"
+                body={`Το πρόγραμμα της ${matchday}ης αγωνιστικής δεν έχει ανακοινωθεί ακόμη.`}
+              />
+            ) : (
+              <div className={styles.days}>
+                {days.map(([day, dayMatches]) => (
+                  <section key={day} className={styles.day}>
+                    <p className={styles.dayLabel}>{day}</p>
+                    <div className={styles.card}>
+                      {dayMatches.map((match, i) => (
+                        <MatchRow
+                          key={match.id}
+                          match={match}
+                          last={i === dayMatches.length - 1}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+          {standings.length > 0 && (
+            <aside className={styles.side} aria-labelledby="table-heading">
+              <SectionHeader id="table-heading" title="ΒΑΘΜΟΛΟΓΙΑ" />
+              <MiniStandings standings={standings} league={league} />
+            </aside>
+          )}
+        </div>
 
         {/* Two onward links, as rows: a sentence of footnote with "›", "·"
             and "(.ics)" strung together read as a typo. */}

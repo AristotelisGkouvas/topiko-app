@@ -35,7 +35,14 @@
   max-width: 60%;
 }
 
-.more:hover {
+@media (hover: hover) and (pointer: fine) {
+  .more:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.more:active {
   text-decoration: underline;
 }
 
@@ -54,7 +61,14 @@
   text-decoration: none;
 }
 
-.card:hover {
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    filter: brightness(1.12);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.card:active {
   filter: brightness(1.12);
 }
 
@@ -142,34 +156,115 @@
 
 /* --- the invitation, when no club is followed ----------------------- */
 
+/* No club yet: the question, the division's clubs as one-tap chips, and a
+   way out. A card of its own because it is a question, not a list. */
 .invite {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
 }
 
+.inviteHead {
+  display: grid;
+  gap: 2px;
+}
+
+.inviteTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-lg);
+  color: var(--color-heading);
+}
+
 .inviteText {
-  flex: 1;
-  min-width: 180px;
   margin: 0;
   font-size: var(--text-md);
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--color-text-muted);
 }
 
-/* The star, drawn as it is on the button it points to. */
-.inlineIcon {
-  display: inline-block;
-  vertical-align: -2px;
+/* A phone: two rows that scroll sideways. Wrapped, a division's fourteen
+   clubs were seven rows, and the question pushed the results off the first
+   screen for exactly the visitor who has not seen them yet. Wide: wrapped. */
+.inviteClubs {
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 6px;
+  margin: 0 -14px;
+  padding: 0 14px 4px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-padding-inline: 14px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.inviteClubs > li {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .inviteClubs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+.inviteClub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 0 12px 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .inviteClub:hover {
+    border-color: var(--color-green-600);
+    background: var(--color-soft);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.inviteClub:active {
+  border-color: var(--color-green-600);
+  background: var(--color-soft);
+}
+
+.inviteClubName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inviteFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
 }
 
 .inviteLink {
-  flex: none;
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -181,8 +276,38 @@
   white-space: nowrap;
 }
 
-.inviteLink:hover {
+@media (hover: hover) and (pointer: fine) {
+  .inviteLink:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.inviteLink:active {
   text-decoration: underline;
+}
+
+.inviteLater {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .inviteLater:hover {
+    color: var(--color-text);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.inviteLater:active {
+  color: var(--color-text);
 }
 
 .links {
@@ -202,7 +327,14 @@
   text-decoration: none;
 }
 
-.links a:hover {
+@media (hover: hover) and (pointer: fine) {
+  .links a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.links a:active {
   text-decoration: underline;
 }
 
@@ -217,6 +349,49 @@
   text-decoration: none;
 }
 
-.lastResult:hover {
+@media (hover: hover) and (pointer: fine) {
+  .lastResult:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.lastResult:active {
   text-decoration: underline;
+}
+
+/* The moment a club is picked from the invitation: the question gives way to
+   the club's card with a short crossfade. First-time only (see MyClub), so
+   it can take a little longer than everyday UI. */
+.arrive {
+  animation: arrive 250ms var(--ease-out);
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .arrive {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A finger needs the design's 44px; a mouse keeps the compact size. */
+@media (pointer: coarse) {
+  .inviteClub {
+    min-height: 44px;
+  }
 }

@@ -27,8 +27,10 @@
   transition: transform 0.2s ease;
 }
 
-.thumb:hover img {
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .thumb:hover img {
+    transform: scale(1.04);
+  }
 }
 
 .thumb:focus-visible {
@@ -45,12 +47,12 @@
   margin: 0;
   padding: 0;
   border: 0;
-  background: rgb(0 0 0 / 0.92);
-  color: #fff;
+  background: var(--color-scrim-photo);
+  color: var(--color-on-brand);
 }
 
 .dialog::backdrop {
-  background: rgb(0 0 0 / 0.6);
+  background: var(--color-scrim-photo-soft);
 }
 
 .figure {
@@ -97,13 +99,48 @@
   height: 40px;
   border: 0;
   border-radius: 50%;
-  background: rgb(255 255 255 / 0.14);
-  color: #fff;
+  background: var(--color-on-brand-fill);
+  color: var(--color-on-brand);
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
 }
 
-.control:hover {
-  background: rgb(255 255 255 / 0.26);
+@media (hover: hover) and (pointer: fine) {
+  .control:hover {
+    background: var(--color-on-brand-fill-strong);
+  }
+}
+
+/* Touch: the same look while pressed. */
+.control:active {
+  background: var(--color-on-brand-fill-strong);
+}
+
+/* The photo fades up rather than cutting in over the page. */
+.dialog[open],
+.dialog[open]::backdrop {
+  animation: galleryIn 200ms var(--ease-out);
+}
+
+@keyframes galleryIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Less motion asked for: no movement, but still a short fade, so the change
+   is seen. Beats the global flattening in tokens.css by specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open],
+  .dialog[open]::backdrop {
+    animation-name: fadeOnly !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
 }

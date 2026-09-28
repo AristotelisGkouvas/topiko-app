@@ -35,9 +35,9 @@
   height: 26px;
   border-radius: 50% 50% 50% 0;
   background: var(--color-navy-900);
-  border: 2px solid #fff;
+  border: 2px solid var(--color-plate);
   transform: rotate(-45deg);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 35%);
+  box-shadow: var(--shadow-pin);
 }
 
 .pin > span::after {
@@ -45,7 +45,7 @@
   position: absolute;
   inset: 7px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-plate);
 }
 
 .reveal {
@@ -62,6 +62,13 @@
   cursor: pointer;
 }
 
-.reveal:hover {
+@media (hover: hover) and (pointer: fine) {
+  .reveal:hover {
+    border-style: solid;
+  }
+}
+
+/* Touch: the same look while pressed. */
+.reveal:active {
   border-style: solid;
 }
