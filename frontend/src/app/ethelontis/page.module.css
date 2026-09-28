@@ -266,3 +266,86 @@
   line-height: 1.6;
   color: var(--color-text-muted);
 }
+
+/* --- "Η ομάδα μου" ---------------------------------------------------- */
+
+.clubPage {
+  margin: 18px 16px 0;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.clubPage[open] {
+  display: grid;
+  gap: 12px;
+}
+
+.clubSummary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-heading);
+  cursor: pointer;
+}
+
+.clubRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clubLogo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: var(--color-plate);
+  border: 1px solid var(--color-border);
+}
+
+.clubButton {
+  composes: buttonSecondary from "../../styles/primitives.module.css";
+}
+
+.clubForm {
+  display: grid;
+  gap: 10px;
+}
+
+.clubForm label {
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-md);
+  color: var(--color-text);
+}
+
+.clubForm input:not([type="color"]):not([type="file"]) {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+  color: var(--color-text);
+}
+
+.clubForm input[type="color"] {
+  width: 64px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.clubHeading {
+  font-size: var(--text-base);
+}
+
+.clubSponsors {
+  margin: 0;
+  padding-left: 18px;
+}

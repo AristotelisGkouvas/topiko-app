@@ -401,6 +401,9 @@ async def edit_sponsor(
             del changes[optional]
     for key, value in changes.items():
         setattr(sponsor, key, value.strip() if isinstance(value, str) else value)
+    if changes.get("is_active") is True:
+        # Switching on a sponsor the club proposed is the approval.
+        sponsor.pending_approval = False
     if sponsor.starts_on and sponsor.ends_on and sponsor.ends_on < sponsor.starts_on:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Η λήξη είναι πριν από την έναρξη.")
     old, new = changed_fields(before, {k: _plain(getattr(sponsor, k)) for k in keys})

@@ -789,6 +789,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/{association_slug}/ethelontis/club": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Club */
+        get: operations["get_club_api_v1__association_slug__ethelontis_club_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Colours */
+        patch: operations["set_colours_api_v1__association_slug__ethelontis_club_patch"];
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/ethelontis/club/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Logo */
+        put: operations["set_logo_api_v1__association_slug__ethelontis_club_logo_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/{association_slug}/ethelontis/club/sponsors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose Sponsor
+         * @description A sponsor the club wants shown. Stored off and pending: the admin
+         *     approves it, and only then does it appear.
+         */
+        post: operations["propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/{association_slug}/ethelontis/login": {
         parameters: {
             query?: never;
@@ -2207,8 +2263,25 @@ export interface components {
             /** Website Url */
             website_url?: string | null;
         };
+        /** Body_propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post */
+        Body_propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post: {
+            /** File */
+            file?: string | null;
+            /** Name */
+            name: string;
+            /** Website Url */
+            website_url?: string | null;
+        };
         /** Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put */
         Body_set_logo_api_v1__association_slug__editor_teams__team_slug__logo_put: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_set_logo_api_v1__association_slug__ethelontis_club_logo_put */
+        Body_set_logo_api_v1__association_slug__ethelontis_club_logo_put: {
             /**
              * File
              * Format: binary
@@ -2255,6 +2328,27 @@ export interface components {
             team_name: string;
             /** Team Slug */
             team_slug: string;
+        };
+        /** ClubSelfOut */
+        ClubSelfOut: {
+            /** Sponsors */
+            sponsors: components["schemas"]["ClubSponsorOut"][];
+            team: components["schemas"]["TeamOut"];
+        };
+        /** ClubSponsorOut */
+        ClubSponsorOut: {
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Pending Approval */
+            pending_approval: boolean;
+            /** Website Url */
+            website_url: string | null;
         };
         /** CodeIn */
         CodeIn: {
@@ -3803,6 +3897,11 @@ export interface components {
             logo_url: string | null;
             /** Name */
             name: string;
+            /**
+             * Pending Approval
+             * @default false
+             */
+            pending_approval: boolean;
             /** Position */
             position: number;
             /** Starts On */
@@ -5918,6 +6017,146 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_club_api_v1__association_slug__ethelontis_club_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_colours_api_v1__association_slug__ethelontis_club_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamLookEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_logo_api_v1__association_slug__ethelontis_club_logo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_logo_api_v1__association_slug__ethelontis_club_logo_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description π.χ. epsip-ipeirou */
+                association_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_propose_sponsor_api_v1__association_slug__ethelontis_club_sponsors_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubSelfOut"];
                 };
             };
             /** @description Validation Error */

@@ -103,6 +103,8 @@ class SponsorAdminOut(SponsorOut):
     starts_on: date | None = None
     ends_on: date | None = None
     category: str = "general"
+    #: Proposed by the club with its code; approve by switching it on.
+    pending_approval: bool = False
     #: paused / scheduled / live / ending / ended — see services.sponsorship.
     status: str = "live"
     #: The last 30 days, for the renewal conversation.

@@ -171,6 +171,11 @@ class Sponsor(Base, TimestampMixin):
     #: gone after the last, without anybody having to switch it off.
     starts_on: Mapped[date | None] = mapped_column(Date)
     ends_on: Mapped[date | None] = mapped_column(Date)
+    #: Added by the club itself (with its code) and not yet approved by the
+    #: federation's admin. Stored switched off until then.
+    pending_approval: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     #: One of sponsorship.CATEGORIES. A RESTRICTED one is not shown on the
     #: club's youth matches (a club often fields a youth side too).
     category: Mapped[str] = mapped_column(

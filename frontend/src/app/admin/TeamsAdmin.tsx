@@ -597,6 +597,20 @@ function SponsorRow({
           </label>
         </div>
         <SponsorCategorySelect className={ps.field} value={category} onChange={setCategory} />
+        {sponsor.pending_approval && (
+          <p className={ps.muted}>
+            <span className={`${ps.chip} ${ps.chip_warn}`}>Πρόταση του σωματείου</span>{" "}
+            Δεν εμφανίζεται μέχρι να εγκριθεί.{" "}
+            <button
+              type="button"
+              className={page.save}
+              disabled={disabled}
+              onClick={() => run(`sponsor-${sponsor.id}`, () => editorApi.saveSponsor(slug, sponsor.id, { is_active: true }))}
+            >
+              Έγκριση
+            </button>
+          </p>
+        )}
         <p className={ps.muted}>
           <span className={`${ps.chip} ${ps[`chip_${status.tone}`]}`}>{status.label}</span>{" "}
           30 ημέρες: {sponsor.views_30d} προβολές · {sponsor.clicks_30d} κλικ

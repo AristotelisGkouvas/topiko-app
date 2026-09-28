@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MatchSheet, type SheetBackend } from "@/components/MatchSheet";
 import { useOutboxSize } from "@/lib/outbox";
 import { volunteerApi, type Volunteer } from "@/lib/volunteerApi";
+import { ClubPage } from "./ClubPage";
 import { CodeForm } from "./CodeForm";
 import styles from "./page.module.css";
 import { confirm } from "@/components/ConfirmDialog";
@@ -100,6 +101,8 @@ export function Desk() {
         Μπορείς να δηλώσεις από τρεις ώρες πριν τη σέντρα μέχρι έξι ώρες μετά.
         Για διόρθωση εκτός αυτού, μίλα με την ένωση.
       </p>
+
+      <ClubPage />
     </>
   );
 }
