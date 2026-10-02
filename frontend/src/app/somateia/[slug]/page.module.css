@@ -747,8 +747,11 @@
   color: var(--color-grey-400);
 }
 
+/* Under everything, across the full width, on one line where it fits. */
 .volunteer {
+  flex: 1 1 100%;
   margin: 0;
+  text-align: center;
   padding: 14px;
   border: 1px dashed var(--color-chip-border);
   border-radius: var(--radius-lg);

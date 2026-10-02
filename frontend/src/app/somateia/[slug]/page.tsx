@@ -407,15 +407,16 @@ export default async function TeamPage({
 
           <GoalMinutes slug={team.slug} title="ΓΚΟΛ ΑΝΑ 15ΛΕΠΤΟ" />
 
-          {/* The one place a club official would look. The tool is not in the
-              nav — it is not for readers — but a door nobody can find is not
-              a door. */}
-          <p className={styles.volunteer}>
-            Είσαι από το σωματείο; Δώσε το σκορ{" "}
-            <Link href="/ethelontis">live από το γήπεδο</Link> με τον κωδικό που σου
-            έδωσε η ένωση.
-          </p>
         </aside>
+
+        {/* The one place a club official would look. The tool is not in the
+            nav — it is not for readers — but a door nobody can find is not
+            a door. */}
+        <p className={styles.volunteer}>
+          Είσαι από το σωματείο; Δώσε το σκορ{" "}
+          <Link href="/ethelontis">live από το γήπεδο</Link> με τον κωδικό που σου
+          έδωσε η ένωση.
+        </p>
       </div>
     </div>
   );
