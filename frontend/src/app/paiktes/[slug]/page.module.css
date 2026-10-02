@@ -1,93 +1,524 @@
-.hero {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 20px 16px;
-  margin-bottom: 16px;
+/* The player's page (design "Pame Sentra Player"): a white card with the
+   name, club and headline numbers; the clubs in order played for; a season
+   table from the match reports; then the matches and the scorer lists. */
+
+.wrap {
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.name {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1.15;
-  margin: 0;
-  color: var(--color-heading);
-  /* Register names are fully spelled out, patronymic included, and some run
-     past forty characters on a 320px screen. */
-  overflow-wrap: anywhere;
-}
-
-.sub {
-  margin: 4px 0 16px;
-  font-size: var(--text-md);
-  color: var(--color-text-muted);
-}
-
-.totals {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 12px;
-  margin: 0;
-}
-
-.total {
-  text-align: center;
-}
-
-.totalValue {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.625rem;
-  line-height: 1;
-  color: var(--color-heading);
-  font-variant-numeric: tabular-nums;
-}
-
-.totalLabel {
-  margin: 4px 0 0;
-  font-size: var(--text-xs);
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  line-height: 1.3;
-}
-
-.clubs {
-  list-style: none;
+.crumbs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 20px;
-  padding: 0;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78125rem;
+  color: var(--color-text-muted);
 }
 
-.club {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 11px 5px 6px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--color-text);
+.crumbs a {
+  color: inherit;
   text-decoration: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .club:hover {
-    border-color: var(--color-link-hover);
+  .crumbs a:hover {
     color: var(--color-link-hover);
   }
 }
 
-/* Touch: the same look while pressed. */
-.club:active {
-  border-color: var(--color-link-hover);
-  color: var(--color-link-hover);
+.here {
+  color: var(--color-text);
 }
+
+/* --- the card --------------------------------------------------------- */
+
+.hero {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 24px 20px;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.initials {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-heading) 10%, var(--color-surface));
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.625rem;
+  color: var(--color-heading);
+  user-select: none;
+}
+
+.ident {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  color: var(--color-heading);
+  /* Register names are spelled out in full, patronymic included, and some
+     run past forty characters on a 320px screen. */
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-md);
+  color: var(--color-text);
+}
+
+.dot {
+  color: var(--color-border);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-grey-100);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+.share {
+  composes: buttonSecondary from "../../../styles/primitives.module.css";
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 24px;
+  border-right: 1px solid var(--color-hairline);
+  border-bottom: 1px solid var(--color-hairline);
+  margin-bottom: -1px;
+}
+
+.kpiValue {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiLabel {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78125rem;
+  color: var(--color-text-muted);
+}
+
+/* --- sections --------------------------------------------------------- */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.blockHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-heading);
+}
+
+.source {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* --- path: one card per club ----------------------------------------- */
+
+.path {
+  display: grid;
+  /* Two across on a phone rather than seven cards stacked. */
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, calc(50% - 5px)), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 3px 0 var(--color-border);
+  text-decoration: none;
+}
+
+/* The club they play for now. */
+.stopNow {
+  box-shadow: inset 0 3px 0 var(--color-win);
+}
+
+.stop > span[aria-hidden] {
+  width: 38px;
+  height: 38px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stop:hover {
+    border-color: var(--color-link);
+  }
+}
+
+.stopText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.stopName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.90625rem;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.stopMeta {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* --- by season -------------------------------------------------------- */
+
+.seasonWrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.seasons {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.seasons th,
+.seasons td {
+  height: 52px;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: left;
+  font-weight: 500;
+}
+
+.seasons th:first-child,
+.seasons td:first-child {
+  padding-left: 18px;
+  width: 118px;
+}
+
+.seasons th:last-child,
+.seasons td:last-child {
+  padding-right: 18px;
+}
+
+.seasons thead th {
+  height: auto;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: var(--color-grey-100);
+  border-bottom-color: var(--color-border);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.8px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.seasons .r {
+  text-align: right;
+}
+
+.seasons thead th:nth-child(3),
+.seasons thead th:nth-child(4),
+.seasons thead th:nth-child(7) {
+  width: 64px;
+}
+
+.seasons thead th:nth-child(5) {
+  width: 150px;
+}
+
+.seasons thead th:nth-child(6) {
+  width: 52px;
+}
+
+/* This season's row. */
+.now th,
+.now td {
+  background: color-mix(in srgb, var(--color-win) 6%, var(--color-surface));
+}
+
+.seasonCell {
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+.nowTag {
+  margin-left: 6px;
+  padding: 2px 5px;
+  border-radius: var(--radius-tag);
+  background: var(--color-action);
+  color: var(--color-action-ink);
+  font-weight: 800;
+  font-size: 0.59375rem;
+  letter-spacing: 0.8px;
+  vertical-align: 2px;
+}
+
+.clubCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.clubLink {
+  font-weight: 600;
+  color: var(--color-link);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .clubLink:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+.chip {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: var(--radius-tag);
+  background: var(--color-badge-surface);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.strong {
+  font-weight: 700 !important;
+}
+
+.minutes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-badge-surface);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-heading) 45%, var(--color-surface));
+}
+
+.minNum {
+  width: 44px;
+  text-align: right;
+  font-size: 0.84375rem;
+}
+
+.scored {
+  font-weight: 800 !important;
+  color: var(--color-accent-ink);
+}
+
+.zero {
+  color: var(--color-grey-400);
+}
+
+.cards {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: var(--text-md);
+}
+
+.cards > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.card {
+  display: inline-block;
+  width: 8px;
+  height: 11px;
+  border-radius: 1.5px;
+}
+
+.yellow {
+  background: var(--color-form-draw);
+}
+
+.red {
+  background: var(--color-loss);
+}
+
+.seasons tfoot th,
+.seasons tfoot td {
+  background: var(--color-grey-100);
+  border-bottom: none;
+  font-weight: 800;
+  color: var(--color-heading);
+}
+
+.seasons tfoot .footNote {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78125rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 600px) {
+  .stop {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .stop > span[aria-hidden] {
+    width: 30px;
+    height: 30px;
+  }
+
+  .stopName {
+    font-size: var(--text-md);
+  }
+
+  .top {
+    padding: 18px 16px 16px;
+  }
+
+  .who {
+    gap: 14px;
+  }
+
+  .initials {
+    width: 56px;
+    height: 56px;
+    font-size: 1.25rem;
+  }
+
+  .name {
+    font-size: 1.5rem;
+  }
+
+  .kpi {
+    padding: 14px 16px;
+  }
+
+  .kpiValue {
+    font-size: 1.5rem;
+  }
+}
+
+/* --- matches and scorer lists ---------------------------------------- */
 
 .tableWrap {
   background: var(--color-surface);
@@ -190,14 +621,6 @@
   margin: 12px 2px 0;
   font-size: var(--text-sm);
   line-height: 1.55;
-  color: var(--color-text-muted);
-}
-
-/* The competition under the season, in the appearances table. */
-.leagueSmall {
-  display: block;
-  font-size: var(--text-sm);
-  font-weight: 400;
   color: var(--color-text-muted);
 }
 
