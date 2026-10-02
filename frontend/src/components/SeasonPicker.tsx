@@ -15,6 +15,7 @@ export function SeasonPicker({
   active,
   markerLabel = "τρέχουσα",
   league,
+  compact = false,
 }: {
   seasons: { slug: string; name: string; is_current: boolean }[];
   /** undefined while the current season is showing, as the URL omits it then. */
@@ -25,6 +26,8 @@ export function SeasonPicker({
   /** The division on show, by the name readers know it by. Carried across
    *  the season change as ?kat=, so Β΄ Κατηγορία stays Β΄ Κατηγορία. */
   league?: string;
+  /** The small one in a page header: no label, the season alone. */
+  compact?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -55,8 +58,8 @@ export function SeasonPicker({
   };
 
   return (
-    <label className={styles.wrap}>
-      <span className={styles.label}>Περίοδος</span>
+    <label className={`${styles.wrap} ${compact ? styles.compact : ""}`}>
+      <span className={compact ? "srOnly" : styles.label}>Περίοδος</span>
       <select
         className={styles.select}
         value={selected}

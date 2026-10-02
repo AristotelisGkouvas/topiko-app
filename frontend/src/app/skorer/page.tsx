@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Crest } from "@/components/Crest";
 import { LastUpdated } from "@/components/LastUpdated";
-import { LeagueTabs } from "@/components/LeagueTabs";
+import { LeagueChips } from "@/components/LeagueChips";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { Empty } from "@/components/States";
 import { api } from "@/lib/api";
@@ -56,8 +56,9 @@ export default async function ScorersPage({
 
       <div className={pageStyles.pickers}>
         <SeasonPicker seasons={seasons} active={season} league={leagueLabel(league)} />
-        <LeagueTabs leagues={leagues} active={league.slug} />
       </div>
+      {/* The same division chips as the matches page. */}
+      <LeagueChips leagues={leagues} active={league.slug} basePath="/skorer" season={season} />
 
       {scorers.length > 0 ? (
         <>

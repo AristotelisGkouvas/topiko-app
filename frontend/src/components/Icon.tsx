@@ -33,6 +33,7 @@ export const ICON_PATHS = {
   note: "M5 19l1-4L16 5l3 3L9 18z",
   share: "M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9h13v-9H17",
   download: "M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14",
+  person: "M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4.5 21a7.5 7.5 0 0 1 15 0z",
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

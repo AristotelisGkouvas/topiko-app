@@ -118,16 +118,6 @@ export function ComparisonTable({ comparison }: { comparison: Comparison }) {
         })}
       </dl>
 
-      {/* Only when the two sit in different tables. Saying it every time would
-          be noise; leaving it off when it matters lets 3rd look better than
-          1st. */}
-      {left.league_slug !== right.league_slug && (
-        <p className={styles.note}>
-          Διαφορετικές διοργανώσεις — {left.league_name ?? "—"} έναντι{" "}
-          {right.league_name ?? "—"}. Οι θέσεις δεν συγκρίνονται απευθείας.
-        </p>
-      )}
-
       {record && (
         <section className={styles.record}>
           <SectionHeader title="Μεταξύ τους" />

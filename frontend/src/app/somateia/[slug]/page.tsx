@@ -2,24 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Crest } from "@/components/Crest";
 import { ClubActions } from "@/components/ClubActions";
-import { MatchRow } from "@/components/MatchRow";
-import { Empty } from "@/components/States";
-import { SectionHeader } from "@/components/SectionHeader";
-import { ApiError, api } from "@/lib/api";
-import { formatDayDate, formatGoalDifference, formatKickoff, plural, pointsLabel } from "@/lib/format";
-import { SeasonPicker } from "@/components/SeasonPicker";
-import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
-import type { FieldRef, Match, TeamDetail } from "@/lib/types";
-import { HomeAway, splitRecord } from "@/components/HomeAway";
-import { GoalMinutes } from "@/components/GoalMinutes";
-import styles from "./page.module.css";
-import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
-import { Icon } from "@/components/Icon";
-import { FormGuide } from "@/components/FormGuide";
+import { ClubSponsorCarousel, type SponsorCard } from "@/components/ClubSponsorCarousel";
+import { Crest } from "@/components/Crest";
 import { Gallery } from "@/components/Gallery";
-import { Sponsors } from "@/components/Sponsors";
+import { GoalMinutes } from "@/components/GoalMinutes";
+import { splitRecord } from "@/components/HomeAway";
+import { Icon } from "@/components/Icon";
+import { SeasonPicker } from "@/components/SeasonPicker";
+import { SponsorSeen } from "@/components/SponsorSeen";
+import { Empty } from "@/components/States";
+import { ApiError, api, sponsorHref } from "@/lib/api";
+import { formatDayDate, formatGoalDifference, formatTime, plural } from "@/lib/format";
+import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
+import { mediaUrl } from "@/lib/media";
+import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
+import type { FieldRef, Match, Standing, TeamDetail } from "@/lib/types";
+import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -86,6 +85,10 @@ export default async function TeamPage({
     api.getTeamStanding(slug, season),
     api.getTeamMatches(slug, season),
   ]);
+  // A table that failed to load costs its box, not the page.
+  const table = placement
+    ? await api.getStandings(placement.league.slug, season).catch(() => [])
+    : [];
 
   const standing = placement?.standing;
   const played = matches.filter(
@@ -101,7 +104,23 @@ export default async function TeamPage({
     (m) => m.status === "postponed" && m.home_score === null,
   );
 
-  const faq = clubFaq(team, placement, played, upcoming, season === team.seasons[0]);
+  const next = upcoming[0] ?? null;
+  const later = upcoming.slice(1);
+  const recent = played.slice(-5).reverse();
+  const split = played.length > 0 ? splitRecord(team, played) : null;
+  const form = (standing?.form ?? "").split("").filter((r) => r in VERDICT).slice(-5);
+  const around = nearby(table, team.id);
+
+  // Through the API's redirect, which counts the click for the renewal.
+  const sponsorCards: SponsorCard[] = await Promise.all(
+    team.sponsors.map(async (s) => ({
+      id: s.id,
+      name: s.name,
+      logo: mediaUrl(s.logo_url),
+      href: s.website_url ? await sponsorHref("club", s.id) : null,
+      site: host(s.website_url),
+    })),
+  );
 
   return (
     <div className={styles.page}>
@@ -125,311 +144,463 @@ export default async function TeamPage({
             { name: "Σωματεία", path: "/somateia" },
             { name: team.name, path: `/somateia/${team.slug}` },
           ]),
-          ...(faq.length > 0
-            ? [
-                {
-                  "@context": "https://schema.org",
-                  "@type": "FAQPage",
-                  mainEntity: faq.map(({ q, a }) => ({
-                    "@type": "Question",
-                    name: q,
-                    acceptedAnswer: { "@type": "Answer", text: a },
-                  })),
-                },
-              ]
-            : []),
         ]}
       />
-      {/* Screen 06's hero: the crest, who they are, where they stand, and the
-          two things a supporter does here — follow, and subscribe. */}
+
+      {/* The white band: who they are, what a supporter does here, and the
+          numbers with the form that explains them. */}
       <header
-        className={`${styles.hero} ${team.primary_color ? styles.coloured : ""}`}
-        // The club's colours as a thin band across the top: enough to say
-        // whose page this is, not so much that the page stops being the site's.
+        className={styles.hero}
         style={
           team.primary_color
-            ? ({
-                "--club-1": team.primary_color,
-                "--club-2": team.secondary_color ?? team.primary_color,
-              } as React.CSSProperties)
+            ? ({ "--club-1": team.primary_color } as React.CSSProperties)
             : undefined
         }
       >
-        <div className={styles.identity}>
-          <Crest team={team} size="lg" />
-          <div className={styles.names}>
-            <h1 className={styles.name}>{team.short_name ?? team.name}</h1>
-            <p className={styles.meta}>
-              {[
-                placement ? leagueLabel(placement.league) : null,
-                team.home_field ? `Έδρα: ${team.home_field.name}` : null,
-                team.founded_year ? `Ιδρ. ${team.founded_year}` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-            {/* The official name, once, where there is room for it. Every list
-                on the site shows the short one. */}
-            {team.short_name && team.short_name !== team.name && (
-              <p className={styles.official}>{team.name}</p>
-            )}
-          </div>
-        </div>
-
-        {/* The numbers and the form that explains them, as one block: the
-            form used to float on its own in the opposite corner, drawn as
-            letters where every other page draws dots. */}
-        {standing && (
-          <div className={styles.numbers}>
-            <dl className={styles.stats}>
-              <Stat value={`${standing.position}η`} label="Θέση" />
-              <Stat value={standing.points} label="Βαθμοί" />
-              {/* Words, not "32:28": a ratio has to be decoded, and read out
-                  it is "thirty-two colon twenty-eight". */}
-              <Stat
-                value={`${standing.goals_for} – ${standing.goals_against}`}
-                label="Γκολ"
-              />
-              <Stat
-                value={formatGoalDifference(standing.goal_difference)}
-                label="Διαφορά"
-              />
-            </dl>
-            {standing.form && (
-              <div className={styles.formRow}>
-                <span className={styles.formLabel}>ΦΟΡΜΑ</span>
-                <FormGuide form={standing.form} />
+        <div className={styles.heroInner}>
+          <div className={styles.headRow}>
+            <div className={styles.identity}>
+              <span className={styles.crest}>
+                <Crest team={team} size="lg" />
+              </span>
+              <div className={styles.names}>
+                <h1 className={styles.name}>{team.name}</h1>
+                <div className={styles.meta}>
+                  {placement && <span className={styles.leagueChip}>{leagueLabel(placement.league)}</span>}
+                  {team.home_field && <span>Έδρα: {team.home_field.city ?? team.home_field.name}</span>}
+                  {team.founded_year && <span>Ιδρ. {team.founded_year}</span>}
+                  {team.seasons.length > 1 && (
+                    <SeasonPicker
+                      seasons={team.seasons.map((s) => ({
+                        slug: s,
+                        name: s,
+                        // The club's own seasons, so "current" here means the
+                        // latest it played, not the one the federation runs.
+                        is_current: s === team.seasons[0],
+                      }))}
+                      active={season}
+                      markerLabel="τελευταία"
+                      compact
+                    />
+                  )}
+                </div>
               </div>
-            )}
+            </div>
+            <div className={styles.actions}>
+              <ClubActions slug={team.slug} name={team.name} shareTitle={team.name} />
+            </div>
           </div>
-        )}
 
-        <div className={styles.actions}>
-          <ClubActions
-            slug={team.slug}
-            name={team.name}
-            shareTitle={team.short_name ?? team.name}
-          />
+          {standing && (
+            <dl className={styles.kpis}>
+              <Kpi value={`${standing.position}η`} label="θέση" />
+              <Kpi value={standing.points} label={plural(standing.points, "βαθμός", "βαθμοί")} />
+              {/* Words, not "32:28": a ratio has to be decoded. */}
+              <Kpi value={`${standing.goals_for}–${standing.goals_against}`} label="γκολ υπέρ–κατά" />
+              <Kpi value={formatGoalDifference(standing.goal_difference)} label="διαφορά" />
+              {form.length > 0 && (
+                <div className={styles.kpi}>
+                  <dt className={styles.kpiLabel}>φόρμα · πιο πρόσφατο δεξιά</dt>
+                  <dd className={styles.form}>
+                    <span
+                      role="img"
+                      aria-label={`Φόρμα: ${form.map((r) => VERDICT[r].word).join(", ")}`}
+                      className={styles.formRow}
+                    >
+                      {form.map((r, i) => (
+                        <span key={i} className={`${styles.verdict} ${styles[VERDICT[r].tone]}`} aria-hidden="true">
+                          {r}
+                        </span>
+                      ))}
+                      {/* Five slots always: the ones not yet played as empty
+                          squares, so three results read as three of five. */}
+                      {Array.from({ length: 5 - form.length }, (_, i) => (
+                        <span key={`e${i}`} className={`${styles.verdict} ${styles.empty}`} aria-hidden="true" />
+                      ))}
+                    </span>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
         </div>
       </header>
 
       <div className={styles.body}>
-        {team.seasons.length > 1 && (
-          <div className={styles.seasons}>
-            <SeasonPicker
-              seasons={team.seasons.map((slug) => ({
-                slug,
-                name: slug,
-                // The club's own seasons, so "current" here means the latest
-                // it played rather than the one the federation is running.
-                is_current: slug === team.seasons[0],
-              }))}
-              active={season}
-              markerLabel="τελευταία"
-            />
-          </div>
-        )}
-
-        <section className={styles.column} aria-labelledby="upcoming">
-          <SectionHeader id="upcoming" title="ΕΠΟΜΕΝΟΙ ΑΓΩΝΕΣ" />
-          {upcoming.length > 0 ? (
-            <div className={styles.card}>
-              {upcoming.slice(0, 5).map((match, i, shown) => (
-                <MatchRow
-                  key={match.id}
-                  match={match}
-                  last={i === shown.length - 1}
-                  showDate
-                />
-              ))}
+        {sponsorCards.length > 0 && (
+          <section className={styles.full} aria-labelledby="sponsors">
+            <div className={styles.blockHead}>
+              <h2 id="sponsors" className={styles.h2}>
+                Χορηγοί ομάδας
+              </h2>
+              <span className={styles.aside}>
+                {sponsorCards.length === 1
+                  ? "στηρίζει το σωματείο"
+                  : `${sponsorCards.length} επιχειρήσεις στηρίζουν το σωματείο`}
+              </span>
             </div>
-          ) : (
-            <Empty title="Κανένας προγραμματισμένος αγώνας" />
-          )}
-          {/* What a coach opens before Sunday: every past meeting with the
-              next opponent, one tap from here. */}
-          {upcoming[0] && (() => {
-            const next = upcoming[0];
-            const opponent =
-              next.home_team.id === team.id ? next.away_team : next.home_team;
-            return (
-              // One card, not two bare links under the list: they belong to
-              // the next fixture, and a card makes them read as its actions.
-              <nav className={`${styles.card} ${styles.nextCard}`} aria-label="Επόμενος αντίπαλος">
-                <Link
-                  className={styles.linkRow}
-                  href={`/kontra/${next.home_team.slug}/${next.away_team.slug}`}
-                >
-                  <span>Κόντρα με {opponent.name}</span>
-                  <span className={styles.chevron} aria-hidden="true">›</span>
-                </Link>
-                <Link
-                  className={styles.linkRow}
-                  href={`/somateia/${opponent.slug}/analysi?me=${team.slug}`}
-                >
-                  <span>Ανάλυση αντιπάλου</span>
-                  <span className={styles.chevron} aria-hidden="true">›</span>
-                </Link>
-              </nav>
-            );
-          })()}
-        </section>
-
-        {pending.length > 0 && (
-          <section className={styles.column} aria-labelledby="pending">
-            <SectionHeader id="pending" title="ΕΚΚΡΕΜΟΥΝ" />
-            <div className={styles.card}>
-              {pending.map((match, i) => (
-                <MatchRow
-                  key={match.id}
-                  match={match}
-                  last={i === pending.length - 1}
-                  showDate
-                />
-              ))}
-            </div>
+            <SponsorSeen club={sponsorCards.map((s) => s.id)}>
+              <ClubSponsorCarousel cards={sponsorCards} />
+            </SponsorSeen>
           </section>
         )}
 
-        <section className={styles.column} aria-labelledby="results">
-          <SectionHeader id="results" title="ΠΡΟΣΦΑΤΑ ΑΠΟΤΕΛΕΣΜΑΤΑ" />
-          {played.length > 0 ? (
-            <div className={styles.card}>
-              {played
-                .slice(-6)
-                .reverse()
-                .map((match, i, shown) => (
-                  <MatchRow
-                    key={match.id}
-                    match={match}
-                    last={i === shown.length - 1}
-                  />
-                ))}
-            </div>
-          ) : (
-            <Empty
-              title="Κανένα αποτέλεσμα"
-              body={
-                season
-                  ? `Δεν υπάρχουν καταχωρημένα αποτελέσματα για την περίοδο ${season}.`
-                  : undefined
-              }
-            />
-          )}
-        </section>
+        <div className={styles.main}>
+          {next && <NextMatch match={next} teamId={team.id} />}
 
-        {team.photos.length > 0 && (
-          <section className={styles.column} aria-labelledby="photos">
-            <SectionHeader id="photos" title="ΦΩΤΟΓΡΑΦΙΕΣ" />
-            <Gallery photos={team.photos} name={team.name} />
-          </section>
-        )}
-
-        {faq.length > 0 && (
-          <section className={styles.column} aria-labelledby="faq">
-            <SectionHeader id="faq" title="ΜΕ ΜΙΑ ΜΑΤΙΑ" />
-            <dl className={`${styles.card} ${styles.faq}`}>
-              {faq.map(({ q, a }) => (
-                <div key={q} className={styles.faqItem}>
-                  <dt>{q}</dt>
-                  <dd>{a}</dd>
+          <div className={styles.pair}>
+            <section className={styles.block} aria-labelledby="fixtures">
+              <h2 id="fixtures" className={styles.h2}>
+                Πρόγραμμα
+              </h2>
+              {later.length > 0 ? (
+                <div className={styles.card}>
+                  {later.slice(0, 4).map((m) => (
+                    <Fixture key={m.id} match={m} teamId={team.id} />
+                  ))}
+                  {later.length > 4 && (
+                    <details className={styles.more}>
+                      <summary className={styles.moreLink}>
+                        <span>Όλο το πρόγραμμα</span>
+                        <span aria-hidden="true">›</span>
+                      </summary>
+                      {later.slice(4).map((m) => (
+                        <Fixture key={m.id} match={m} teamId={team.id} />
+                      ))}
+                    </details>
+                  )}
                 </div>
-              ))}
-            </dl>
-          </section>
-        )}
+              ) : (
+                <Empty title={next ? "Κανένας άλλος προγραμματισμένος αγώνας" : "Κανένας προγραμματισμένος αγώνας"} />
+              )}
 
-        {/* Each block owns its label, so the column can space the blocks
-            without also pushing every label away from its own card. */}
-        <aside className={styles.aside} aria-label="Έδρα και ιστορικό">
-          {played.length > 0 && (
-            <div>
-              <SectionHeader title="ΕΝΤΟΣ / ΕΚΤΟΣ" />
-              <HomeAway record={splitRecord(team, played)} />
+              {pending.length > 0 && (
+                <>
+                  <h2 className={`${styles.h2} ${styles.h2Gap}`}>Εκκρεμούν</h2>
+                  <div className={styles.card}>
+                    {pending.map((m) => (
+                      <Fixture key={m.id} match={m} teamId={team.id} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+
+            <div className={styles.stack}>
+              <section className={styles.block} aria-labelledby="results">
+                <h2 id="results" className={styles.h2}>
+                  Αποτελέσματα
+                </h2>
+                {recent.length > 0 ? (
+                  <div className={styles.card}>
+                    {recent.map((m) => (
+                      <Result key={m.id} match={m} teamId={team.id} />
+                    ))}
+                  </div>
+                ) : (
+                  <Empty
+                    title="Κανένα αποτέλεσμα"
+                    body={season ? `Δεν υπάρχουν καταχωρημένα αποτελέσματα για την περίοδο ${season}.` : undefined}
+                  />
+                )}
+              </section>
+
+              {split && (
+                <section className={styles.block} aria-labelledby="homeaway">
+                  <h2 id="homeaway" className={styles.h2}>
+                    Εντός / Εκτός
+                  </h2>
+                  <table className={`${styles.card} ${styles.split}`}>
+                    <thead>
+                      <tr>
+                        <th scope="col">
+                          <span className="srOnly">Πού</span>
+                        </th>
+                        <th scope="col" title="Αγώνες">ΑΓ</th>
+                        <th scope="col" title="Νίκες">Ν</th>
+                        <th scope="col" title="Ισοπαλίες">Ι</th>
+                        <th scope="col" title="Ήττες">Η</th>
+                        <th scope="col">ΓΚΟΛ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(
+                        [
+                          ["Εντός", split.home],
+                          ["Εκτός", split.away],
+                        ] as const
+                      ).map(([k, s]) => (
+                        <tr key={k}>
+                          <th scope="row">{k}</th>
+                          <td>{s.played}</td>
+                          <td>{s.won}</td>
+                          <td>{s.drawn}</td>
+                          <td>{s.lost}</td>
+                          <td>
+                            {s.scored}–{s.conceded}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              )}
             </div>
+          </div>
+
+          {team.photos.length > 0 && (
+            <section className={styles.block} aria-labelledby="photos">
+              <h2 id="photos" className={styles.h2}>
+                Φωτογραφίες
+              </h2>
+              <Gallery photos={team.photos} name={team.name} />
+            </section>
           )}
+        </div>
+
+        <aside className={styles.side} aria-label="Βαθμολογία και σωματείο">
+          {placement && around.length > 0 && (
+            <section className={styles.block} aria-labelledby="table">
+              <div className={styles.blockHead}>
+                <h2 id="table" className={styles.h2}>
+                  Βαθμολογία
+                </h2>
+                <Link href={`/vathmologia?liga=${placement.league.slug}`} className={styles.headLink}>
+                  Πλήρης ›
+                </Link>
+              </div>
+              <div className={styles.card}>
+                {around.map((r) => (
+                  <Link
+                    key={r.team.id}
+                    href={`/somateia/${r.team.slug}`}
+                    className={`${styles.tableRow} ${r.team.id === team.id ? styles.me : ""}`}
+                    aria-current={r.team.id === team.id ? "page" : undefined}
+                  >
+                    <span>{r.position}</span>
+                    <span className={styles.tableName}>{r.team.name}</span>
+                    <span className={styles.gd}>{formatGoalDifference(r.goal_difference)}</span>
+                    <span className={styles.pts}>{r.points}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className={styles.block} aria-labelledby="club">
+            <h2 id="club" className={styles.h2}>
+              Σωματείο
+            </h2>
+            <nav className={styles.card} aria-label="Σωματείο">
+              <ClubLink href={`/somateia/${team.slug}/roster`} title="Ρόστερ" sub="Παίκτες και στατιστικά">
+                <Icon name="person" size={18} />
+              </ClubLink>
+              <ClubLink href={`/poines?somateio=${team.slug}`} title="Ποινές" sub="Κάρτες και τιμωρίες">
+                <span className={styles.cardGlyph} />
+              </ClubLink>
+              {team.home_field && (
+                <ClubLink
+                  href={`/gipeda/${team.home_field.slug}`}
+                  title={team.home_field.name}
+                  sub={venueLine(team.home_field)}
+                >
+                  <Icon name="pin" size={18} />
+                </ClubLink>
+              )}
+            </nav>
+          </section>
+
           <GoalMinutes slug={team.slug} title="ΓΚΟΛ ΑΝΑ 15ΛΕΠΤΟ" />
 
-          <div>
-            <SectionHeader title="ΣΩΜΑΤΕΙΟ" />
-            <nav className={styles.card} aria-label="Ρόστερ και ποινές">
-              <Link href={`/somateia/${team.slug}/roster`} className={styles.linkRow}>
-                <span>Ρόστερ</span>
-                <span className={styles.chevron} aria-hidden="true">›</span>
-              </Link>
-              <Link href={`/poines?somateio=${team.slug}`} className={styles.linkRow}>
-                <span>Ποινές</span>
-                <span className={styles.chevron} aria-hidden="true">›</span>
-              </Link>
-            </nav>
-          </div>
-
-          {team.sponsors.length > 0 && (
-            <div>
-              <SectionHeader title="ΧΟΡΗΓΟΙ" />
-              <Sponsors sponsors={team.sponsors} />
-            </div>
-          )}
-
-          {team.home_field && (
-            <div>
-              <SectionHeader title="ΕΔΡΑ" />
-              <Link
-                href={`/gipeda/${team.home_field.slug}`}
-                className={styles.venue}
-              >
-                <span className={styles.venueGlyph} aria-hidden="true">
-                  <Icon name="pin" size={18} />
-                </span>
-                <span className={styles.venueText}>
-                  <span className={styles.venueName}>
-                    {team.home_field.name}
-                  </span>
-                  <span className={styles.venueMeta}>
-                    {venueLine(team.home_field)}
-                  </span>
-                </span>
-                <span className={styles.chevron} aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-            </div>
-          )}
-
-          {placement && (
-            <div>
-              <SectionHeader
-                title="ΣΤΗ ΒΑΘΜΟΛΟΓΙΑ"
-                action={{
-                  href: `/vathmologia?liga=${placement.league.slug}`,
-                  label: "Πλήρης ›",
-                }}
-              />
-              <Link
-                href={`/vathmologia?liga=${placement.league.slug}`}
-                className={styles.leagueLink}
-              >
-                <span>{leagueLabel(placement.league)}</span>
-                {standing && (
-                  <span className={styles.leagueMeta}>
-                    {standing.position}η θέση · {pointsLabel(standing.points)}
-                  </span>
-                )}
-              </Link>
-            </div>
-          )}
         </aside>
-      </div>
 
-      {/* The one place a club official would look. The tool is not in the nav
-          — it is not for readers — but a door nobody can find is not a door. */}
-      <p className={styles.volunteer}>
-        Είσαι από το σωματείο; Δώσε το σκορ{" "}
-        <Link href="/ethelontis">live από το γήπεδο</Link> με τον κωδικό που σου
-        έδωσε η ένωση.
-      </p>
+        {/* The one place a club official would look. The tool is not in the
+            nav — it is not for readers — but a door nobody can find is not
+            a door. */}
+        <p className={styles.volunteer}>
+          Είσαι από το σωματείο; Δώσε το σκορ{" "}
+          <Link href="/ethelontis">live από το γήπεδο</Link> με τον κωδικό που σου
+          έδωσε η ένωση.
+        </p>
+      </div>
     </div>
   );
+}
+
+const VERDICT: Record<string, { word: string; tone: "w" | "d" | "l" }> = {
+  Ν: { word: "νίκη", tone: "w" },
+  Ι: { word: "ισοπαλία", tone: "d" },
+  Η: { word: "ήττα", tone: "l" },
+};
+
+function Kpi({ value, label }: { value: string | number; label: string }) {
+  return (
+    // dt before dd, as a <dl> requires; reversed in CSS so the number is on top.
+    <div className={styles.kpi}>
+      <dt className={styles.kpiLabel}>{label}</dt>
+      <dd className={styles.kpiValue}>{value}</dd>
+    </div>
+  );
+}
+
+/** "ΣΕ 2 ΜΕΡΕΣ", "ΣΗΜΕΡΑ", "ΑΥΡΙΟ" — counted in Athens days. A plain
+ *  function: it reads the clock, which a component body must not. */
+function daysAway(iso: string | null): string | null {
+  if (!iso) return null;
+  const day = (t: number) => Math.floor((t + 3 * 3600_000) / 86_400_000);
+  const n = day(new Date(iso).getTime()) - day(Date.now());
+  if (n <= 0) return "ΣΗΜΕΡΑ";
+  if (n === 1) return "ΑΥΡΙΟ";
+  return `ΣΕ ${n} ΜΕΡΕΣ`;
+}
+
+/** The navy card: the next match, big, with what to read before it. */
+function NextMatch({ match, teamId }: { match: Match; teamId: number }) {
+  const home = match.home_team.id === teamId;
+  const opponent = home ? match.away_team : match.home_team;
+  const when = [formatDayDate(match.kickoff_at), daysAway(match.kickoff_at)].filter(Boolean).join(" · ");
+  return (
+    <section className={styles.next} aria-labelledby="next">
+      <div className={styles.nextTop}>
+        <h2 id="next" className={styles.nextLabel}>
+          ΕΠΟΜΕΝΟΣ ΑΓΩΝΑΣ{match.matchday ? ` · ${match.matchday}η ΑΓΩΝΙΣΤΙΚΗ` : ""}
+        </h2>
+        {when && <span className={styles.nextWhen}>{when}</span>}
+      </div>
+      <Link href={`/agones/${match.id}`} className={styles.nextBoard}>
+        <span className={styles.nextSide}>
+          <Crest team={match.home_team} size="md" onNavy />
+          <span>{match.home_team.name}</span>
+        </span>
+        <span className={styles.nextTime}>{formatTime(match.kickoff_at) || "–"}</span>
+        <span className={`${styles.nextSide} ${styles.nextAway}`}>
+          <span>{match.away_team.name}</span>
+          <Crest team={match.away_team} size="md" onNavy />
+        </span>
+      </Link>
+      <div className={styles.nextFoot}>
+        <span className={styles.nextWhere}>
+          {[match.field?.name, home ? "εντός έδρας" : "εκτός έδρας"].filter(Boolean).join(" · ")}
+        </span>
+        <span className={styles.nextActions}>
+          <Link href={`/kontra/${match.home_team.slug}/${match.away_team.slug}`} className={styles.nextButton}>
+            Κόντρα
+          </Link>
+          <Link
+            href={`/somateia/${opponent.slug}/analysi?me=${home ? match.home_team.slug : match.away_team.slug}`}
+            className={styles.nextButton}
+          >
+            Ανάλυση αντιπάλου
+          </Link>
+        </span>
+      </div>
+    </section>
+  );
+}
+
+/** One fixture: the date as a block, the opponent and ground, the time and
+ *  which end. */
+function Fixture({ match, teamId }: { match: Match; teamId: number }) {
+  const home = match.home_team.id === teamId;
+  const opponent = home ? match.away_team : match.home_team;
+  const [day, date] = formatDayDate(match.kickoff_at).split(" ");
+  return (
+    <Link href={`/agones/${match.id}`} className={styles.fixture}>
+      <span className={styles.date}>
+        <span>{day ? day.charAt(0) + day.slice(1).toLocaleLowerCase("el-GR") : "—"}</span>
+        <span className={styles.dateNum}>{date ?? ""}</span>
+      </span>
+      <span className={styles.fixtureMid}>
+        <span className={styles.opponent}>
+          <Crest team={opponent} size="xs" />
+          <span>{opponent.name}</span>
+        </span>
+        {match.field && <span className={styles.venue}>{match.field.name}</span>}
+      </span>
+      <span className={styles.fixtureEnd}>
+        <span className={styles.time}>
+          {match.status === "postponed" ? "ΑΝΑΒΟΛΗ" : formatTime(match.kickoff_at) || "—"}
+        </span>
+        <span className={home ? styles.homeTag : styles.awayTag}>{home ? "ΕΝΤΟΣ" : "ΕΚΤΟΣ"}</span>
+      </span>
+    </Link>
+  );
+}
+
+/** One result: both clubs as played, the winner in bold, and Ν/Ι/Η from
+ *  this club's side. */
+function Result({ match, teamId }: { match: Match; teamId: number }) {
+  const hs = match.home_score ?? 0;
+  const as = match.away_score ?? 0;
+  const ours = match.home_team.id === teamId ? hs - as : as - hs;
+  const r = ours > 0 ? "Ν" : ours < 0 ? "Η" : "Ι";
+  return (
+    <Link href={`/agones/${match.id}`} className={styles.result}>
+      <span className={styles.resultTeams}>
+        <span className={hs > as ? styles.won : undefined}>
+          <Crest team={match.home_team} size="xs" />
+          {match.home_team.name}
+        </span>
+        <span className={as > hs ? styles.won : undefined}>
+          <Crest team={match.away_team} size="xs" />
+          {match.away_team.name}
+        </span>
+      </span>
+      <span className={styles.resultScores}>
+        <span>{hs}</span>
+        <span>{as}</span>
+      </span>
+      <span className={`${styles.verdict} ${styles[VERDICT[r].tone]}`} aria-label={VERDICT[r].word}>
+        {r}
+      </span>
+    </Link>
+  );
+}
+
+function ClubLink({
+  href,
+  title,
+  sub,
+  children,
+}: {
+  href: string;
+  title: string;
+  sub: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link href={href} className={styles.clubLink}>
+      <span className={styles.clubGlyph} aria-hidden="true">
+        {children}
+      </span>
+      <span className={styles.clubText}>
+        <span className={styles.clubTitle}>{title}</span>
+        <span className={styles.clubSub}>{sub}</span>
+      </span>
+      <span className={styles.chevron} aria-hidden="true">
+        ›
+      </span>
+    </Link>
+  );
+}
+
+/** Five rows of the table around the club: two above, two below, fewer at
+ *  either end. */
+function nearby(rows: Standing[], teamId: number): Standing[] {
+  const i = rows.findIndex((r) => r.team.id === teamId);
+  if (i < 0) return [];
+  const start = Math.max(0, Math.min(i - 2, rows.length - 5));
+  return rows.slice(start, start + 5);
+}
+
+/** "www.ktep.gr" from "https://www.ktep.gr/…": the card's second line. */
+function host(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
 }
 
 /** Fixtures a reader would call upcoming.
@@ -451,73 +622,8 @@ function stillToCome(matches: Match[]): Match[] {
   );
 }
 
-function Stat({ value, label }: { value: string | number; label: string }) {
-  return (
-    // dt before dd, as a <dl> requires; the column is reversed in CSS so the
-    // number still sits on top.
-    <div className={styles.stat}>
-      <dt className={styles.statLabel}>{label}</dt>
-      <dd className={styles.statValue}>{value}</dd>
-    </div>
-  );
-}
-
 /** "Έδρα · χλοοτάπητας · 800 θέσεις", dropping whatever the register left
  *  blank. Surface is filled in for every ground; capacity for three of them. */
-/** The questions people put to a search box or an assistant about a club —
- *  where they play, when next, where they stand, how the last one went —
- *  answered in a sentence each from data the page already has. A direct
- *  answer near the top is what an answer engine quotes; the same pairs go
- *  out as FAQPage. Only for the current season: "the next match" of 2019 is
- *  not an answer. Names without an article: "η/ο/το" depends on a club's
- *  name, and a wrong one reads worse than none. */
-function clubFaq(
-  team: TeamDetail,
-  placement: Awaited<ReturnType<typeof api.getTeamStanding>>,
-  played: Match[],
-  upcoming: Match[],
-  current: boolean,
-): { q: string; a: string }[] {
-  if (!current) return [];
-  const faq: { q: string; a: string }[] = [];
-  const opponent = (m: Match) => (m.home_team.id === team.id ? m.away_team : m.home_team);
-  const side = (m: Match) => (m.home_team.id === team.id ? "εντός έδρας" : "εκτός έδρας");
-
-  if (team.home_field) {
-    faq.push({
-      q: `${team.name}: πού είναι η έδρα;`,
-      a: `Στο γήπεδο ${team.home_field.name}${team.home_field.city ? `, ${team.home_field.city}` : ""}.`,
-    });
-  }
-  const next = upcoming[0];
-  if (next?.kickoff_at) {
-    faq.push({
-      q: `${team.name}: πότε είναι ο επόμενος αγώνας;`,
-      a: `${formatKickoff(next.kickoff_at, " στις ")}, ${side(next)} με ${opponent(next).name}${next.field ? `, στο γήπεδο ${next.field.name}` : ""}.`,
-    });
-  }
-  if (placement?.standing) {
-    const st = placement.standing;
-    faq.push({
-      q: `${team.name}: σε ποια θέση είναι στη βαθμολογία;`,
-      a: `${st.position}η στην ${leagueLabel(placement.league)} ΕΠΣ Ηπείρου, με ${st.points} ${plural(st.points, "βαθμό", "βαθμούς")} σε ${st.played} ${plural(st.played, "αγώνα", "αγώνες")} (${st.won}-${st.drawn}-${st.lost}).`,
-    });
-  }
-  const last = [...played].sort((a, b) => (b.kickoff_at ?? "").localeCompare(a.kickoff_at ?? ""))[0];
-  if (last) {
-    const home = last.home_team.id === team.id;
-    const [us, them] = home
-      ? [last.home_score ?? 0, last.away_score ?? 0]
-      : [last.away_score ?? 0, last.home_score ?? 0];
-    const outcome = us > them ? "Νίκη" : us < them ? "Ήττα" : "Ισοπαλία";
-    faq.push({
-      q: `${team.name}: ποιο ήταν το τελευταίο αποτέλεσμα;`,
-      a: `${outcome} ${us}–${them} ${side(last)} με ${opponent(last).name}${last.kickoff_at ? ` (${formatDayDate(last.kickoff_at)})` : ""}.`,
-    });
-  }
-  return faq;
-}
-
 function venueLine(field: FieldRef): string {
   const SURFACES: Record<string, string> = {
     grass: "χλοοτάπητας",

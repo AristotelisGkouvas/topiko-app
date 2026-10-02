@@ -1,0 +1,164 @@
+/* Screen 03 v2: the timeline under the tabs. A grey band per half with its
+   score, then one 44px row per moment — home moments read from the left
+   edge, away moments mirror them from the right. */
+
+/* Also the section band of the other tabs, which compose it. */
+.band {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 7px 14px;
+  background: var(--color-badge-surface);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 1px;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 5px 14px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* The away side reads from the right: score, name, glyph, minute. */
+.away {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.minute {
+  width: 30px;
+  flex: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.glyph {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--color-heading);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.away .who {
+  align-items: flex-end;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.84375rem;
+  line-height: 1.2;
+  color: var(--color-heading);
+}
+
+.name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .name a:hover {
+    text-decoration: underline;
+  }
+}
+
+.note {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+
+.score {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: var(--radius-tag);
+  background: var(--color-badge-surface);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-sm);
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A card, drawn: yellow and red read the same on every phone. */
+.card {
+  display: block;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+.pair {
+  display: flex;
+  gap: 1px;
+}
+
+.pair .card {
+  width: 7px;
+  height: 12px;
+}
+
+.yellow {
+  background: var(--color-form-draw);
+}
+
+.red {
+  background: var(--color-loss);
+}
+
+/* The change: green up for the one coming on, red down for the one off. */
+.in,
+.out {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.in {
+  stroke: var(--color-win);
+}
+
+.out {
+  stroke: var(--color-loss);
+}
+
+.source,
+.empty {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+.empty {
+  font-size: var(--text-md);
+  padding: 16px 14px;
+}

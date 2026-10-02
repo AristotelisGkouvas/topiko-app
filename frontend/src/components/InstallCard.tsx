@@ -3,7 +3,7 @@
 import { track } from "@/lib/analytics";
 import { useSyncExternalStore } from "react";
 
-import styles from "./LeagueRail.module.css";
+import styles from "./InstallCard.module.css";
 
 /** "Εγκατάσταση εφαρμογής", from the design's left rail.
  *

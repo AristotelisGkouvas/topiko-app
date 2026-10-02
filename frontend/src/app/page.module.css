@@ -1,11 +1,8 @@
-/* Screen 01 on a phone, D01 on a desktop.
-
-   One column under 1040px: division chip in the header, then the reader's club,
-   then live, then results, then the table preview.
-
-   Three above it — 200px | 1fr | 320px with a 22px gap, as the handoff
-   specifies — because at that width the numbers can sit beside the results
-   instead of a screen below them. */
+/* .page, .pickers, .titleBlock, .wide, .card and .section are shared: most
+   pages borrow this module for their one-column layout. The rest is the home
+   page (design "Pame Sentra Home"): the divisions as tabs across a white
+   band, then three columns — the round, the table, and the side column with
+   the teasers and the scorers. One column on a phone. */
 
 .page {
   display: grid;
@@ -14,48 +11,15 @@
 }
 
 /* A grid item's min-width defaults to auto — "as wide as my content" — which
-   beats overflow-x:auto on a child. Without this the league strip widens the
-   whole page instead of scrolling inside itself, pushing scores off a phone.
-
-   Invisible while the association published two divisions; the moment the
-   backfill brought in seventeen, every mobile page lost its right-hand
-   columns. */
+   beats overflow-x:auto on a child. Without this a scrolling strip widens the
+   whole page instead of scrolling inside itself. */
 .page > * {
   min-width: 0;
-}
-
-.main {
-  display: grid;
-  gap: 22px;
-  align-items: start;
-  min-width: 0;
-}
-
-.main > * {
-  min-width: 0;
-}
-
-/* Below the breakpoint the right-hand column simply follows .main in the one
-   column; above it, it becomes the third column. One copy in the DOM either
-   way — two would mean duplicate ids and every heading read out twice. */
-.side {
-  display: grid;
-  gap: 22px;
-  align-items: start;
-}
-
-/* The freshness line sits under the numbers only beside them. */
-.wideOnly {
-  display: none;
 }
 
 .section {
   display: grid;
   gap: 0;
-}
-
-.card {
-  composes: card from "../styles/primitives.module.css";
 }
 
 .titleBlock {
@@ -72,12 +36,6 @@
   gap: 10px;
 }
 
-/* Every other page borrows .page for its spacing and is one column of
-   content. Given the home screen's three columns, their children were dealt
-   into the cells one by one: a dashboard's match list in the 200px rail with
-   the team names cut off, a records card alone with the rest of the screen
-   empty. So the three columns belong to .home, and the rest get one column at
-   a width that still reads. */
 @media (min-width: 1040px) {
   .page {
     padding: 4px 0 0;
@@ -86,17 +44,585 @@
     margin: 0 auto;
   }
 
-  .home {
-    grid-template-columns: 200px minmax(0, 1fr) 320px;
-    max-width: none;
-  }
-
   /* Tools that need the whole width: the editors' dashboard. */
   .wide {
     max-width: none;
   }
+}
 
-  .wideOnly {
-    display: block;
+/* --- the home page ----------------------------------------------------- */
+
+.home {
+  gap: 0;
+  /* Full bleed for the tab band: the page meets the app bar and both edges. */
+  margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
+}
+
+@media (min-width: 1040px) {
+  .home {
+    max-width: none;
+    padding: 0;
+    margin: calc(-1 * var(--layout-gutter-top)) calc(-1 * var(--layout-gutter-x)) 0;
+    width: auto;
+  }
+}
+
+.cats {
+  background: var(--color-surface);
+  box-shadow: 0 0 0 100vmax var(--color-surface);
+  clip-path: inset(0 -100vmax);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cats::-webkit-scrollbar {
+  display: none;
+}
+
+.catsInner {
+  display: flex;
+  gap: 4px;
+  padding: 0 10px;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.cat {
+  flex: none;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cat[aria-current="page"] {
+  font-weight: 700;
+  color: var(--color-heading);
+  box-shadow: inset 0 -3px 0 var(--color-win);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cat:hover {
+    color: var(--color-heading);
+  }
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 24px var(--layout-gutter-x) 8px;
+}
+
+.colRound,
+.colTable,
+.colSide {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.colRound {
+  flex: 1 1 380px;
+}
+
+.colTable {
+  flex: 1 1 360px;
+}
+
+.colSide {
+  flex: 1 1 280px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.blockHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-heading);
+}
+
+.headLink {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-accent-ink);
+  text-decoration: none;
+}
+
+/* --- the round card ---------------------------------------------------- */
+
+.round {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.roundHead {
+  --focus-ring: var(--color-on-navy-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--color-bar);
+}
+
+.roundNav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-on-navy-fill);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-on-brand);
+  text-decoration: none;
+}
+
+.stepOff {
+  opacity: 0.35;
+}
+
+@media (pointer: coarse) {
+  .step {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.roundTitles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.roundTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.1;
+  color: var(--color-on-navy);
+}
+
+.roundSub {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-on-navy-muted);
+}
+
+/* The sponsor presenting the round, on a white plate. */
+.present {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-plate);
+  text-decoration: none;
+}
+
+.presentLead {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.5625rem;
+  letter-spacing: 1px;
+  color: var(--color-grey-600);
+}
+
+.presentLogo {
+  display: block;
+  height: 24px;
+  max-width: 90px;
+  object-fit: contain;
+}
+
+.presentWord {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-md);
+  color: var(--color-plate-ink);
+}
+
+.day {
+  margin: 0;
+  padding: 7px 16px;
+  background: var(--color-grey-100);
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 1px;
+  color: var(--color-text);
+}
+
+.game {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 36px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .game:hover,
+  .tableRow:not(.tableHead):hover,
+  .scorer:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+.gameState {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.final {
+  font-size: 0.6875rem;
+  letter-spacing: 0.6px;
+  color: var(--color-text-muted);
+}
+
+.live {
+  font-size: var(--text-sm);
+  color: var(--color-live-surface);
+}
+
+.gameTeams {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.gameTeams > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.90625rem;
+  line-height: 22px;
+  color: var(--color-text);
+}
+
+.gameTeams > span > span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gameTeams > .won {
+  font-weight: 800;
+}
+
+.gameScores {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9375rem;
+  line-height: 22px;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.roundEmpty {
+  margin: 0;
+  padding: 18px 16px;
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+}
+
+.roundAll {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-accent-ink);
+  text-decoration: none;
+}
+
+/* --- the table --------------------------------------------------------- */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tableList,
+.scorers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 54px 32px 26px;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.tableHead {
+  min-height: 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background: var(--color-grey-100);
+  border-bottom: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.65625rem;
+  letter-spacing: 0.6px;
+  color: var(--color-text-muted);
+}
+
+/* Promotion and relegation: a bar on the row's left edge. */
+.up {
+  box-shadow: inset 3px 0 0 var(--color-win);
+}
+
+.down {
+  box-shadow: inset 3px 0 0 var(--color-live-surface);
+}
+
+.r {
+  text-align: right;
+}
+
+.pos {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+}
+
+.club {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.84375rem;
+  color: var(--color-text);
+}
+
+.club > span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.form {
+  display: flex;
+  gap: 2px;
+}
+
+.formBox {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.5625rem;
+  line-height: 1;
+}
+
+.w {
+  background: var(--color-action);
+  color: var(--color-action-ink);
+}
+
+.d {
+  background: var(--color-draw-surface);
+  color: var(--color-draw-ink);
+}
+
+.l {
+  background: var(--color-live-surface);
+  color: var(--color-live-ink);
+}
+
+.gd {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+}
+
+.pts {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0;
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legendBar {
+  display: block;
+  width: 3px;
+  height: 12px;
+}
+
+.upBar {
+  background: var(--color-win);
+}
+
+.downBar {
+  background: var(--color-live-surface);
+}
+
+/* --- scorers ----------------------------------------------------------- */
+
+.scorer {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 30px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+  text-decoration: none;
+}
+
+.scorers li:last-child .scorer {
+  border-bottom: none;
+}
+
+.scorerWho {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.scorerName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scorerTeam {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goals {
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  color: var(--color-accent-ink);
+}
+
+.volunteer {
+  flex: 1 1 100%;
+  text-align: center;
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed var(--color-chip-border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.78125rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.volunteer a {
+  font-weight: 700;
+  color: var(--color-accent-ink);
+}
+
+@media (max-width: 600px) {
+  .columns {
+    padding: 16px var(--layout-gutter-x) 8px;
+    gap: 20px;
   }
 }

@@ -1,0 +1,108 @@
+/* Screen 03 v2, ΒΑΘΜΟΛΟΓΙΑ: 36px rows, the two clubs of the match on a
+   pale navy ground. */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.table thead th {
+  padding: 7px 4px;
+  background: var(--color-badge-surface);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.6px;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.table th,
+.table td {
+  padding: 0 4px;
+  height: 36px;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.table th:first-child,
+.table td:first-child {
+  width: 24px;
+  padding-left: 14px;
+  text-align: left;
+}
+
+.table th:nth-child(2) {
+  text-align: left;
+  width: auto;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  width: 28px;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+  width: 36px;
+}
+
+.table th:last-child,
+.table td:last-child {
+  width: 30px;
+  padding-right: 14px;
+  text-align: right;
+}
+
+.club {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .club:hover {
+    text-decoration: underline;
+  }
+}
+
+.pts {
+  font-weight: 800 !important;
+  color: var(--color-text) !important;
+}
+
+.mine th,
+.mine td {
+  background: color-mix(in srgb, var(--color-heading) 10%, var(--color-surface));
+  color: var(--color-heading);
+  font-weight: 600;
+}
+
+.mine .pos,
+.mine .club,
+.mine .pts {
+  font-weight: 800 !important;
+  color: var(--color-heading) !important;
+}
+
+.foot {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: var(--text-md);
+}
+
+.foot a {
+  color: var(--color-link);
+  font-weight: 600;
+  text-decoration: none;
+}

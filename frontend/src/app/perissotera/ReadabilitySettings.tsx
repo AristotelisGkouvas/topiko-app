@@ -18,7 +18,7 @@ export function ReadabilitySettings() {
         </span>
         <span className={styles.labelBlock}>
           <span className={styles.label}>Μεγάλα γράμματα</span>
-          <span className={styles.description}>Όλο το κείμενο κατά ένα τέταρτο μεγαλύτερο</span>
+          <span className={styles.description}>Κείμενο κατά ¼ μεγαλύτερο</span>
         </span>
         <Toggle
           checked={large}
@@ -35,7 +35,7 @@ export function ReadabilitySettings() {
         </span>
         <span className={styles.labelBlock}>
           <span className={styles.label}>Υψηλή αντίθεση</span>
-          <span className={styles.description}>Μαύρο φόντο, λευκά και κίτρινα γράμματα — για τον ήλιο</span>
+          <span className={styles.description}>Μαύρο φόντο, για τον ήλιο</span>
         </span>
         <Toggle
           checked={contrast}

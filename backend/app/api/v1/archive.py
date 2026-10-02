@@ -13,12 +13,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from email.utils import format_datetime
-from typing import Annotated
+from typing import Annotated, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from pydantic import BaseModel
-from sqlalchemy import ColumnElement, case, extract, func, or_, select
+from sqlalchemy import ColumnElement, case, extract, func, or_, select, true
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentAssociation, CurrentLeague, DbSession
@@ -833,12 +833,23 @@ async def records(
     association: CurrentAssociation,
     db: DbSession,
     limit: Annotated[int, Query(ge=1, le=20)] = 5,
+    #: "andres" for the open-age divisions only, "ypodomes" for the academy
+    #: ones. Most records are youth thrashings; a reader after the men's
+    #: game needs them out of the way.
+    kind: Annotated[Literal["andres", "ypodomes"] | None, Query()] = None,
 ) -> RecordsOut:
     """The extremes of the archive."""
+    age = (
+        League.age_group.is_(None)
+        if kind == "andres"
+        else League.age_group.is_not(None)
+        if kind == "ypodomes"
+        else true()
+    )
     scoped = (
         select(Match)
         .join(League, Match.league_id == League.id)
-        .where(League.association_id == association.id, _played())
+        .where(League.association_id == association.id, _played(), age)
     )
 
     margin = func.abs(Match.home_score - Match.away_score)
@@ -876,6 +887,7 @@ async def records(
             .where(
                 Player.association_id == association.id,
                 PlayerStat.goals.is_not(None),
+                age,
             )
             .group_by(Player.id, Player.slug, Player.name)
             .order_by(func.sum(PlayerStat.goals).desc())
@@ -899,6 +911,7 @@ async def records(
                 match=MatchOut.model_validate(m),
                 value=abs((m.home_score or 0) - (m.away_score or 0)),
                 league_name=m.league.name,
+                youth=m.league.age_group is not None,
             )
             for m in biggest
         ],
@@ -907,6 +920,7 @@ async def records(
                 match=MatchOut.model_validate(m),
                 value=(m.home_score or 0) + (m.away_score or 0),
                 league_name=m.league.name,
+                youth=m.league.age_group is not None,
             )
             for m in highest
         ],

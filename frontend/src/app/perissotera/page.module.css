@@ -106,7 +106,7 @@
 }
 
 .segmented button {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 6px;
   border-radius: calc(var(--radius-md) - 2px);
   font-family: var(--font-display);
@@ -122,13 +122,18 @@
 }
 
 @media (min-width: 520px) {
+  /* Beside the label, not on a line of its own. */
+  .rowWrap {
+    flex-wrap: nowrap;
+  }
+
   .segmented {
-    flex: 0 0 260px;
+    flex: 0 0 240px;
   }
 }
 
 @media (pointer: coarse) {
   .segmented button {
-    min-height: 44px;
+    min-height: 40px;
   }
 }

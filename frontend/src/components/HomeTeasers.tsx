@@ -8,11 +8,13 @@ import { plural } from "@/lib/format";
 import type { MvpPoll, OnThisDay } from "@/lib/types";
 import styles from "./HomeTeasers.module.css";
 
-/** The reasons to open the site on a Tuesday.
+const dayMonth = new Intl.DateTimeFormat("el-GR", { day: "numeric", month: "short", timeZone: "Europe/Athens" });
+
+/** The reasons to open the site on a Tuesday, as one card (design "Home"):
+ *  the vote for the player of the round on a pale navy ground, when there is
+ *  one, and a match played on this day in an earlier year.
  *
- *  The vote and the anniversaries lived two taps deep under "Περισσότερα",
- *  and a home page that never mentioned them was a home page for Sundays only.
- *  Each card appears only when it has something to say. */
+ *  Each half appears only when it has something to say. */
 export function HomeTeasers() {
   const { data: poll } = useSWR<MvpPoll | null>(apiUrl("/mvp"), jsonFetcher, {
     revalidateOnFocus: false,
@@ -25,35 +27,34 @@ export function HomeTeasers() {
   const anniversary = day?.matches[0];
   if (!vote && !anniversary) return null;
 
+  const year = anniversary?.kickoff_at ? new Date(anniversary.kickoff_at).getFullYear() : null;
+
   return (
-    <div className={styles.row}>
+    <div className={styles.card}>
       {vote && (
-        <Link href="/mvp" className={styles.card}>
-          <span className={styles.kicker}>ΠΑΙΚΤΗΣ ΑΓΩΝΙΣΤΙΚΗΣ</span>
-          <span className={styles.title}>
-            Ψήφισε τον καλύτερο της {vote.matchday}ης · {vote.league_name}
-          </span>
-          <span className={styles.meta}>
-            {vote.candidates.length}{" "}
+        <Link href="/mvp" className={styles.vote}>
+          <span className={styles.voteKicker}>ΠΑΙΚΤΗΣ ΤΗΣ {vote.matchday}ης ΑΓΩΝΙΣΤΙΚΗΣ</span>
+          <span className={styles.voteTitle}>Ψήφισε τον καλύτερο</span>
+          <span className={styles.voteMeta}>
+            {vote.league_name} · {vote.candidates.length}{" "}
             {plural(vote.candidates.length, "υποψήφιος", "υποψήφιοι")} ›
           </span>
         </Link>
       )}
       {anniversary && (
-        <Link href="/san-simera" className={styles.card}>
-          <span className={styles.kicker}>ΣΑΝ ΣΗΜΕΡΑ</span>
-          <span className={styles.title}>
-            {anniversary.home_team.short_name ?? anniversary.home_team.name}{" "}
-            {anniversary.home_score}–{anniversary.away_score}{" "}
-            {anniversary.away_team.short_name ?? anniversary.away_team.name}
+        <div className={styles.day}>
+          <span className={styles.kicker}>
+            ΣΑΝ ΣΗΜΕΡΑ · {dayMonth.format(new Date()).toLocaleUpperCase("el-GR")}
           </span>
-          <span className={styles.meta}>
-            {anniversary.kickoff_at ? new Date(anniversary.kickoff_at).getFullYear() : ""}
-            {day!.matches.length > 1
-              ? ` · και άλλοι ${day!.matches.length - 1} ›`
-              : " ›"}
-          </span>
-        </Link>
+          <Link href={`/agones/${anniversary.id}`} className={styles.story}>
+            {year ? `${year}: ` : ""}
+            {anniversary.home_team.name} {anniversary.home_score}–{anniversary.away_score}{" "}
+            {anniversary.away_team.name}
+          </Link>
+          <Link href="/san-simera" className={styles.more}>
+            {day!.matches.length > 1 ? `Και άλλοι ${day!.matches.length - 1} ›` : "Περισσότερα ›"}
+          </Link>
+        </div>
       )}
     </div>
   );

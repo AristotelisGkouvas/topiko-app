@@ -75,11 +75,6 @@ export default async function AnnouncementsPage({
           }
         />
       )}
-
-      <p className={styles.source}>
-        Αντίγραφο από το epsip.gr. Η ένωση δεν δημοσιεύει feed ούτε ξεχωριστή
-        διεύθυνση ανά ανακοίνωση — για το επίσημο κείμενο, δες την πηγή.
-      </p>
     </div>
   );
 }
