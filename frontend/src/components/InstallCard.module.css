@@ -1,0 +1,32 @@
+/* The install card, in the home page's side column. */
+
+.install {
+  padding: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.installTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-heading);
+}
+
+.installBody {
+  margin: 4px 0 10px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.installButton {
+  composes: buttonPrimary buttonBlock from "../styles/primitives.module.css";
+  /* Compact, as a side-column card. */
+  min-height: 36px;
+  font-size: var(--text-md);
+}
+
