@@ -329,7 +329,8 @@ export const api = {
   getOnThisDay: (date: { day?: number; month?: number; limit?: number } = {}) =>
     request<OnThisDay>(scoped("/san-simera"), { searchParams: date, revalidate: 3600 }),
 
-  getRecords: () => request<Records>(scoped("/rekor"), { revalidate: 3600 }),
+  getRecords: (kind?: "andres" | "ypodomes") =>
+    request<Records>(scoped("/rekor"), { searchParams: { kind, limit: 5 }, revalidate: 3600 }),
 
   listAnnouncements: (params: { q?: string; limit?: number } = {}) =>
     request<Announcement[]>(scoped("/anakoinoseis"), { searchParams: params }),

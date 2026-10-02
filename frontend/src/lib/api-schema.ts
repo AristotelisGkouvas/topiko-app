@@ -3523,6 +3523,11 @@ export interface components {
             match: components["schemas"]["MatchOut"];
             /** Value */
             value: number;
+            /**
+             * Youth
+             * @default false
+             */
+            youth: boolean;
         };
         /** RecordsOut */
         RecordsOut: {
@@ -7492,6 +7497,7 @@ export interface operations {
         parameters: {
             query?: {
                 limit?: number;
+                kind?: ("andres" | "ypodomes") | null;
             };
             header?: never;
             path: {
