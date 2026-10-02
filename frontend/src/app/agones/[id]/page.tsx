@@ -1,35 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 
+import { ClubName } from "@/components/ClubName";
 import { Crest } from "@/components/Crest";
-import { HeadToHeadBar, tally } from "@/components/HeadToHeadBar";
 import { Icon } from "@/components/Icon";
 import { LastUpdated } from "@/components/LastUpdated";
 import { LiveRefresh } from "@/components/LiveRefresh";
-import { ShareButton } from "@/components/ShareButton";
-import { ScoreFlash } from "@/components/ScoreFlash";
-import { MatchTicker } from "@/components/MatchTicker";
-import { Prediction } from "@/components/Prediction";
-import { SectionHeader } from "@/components/SectionHeader";
-import { MatchSheetView } from "@/components/MatchSheetView";
-import { QuickAnswers, type QuickAnswer } from "@/components/QuickAnswers";
+import { MatchHeadToHead } from "@/components/MatchHeadToHead";
+import { MatchLineups } from "@/components/MatchLineups";
 import { MatchPresenter } from "@/components/MatchPresenter";
+import { MatchTable } from "@/components/MatchTable";
+import { MatchTabs, type MatchTab } from "@/components/MatchTabs";
+import { MatchTimeline } from "@/components/MatchTimeline";
+import { Prediction } from "@/components/Prediction";
+import { QuickAnswers, type QuickAnswer } from "@/components/QuickAnswers";
+import { ScoreFlash } from "@/components/ScoreFlash";
+import { ShareButton } from "@/components/ShareButton";
 import { SponsorStrip, alternate } from "@/components/SponsorStrip";
 import { ApiError, api } from "@/lib/api";
 import { fold } from "@/lib/greek";
-import {
-  formatDayDate,
-  formatTime,
-  listName,
-  matchStatusLabel,
-  pointsLabel,
-} from "@/lib/format";
+import { formatDayDate, formatTime, listName, matchStatusLabel, upper } from "@/lib/format";
 import { leagueLabel } from "@/lib/leagues";
+import { sheetMoments } from "@/lib/moments";
 import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
-import type { League, Match, MatchDetail, MatchSheet, Standing } from "@/lib/types";
+import type { League, Match, MatchDetail, MatchSheet } from "@/lib/types";
 import styles from "./page.module.css";
-import { ClubName } from "@/components/ClubName";
 
 export const dynamic = "force-dynamic";
 
@@ -138,35 +135,229 @@ export async function generateMetadata({
 
 export default async function MatchPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, { tab }] = await Promise.all([params, searchParams]);
   const {
     match,
     league,
     head_to_head,
     home_standing,
     away_standing,
-    home_sponsors,
-    away_sponsors,
+    home_sponsors = [],
+    away_sponsors = [],
     sheet,
   } = await load(id);
-  // A sponsor that failed to load costs its line, not the match page.
-  const presenters = await api
-    .listPlatformSponsors("match", league.age_group !== null)
-    .catch(() => []);
+  // A sponsor or a table that failed to load costs its part, not the page.
+  const [presenters, standings] = await Promise.all([
+    api.listPlatformSponsors("match", league.age_group !== null).catch(() => []),
+    home_standing || away_standing
+      ? api.getStandings(league.slug, league.season.slug).catch(() => [])
+      : Promise.resolve([]),
+  ]);
   const presenter = presenters.length ? presenters[match.id % presenters.length] : null;
 
   const played = match.home_score !== null && match.away_score !== null;
   const live = match.status === "live" || match.status === "halftime";
+  const home = match.home_team;
+  const away = match.away_team;
 
   const directions = match.field
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
         [match.field.name, match.field.city].filter(Boolean).join(", "),
       )}`
     : null;
-  const record = tally(head_to_head, match.home_team.id);
+
+  // The half blocks say their own score where the result gives it; the
+  // second is the full-time score less the first.
+  const ht =
+    match.home_score_ht !== null && match.away_score_ht !== null
+      ? ([match.home_score_ht, match.away_score_ht] as const)
+      : null;
+  const halfScores: [string | null, string | null] = [
+    ht ? `${ht[0]} - ${ht[1]}` : null,
+    ht && played && match.status !== "halftime"
+      ? `${match.home_score! - ht[0]} - ${match.away_score! - ht[1]}`
+      : null,
+  ];
+
+  const state = live
+    ? match.status === "halftime"
+      ? "ΗΜΙΧΡΟΝΟ"
+      : match.minute
+        ? `${match.minute > 45 ? "2ο" : "1ο"} ΗΜΙΧΡ. · ${match.minute}'`
+        : "LIVE"
+    : matchStatusLabel(match.status, match.kickoff_at);
+
+  const info: { k: string; v: ReactNode }[] = [
+    {
+      k: "Έναρξη",
+      v:
+        [formatDayDate(match.kickoff_at), formatTime(match.kickoff_at)].filter(Boolean).join(" · ") ||
+        "Δεν έχει οριστεί",
+    },
+    ...(match.field
+      ? [{ k: "Γήπεδο", v: <Link href={`/gipeda/${match.field.slug}`}>{match.field.name}</Link> }]
+      : []),
+    ...(match.referee ? [{ k: "Διαιτητής", v: match.referee }] : []),
+    ...Object.entries(sheet?.officials ?? {})
+      .filter(([label]) => !(match.referee && fold(label) === fold("Διαιτητής")))
+      .map(([k, v]) => ({ k, v })),
+  ];
+
+  const summary = (
+    <>
+      <MatchTimeline
+        matchId={match.id}
+        homeTeamId={home.id}
+        sheet={sheet && sheet.events.length > 0 ? sheetMoments(sheet.events, home.id) : null}
+        halfScores={halfScores}
+        live={live}
+      />
+
+      <h2 className={styles.band}>ΠΛΗΡΟΦΟΡΙΕΣ ΑΓΩΝΑ</h2>
+      <div className={styles.info}>
+        <dl className={styles.facts}>
+          {info.map((r) => (
+            <div key={r.k} className={styles.fact}>
+              <dt>{r.k}</dt>
+              <dd>{r.v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className={styles.actions}>
+          {directions && (
+            <a
+              className={styles.primary}
+              href={directions}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-track="directions"
+              data-track-props={JSON.stringify({ match: match.id, field: match.field?.slug ?? null })}
+            >
+              Οδηγίες
+            </a>
+          )}
+          <ShareButton
+            title={`${home.name} – ${away.name}`}
+            text={[
+              `${listName(home)}–${listName(away)}${
+                played ? ` ${match.home_score}–${match.away_score}` : ""
+              }${live ? " (LIVE)" : ""}`,
+              played
+                ? null
+                : [formatDayDate(match.kickoff_at), formatTime(match.kickoff_at)]
+                    .filter(Boolean)
+                    .join(" "),
+              match.field?.name,
+            ]
+              .filter(Boolean)
+              .join(", ")}
+            className={styles.secondary}
+          />
+          {/* 9:16, for a story — the link card is the wrong shape for one. */}
+          <a
+            href={`/agones/${match.id}/istoria?lipsi=1`}
+            download
+            data-track="story"
+            data-track-props={JSON.stringify({ match: match.id })}
+            className={styles.square}
+            aria-label="Κατέβασμα εικόνας για story (Instagram, Facebook)"
+            title="Κατέβασμα εικόνας για story"
+          >
+            <Icon name="download" size={20} />
+          </a>
+        </div>
+
+        {match.note && <p className={styles.note}>{match.note}</p>}
+
+        {/* Where the number came from. A score typed during the match is a
+            different claim from one lifted off the federation's own page. */}
+        {played && match.data_source !== "scraper" && (
+          <p className={styles.provenance}>
+            {match.data_source === "manual_live"
+              ? "Καταχωρήθηκε χειροκίνητα· εκκρεμεί η επιβεβαίωση με το φύλλο αγώνα."
+              : "Καταχωρήθηκε χειροκίνητα και ελέγχθηκε με το φύλλο αγώνα."}
+          </p>
+        )}
+        {/* The last change or the last check against the federation,
+            whichever is newer — an untouched fixture is not a stale one. */}
+        <LastUpdated
+          timestamp={
+            match.last_scraped_at && match.last_scraped_at > match.updated_at
+              ? match.last_scraped_at
+              : match.updated_at
+          }
+        />
+        {REPORT_TO && (
+          <p className={styles.report}>
+            <a
+              href={`mailto:${REPORT_TO}?subject=${encodeURIComponent(
+                `Λάθος: ${home.name} – ${away.name}`,
+              )}&body=${encodeURIComponent(
+                `Αγώνας #${match.id} (${formatDayDate(match.kickoff_at)})\n` +
+                  `Στη σελίδα: ${played ? `${match.home_score}–${match.away_score}` : "χωρίς σκορ"}\n` +
+                  "Το σωστό είναι: ",
+              )}`}
+            >
+              Αναφορά λάθους
+            </a>
+          </p>
+        )}
+      </div>
+
+      <div className={styles.extras}>
+        <Prediction matchId={match.id} home={home} away={away} />
+        <QuickAnswers id="match-faq" items={matchFaq(match, league, sheet ?? null, live)} />
+      </div>
+
+      <SponsorStrip
+        sponsors={alternate(home_sponsors, away_sponsors).filter(
+          // The match's own sponsor is already named over the score.
+          (s) => !presenter || fold(s.name) !== fold(presenter.name),
+        )}
+        kind="club"
+        label="Χορηγοί ομάδων"
+      />
+    </>
+  );
+
+  const tabs: MatchTab[] = [
+    { id: "synopsi", label: "ΣΥΝΟΨΗ", panel: summary },
+    ...(sheet && (sheet.home.length > 0 || sheet.away.length > 0)
+      ? [
+          {
+            id: "syntheseis",
+            label: "ΣΥΝΘΕΣΕΙΣ",
+            panel: (
+              <MatchLineups home={home} away={away} homePlayers={sheet.home} awayPlayers={sheet.away} />
+            ),
+          },
+        ]
+      : []),
+    ...(head_to_head.length > 0
+      ? [
+          {
+            id: "kontra",
+            label: "ΚΟΝΤΡΑ",
+            panel: <MatchHeadToHead home={home} away={away} meetings={head_to_head} />,
+          },
+        ]
+      : []),
+    ...(standings.length > 0
+      ? [
+          {
+            id: "vathmologia",
+            label: "ΒΑΘΜΟΛΟΓΙΑ",
+            panel: <MatchTable rows={standings} teamIds={[home.id, away.id]} leagueSlug={league.slug} />,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <div className={styles.page}>
@@ -175,300 +366,79 @@ export default async function MatchPage({
           ...[matchJsonLd(match, league.name)].filter((d) => d !== null),
           breadcrumbs([
             { name: "Αγώνες", path: `/agones?liga=${league.slug}` },
-            { name: `${match.home_team.name} - ${match.away_team.name}`, path: `/agones/${match.id}` },
+            { name: `${home.name} - ${away.name}`, path: `/agones/${match.id}` },
           ]),
         ]}
       />
-      {/* The navy band runs the full width and carries the crumb, the crests
-          and the score. Screens 03 and D03 spend the page's whole block of
-          brand colour here — it is the one thing the reader came for. */}
+      {/* Screen 03 v2: a compact navy header — the score in under a quarter
+          of the phone — and everything else in tabs below it. */}
       <div className={styles.hero}>
         {live && <LiveRefresh />}
         {/* The page's heading, for screen readers: the visual one is a
             scoreboard, and a bare "3" means nothing read out alone. */}
         <h1 className="srOnly">
           {played
-            ? `${match.home_team.name} ${match.home_score}, ${match.away_team.name} ${match.away_score}`
-            : `${match.home_team.name} – ${match.away_team.name}`}
+            ? `${home.name} ${match.home_score}, ${away.name} ${match.away_score}`
+            : `${home.name} – ${away.name}`}
           {" — "}
           {live && match.minute
             ? `σε εξέλιξη, ${match.minute}ο λεπτό`
             : matchStatusLabel(match.status, match.kickoff_at)}
         </h1>
-        <nav className={styles.breadcrumb} aria-label="Διαδρομή">
-          <Link href={`/agones?liga=${league.slug}`}>‹ Αγώνες</Link>
-          <span>
-            {leagueLabel(league)}
-            {match.matchday ? ` · ${match.matchday}η αγωνιστική` : ""}
+        <nav className={styles.top} aria-label="Διαδρομή">
+          <Link href={`/agones?liga=${league.slug}`} className={styles.back} aria-label="Πίσω στους αγώνες">
+            ‹
+          </Link>
+          <span className={styles.crumb}>
+            {upper(leagueLabel(league))}
+            {match.matchday ? ` · ${match.matchday}η ΑΓΩΝΙΣΤΙΚΗ` : ""}
           </span>
+          <span className={styles.back} aria-hidden="true" />
         </nav>
 
-        {/* When and where, above the score — the first two questions
-            anyone asks about a match, answered before they scroll. */}
-        <div className={styles.when}>
-          <p className={styles.whenDay}>
-            {[
-              formatDayDate(match.kickoff_at),
-              formatTime(match.kickoff_at) || "ώρα δεν έχει οριστεί",
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-          {(match.field || match.referee) && (
-            <p className={styles.whenPlace}>
-              {match.field && (
-                <Link href={`/gipeda/${match.field.slug}`}>{match.field.name}</Link>
-              )}
-              {match.field && match.referee && " · "}
-              {/* Only when one has been appointed. */}
-              {match.referee && <>Διαιτητής: {match.referee}</>}
-            </p>
-          )}
-        </div>
+        <section className={styles.scoreboard}>
+          <TeamSide team={home} />
+          <div className={styles.middle}>
+            <span className={styles.when}>
+              {[formatDayDate(match.kickoff_at), played ? formatTime(match.kickoff_at) : null]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+            {played ? (
+              <p className={styles.score}>
+                <ScoreFlash value={match.home_score} />
+                <span className={styles.dash}>-</span>
+                <ScoreFlash value={match.away_score} />
+              </p>
+            ) : (
+              <p className={styles.kickoff}>{formatTime(match.kickoff_at) || "–"}</p>
+            )}
+            <span className={live ? styles.live : styles.state}>
+              {live && <span className={styles.dot} aria-hidden="true" />}
+              {state}
+            </span>
+          </div>
+          <TeamSide team={away} />
+        </section>
 
         <MatchPresenter sponsors={presenters} matchId={match.id} />
-
-        <section className={styles.scoreboard}>
-        <TeamSide team={match.home_team} standing={home_standing} />
-
-        <div className={styles.middle}>
-          {played ? (
-            <p className={`${styles.score} ${live ? styles.scoreLive : ""}`}>
-              <ScoreFlash value={match.home_score} />
-              <span className={styles.dash}>–</span>
-              <ScoreFlash value={match.away_score} />
-            </p>
-          ) : (
-            <p className={styles.kickoff}>{formatTime(match.kickoff_at)}</p>
-          )}
-
-          <p className={styles.state}>
-            {live && match.minute
-              ? `LIVE · ${match.minute}′`
-              : matchStatusLabel(match.status, match.kickoff_at)}
-          </p>
-
-          {match.home_score_ht !== null && match.away_score_ht !== null && (
-            <p className={styles.halftime}>
-              ημίχρονο {match.home_score_ht}–{match.away_score_ht}
-            </p>
-          )}
-        </div>
-
-          <TeamSide team={match.away_team} standing={away_standing} />
-        </section>
       </div>
-
-      <SponsorStrip
-        sponsors={alternate(home_sponsors, away_sponsors).filter(
-          // The match's own sponsor is already named over the score; the same
-          // logo again beside it read as noise, not as two deals.
-          (s) => !presenter || fold(s.name) !== fold(presenter.name),
-        )}
-        kind="club"
-        label="Χορηγοί ομάδων"
-      />
 
       <div className={styles.body}>
-        <div className={styles.info}>
-
-          <div className={styles.actions}>
-            {directions && (
-              <a
-                className={styles.primary}
-                href={directions}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-track="directions"
-                data-track-props={JSON.stringify({ match: match.id, field: match.field?.slug ?? null })}
-                aria-label="Οδηγίες προς το γήπεδο"
-                title="Οδηγίες προς το γήπεδο"
-              >
-                <Icon name="pin" size={22} />
-              </a>
-            )}
-            <ShareButton
-              title={`${match.home_team.name} – ${match.away_team.name}`}
-              text={[
-                `${listName(match.home_team)}–${listName(match.away_team)}${
-                  played ? ` ${match.home_score}–${match.away_score}` : ""
-                }${live ? " (LIVE)" : ""}`,
-                played
-                  ? null
-                  : [formatDayDate(match.kickoff_at), formatTime(match.kickoff_at)]
-                      .filter(Boolean)
-                      .join(" "),
-                match.field?.name,
-              ]
-                .filter(Boolean)
-                .join(", ")}
-              className={styles.secondary}
-              iconOnly
-            />
-            {/* 9:16, for a story — the link card is the wrong shape for one. */}
-            <a
-              href={`/agones/${match.id}/istoria?lipsi=1`}
-              download
-              data-track="story"
-              data-track-props={JSON.stringify({ match: match.id })}
-              className={styles.secondary}
-              aria-label="Κατέβασμα εικόνας για story (Instagram, Facebook)"
-              title="Κατέβασμα εικόνας για story"
-            >
-              <Icon name="download" size={22} />
-            </a>
-          </div>
-
-          {match.note && <p className={styles.note}>{match.note}</p>}
-
-          {/* Where the number came from. A score an editor typed during the
-              match is a different claim from one lifted off the federation's
-              own page, and this is the one screen with room to say so. */}
-          {/* "Who" names the kind of source, not the person: a live score
-              may come from the club's volunteer or from the federation's
-              desk, and saying "editor" for both was wrong half the time. */}
-          {played && match.data_source !== "scraper" && (
-            <p className={styles.provenance}>
-              {match.data_source === "manual_live"
-                ? "Καταχωρήθηκε χειροκίνητα· εκκρεμεί η επιβεβαίωση με το φύλλο αγώνα."
-                : "Καταχωρήθηκε χειροκίνητα και ελέγχθηκε με το φύλλο αγώνα."}
-            </p>
-          )}
-          {/* When, so that a score can be quoted with a time on it: the last
-              change or the last check against the federation, whichever is
-              newer — an untouched fixture is not a stale one. */}
-          <LastUpdated
-            timestamp={
-              match.last_scraped_at && match.last_scraped_at > match.updated_at
-                ? match.last_scraped_at
-                : match.updated_at
-            }
-          />
-
-          {/* Pre-filled, so the report names the match without anybody having
-              to describe it. Only where there is an address to send it to. */}
-          {REPORT_TO && (
-            <p className={styles.report}>
-              <a
-                href={`mailto:${REPORT_TO}?subject=${encodeURIComponent(
-                  `Λάθος: ${match.home_team.name} – ${match.away_team.name}`,
-                )}&body=${encodeURIComponent(
-                  `Αγώνας #${match.id} (${formatDayDate(match.kickoff_at)})
-` +
-                    `Στη σελίδα: ${played ? `${match.home_score}–${match.away_score}` : "χωρίς σκορ"}
-` +
-                    "Το σωστό είναι: ",
-                )}`}
-              >
-                Αναφορά λάθους
-              </a>
-            </p>
-          )}
-        </div>
-
-        <div className={styles.centre}>
-          <MatchTicker
-            matchId={match.id}
-            homeName={match.home_team.short_name ?? match.home_team.name}
-            awayName={match.away_team.short_name ?? match.away_team.name}
-          />
-
-          <Prediction matchId={match.id} home={match.home_team} away={match.away_team} />
-
-          <QuickAnswers id="match-faq" items={matchFaq(match, league, sheet ?? null, live)} />
-
-          {sheet && (
-            <MatchSheetView
-              sheet={sheet}
-              homeTeamId={match.home_team.id}
-              homeName={match.home_team.short_name ?? match.home_team.name}
-              awayName={match.away_team.short_name ?? match.away_team.name}
-            />
-          )}
-
-          {head_to_head.length > 0 && (
-            <section className={styles.history}>
-              <SectionHeader
-                title="ΠΡΟΗΓΟΥΜΕΝΕΣ ΣΥΝΑΝΤΗΣΕΙΣ"
-                action={{
-                  href: `/kontra/${match.home_team.slug}/${match.away_team.slug}`,
-                  label: "Λεπτομέρειες ›",
-                }}
-              />
-              <div className={styles.historyCard}>
-                <div className={styles.barWrap}>
-                  <HeadToHeadBar
-                    home={match.home_team}
-                    away={match.away_team}
-                    record={record}
-                  />
-                </div>
-              </div>
-            </section>
-          )}
-        </div>
-
-        {(home_standing || away_standing) && (
-          <aside className={styles.standings} aria-label="Θέσεις στη βαθμολογία">
-            <SectionHeader
-              title="ΣΤΗ ΒΑΘΜΟΛΟΓΙΑ"
-              action={{
-                href: `/vathmologia?liga=${league.slug}`,
-                label: "Πλήρης ›",
-              }}
-            />
-            <div className={styles.standingsCard}>
-              {[
-                { team: match.home_team, standing: home_standing },
-                { team: match.away_team, standing: away_standing },
-              ]
-                .filter((row) => row.standing !== null)
-                .map(({ team, standing }) => (
-                  <Link
-                    key={team.slug}
-                    href={`/somateia/${team.slug}`}
-                    className={styles.standingRow}
-                  >
-                    <span className={styles.standingPos}>
-                      {standing!.position}
-                    </span>
-                    <Crest team={team} size="sm" />
-                    <span className={styles.standingName}>
-                      {team.short_name ?? team.name}
-                    </span>
-                    <span className={styles.standingPoints}>
-                      {standing!.points}
-                    </span>
-                  </Link>
-                ))}
-            </div>
-          </aside>
-        )}
+        <MatchTabs tabs={tabs} initial={tab} />
       </div>
-
     </div>
   );
 }
 
-function TeamSide({
-  team,
-  standing,
-}: {
-  team: Match["home_team"];
-  standing: Standing | null;
-}) {
+function TeamSide({ team }: { team: Match["home_team"] }) {
   return (
-    <div className={styles.side}>
-      <Crest team={team} size="lg" />
-      <Link href={`/somateia/${team.slug}`} className={styles.sideName}>
+    <Link href={`/somateia/${team.slug}`} className={styles.side}>
+      <Crest team={team} size="md" onNavy />
+      <span className={styles.sideName}>
         <ClubName name={team.name} />
-      </Link>
-      {standing && (
-        <span className={styles.position}>
-          {standing.position}η θέση · {pointsLabel(standing.points)}
-        </span>
-      )}
-    </div>
+      </span>
+    </Link>
   );
 }
 
