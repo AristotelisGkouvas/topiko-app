@@ -420,6 +420,31 @@
   .leagueWrap {
     display: none;
   }
+
+  /* With the chip gone, nothing pushed the search over: it sat against the
+     nav. It belongs at the bar's right edge, where search usually is. */
+  .search {
+    margin-left: auto;
+  }
+}
+
+/* Nav, division chip and a 240px field do not fit side by side until the
+   chip goes at 1040px: in between, the search is its icon, as on a phone. */
+@media (min-width: 860px) and (max-width: 1039.98px) {
+  .search {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .searchIcon {
+    color: var(--color-on-navy);
+  }
+
+  .searchText,
+  .searchKey {
+    display: none;
+  }
 }
 
 .menuNote {
