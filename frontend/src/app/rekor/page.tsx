@@ -130,13 +130,6 @@ export default async function RecordsPage({ searchParams }: { searchParams: Sear
               </ol>
             </section>
           )}
-
-          {kind !== "andres" && (
-            <p className={styles.info}>
-              Τα περισσότερα ρεκόρ είναι από τις υποδομές, όπου οι διαφορές δυναμικότητας είναι
-              μεγάλες. Με το φίλτρο «Ανδρικά» βλέπεις μόνο τις κατηγορίες ανδρών.
-            </p>
-          )}
         </aside>
       </div>
     </div>

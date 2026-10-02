@@ -368,18 +368,6 @@
   white-space: nowrap;
 }
 
-.info {
-  margin: 0;
-  padding: 16px;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-heading) 10%, var(--color-surface));
-  font-family: var(--font-body);
-  font-size: 0.78125rem;
-  line-height: 1.55;
-  color: var(--color-text);
-  text-wrap: pretty;
-}
-
 @media (max-width: 600px) {
   .row {
     grid-template-columns: 54px minmax(0, 1fr);
