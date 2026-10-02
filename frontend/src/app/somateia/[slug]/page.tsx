@@ -8,7 +8,7 @@ import { MatchRow } from "@/components/MatchRow";
 import { Empty } from "@/components/States";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ApiError, api } from "@/lib/api";
-import { formatDayDate, formatGoalDifference, formatKickoff, plural, pointsLabel } from "@/lib/format";
+import { formatGoalDifference, plural, pointsLabel } from "@/lib/format";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { leagueLabel, readParam, type SearchParams } from "@/lib/leagues";
 import type { FieldRef, Match, TeamDetail } from "@/lib/types";
@@ -101,8 +101,6 @@ export default async function TeamPage({
     (m) => m.status === "postponed" && m.home_score === null,
   );
 
-  const faq = clubFaq(team, placement, played, upcoming, season === team.seasons[0]);
-
   return (
     <div className={styles.page}>
       <JsonLd
@@ -125,19 +123,6 @@ export default async function TeamPage({
             { name: "Σωματεία", path: "/somateia" },
             { name: team.name, path: `/somateia/${team.slug}` },
           ]),
-          ...(faq.length > 0
-            ? [
-                {
-                  "@context": "https://schema.org",
-                  "@type": "FAQPage",
-                  mainEntity: faq.map(({ q, a }) => ({
-                    "@type": "Question",
-                    name: q,
-                    acceptedAnswer: { "@type": "Answer", text: a },
-                  })),
-                },
-              ]
-            : []),
         ]}
       />
       {/* Screen 06's hero: the crest, who they are, where they stand, and the
@@ -325,20 +310,6 @@ export default async function TeamPage({
           </section>
         )}
 
-        {faq.length > 0 && (
-          <section className={styles.column} aria-labelledby="faq">
-            <SectionHeader id="faq" title="ΜΕ ΜΙΑ ΜΑΤΙΑ" />
-            <dl className={`${styles.card} ${styles.faq}`}>
-              {faq.map(({ q, a }) => (
-                <div key={q} className={styles.faqItem}>
-                  <dt>{q}</dt>
-                  <dd>{a}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        )}
-
         {/* Each block owns its label, so the column can space the blocks
             without also pushing every label away from its own card. */}
         <aside className={styles.aside} aria-label="Έδρα και ιστορικό">
@@ -464,60 +435,6 @@ function Stat({ value, label }: { value: string | number; label: string }) {
 
 /** "Έδρα · χλοοτάπητας · 800 θέσεις", dropping whatever the register left
  *  blank. Surface is filled in for every ground; capacity for three of them. */
-/** The questions people put to a search box or an assistant about a club —
- *  where they play, when next, where they stand, how the last one went —
- *  answered in a sentence each from data the page already has. A direct
- *  answer near the top is what an answer engine quotes; the same pairs go
- *  out as FAQPage. Only for the current season: "the next match" of 2019 is
- *  not an answer. Names without an article: "η/ο/το" depends on a club's
- *  name, and a wrong one reads worse than none. */
-function clubFaq(
-  team: TeamDetail,
-  placement: Awaited<ReturnType<typeof api.getTeamStanding>>,
-  played: Match[],
-  upcoming: Match[],
-  current: boolean,
-): { q: string; a: string }[] {
-  if (!current) return [];
-  const faq: { q: string; a: string }[] = [];
-  const opponent = (m: Match) => (m.home_team.id === team.id ? m.away_team : m.home_team);
-  const side = (m: Match) => (m.home_team.id === team.id ? "εντός έδρας" : "εκτός έδρας");
-
-  if (team.home_field) {
-    faq.push({
-      q: `${team.name}: πού είναι η έδρα;`,
-      a: `Στο γήπεδο ${team.home_field.name}${team.home_field.city ? `, ${team.home_field.city}` : ""}.`,
-    });
-  }
-  const next = upcoming[0];
-  if (next?.kickoff_at) {
-    faq.push({
-      q: `${team.name}: πότε είναι ο επόμενος αγώνας;`,
-      a: `${formatKickoff(next.kickoff_at, " στις ")}, ${side(next)} με ${opponent(next).name}${next.field ? `, στο γήπεδο ${next.field.name}` : ""}.`,
-    });
-  }
-  if (placement?.standing) {
-    const st = placement.standing;
-    faq.push({
-      q: `${team.name}: σε ποια θέση είναι στη βαθμολογία;`,
-      a: `${st.position}η στην ${leagueLabel(placement.league)} ΕΠΣ Ηπείρου, με ${st.points} ${plural(st.points, "βαθμό", "βαθμούς")} σε ${st.played} ${plural(st.played, "αγώνα", "αγώνες")} (${st.won}-${st.drawn}-${st.lost}).`,
-    });
-  }
-  const last = [...played].sort((a, b) => (b.kickoff_at ?? "").localeCompare(a.kickoff_at ?? ""))[0];
-  if (last) {
-    const home = last.home_team.id === team.id;
-    const [us, them] = home
-      ? [last.home_score ?? 0, last.away_score ?? 0]
-      : [last.away_score ?? 0, last.home_score ?? 0];
-    const outcome = us > them ? "Νίκη" : us < them ? "Ήττα" : "Ισοπαλία";
-    faq.push({
-      q: `${team.name}: ποιο ήταν το τελευταίο αποτέλεσμα;`,
-      a: `${outcome} ${us}–${them} ${side(last)} με ${opponent(last).name}${last.kickoff_at ? ` (${formatDayDate(last.kickoff_at)})` : ""}.`,
-    });
-  }
-  return faq;
-}
-
 function venueLine(field: FieldRef): string {
   const SURFACES: Record<string, string> = {
     grass: "χλοοτάπητας",

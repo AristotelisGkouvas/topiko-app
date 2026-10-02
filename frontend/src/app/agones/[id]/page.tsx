@@ -15,7 +15,6 @@ import { MatchTable } from "@/components/MatchTable";
 import { MatchTabs, type MatchTab } from "@/components/MatchTabs";
 import { MatchTimeline } from "@/components/MatchTimeline";
 import { Prediction } from "@/components/Prediction";
-import { QuickAnswers, type QuickAnswer } from "@/components/QuickAnswers";
 import { ScoreFlash } from "@/components/ScoreFlash";
 import { ShareButton } from "@/components/ShareButton";
 import { SponsorStrip, alternate } from "@/components/SponsorStrip";
@@ -25,7 +24,7 @@ import { formatDayDate, formatTime, listName, matchStatusLabel, upper } from "@/
 import { leagueLabel } from "@/lib/leagues";
 import { sheetMoments } from "@/lib/moments";
 import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
-import type { League, Match, MatchDetail, MatchSheet } from "@/lib/types";
+import type { Match, MatchDetail } from "@/lib/types";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -312,7 +311,6 @@ export default async function MatchPage({
 
       <div className={styles.extras}>
         <Prediction matchId={match.id} home={home} away={away} />
-        <QuickAnswers id="match-faq" items={matchFaq(match, league, sheet ?? null, live)} />
       </div>
 
       <SponsorStrip
@@ -440,70 +438,4 @@ function TeamSide({ team }: { team: Match["home_team"] }) {
       </span>
     </Link>
   );
-}
-
-/** What people ask about one match: the score or the kickoff, who scored and
- *  when, and where it is played. Each answer is one sentence from the page's
- *  own data, so an assistant can quote it as it stands. */
-function matchFaq(
-  match: Match,
-  league: League,
-  sheet: MatchSheet | null,
-  live: boolean,
-): QuickAnswer[] {
-  const faq: QuickAnswer[] = [];
-  const pair = `${match.home_team.name} – ${match.away_team.name}`;
-  const when = match.kickoff_at
-    ? `${formatDayDate(match.kickoff_at)} στις ${formatTime(match.kickoff_at)}`
-    : null;
-  const played = match.home_score !== null && match.away_score !== null;
-
-  if (played && !live) {
-    faq.push({
-      q: `Ποιο ήταν το αποτέλεσμα στο ${pair};`,
-      a: `${match.home_team.name} ${match.home_score}–${match.away_score} ${match.away_team.name}${
-        match.kickoff_at ? `, ${formatDayDate(match.kickoff_at)}` : ""
-      }, για την ${leagueLabel(league)} ΕΠΣ Ηπείρου.`,
-    });
-  } else if (!played && when) {
-    faq.push({
-      q: `Πότε παίζεται το ${pair};`,
-      a: `${when}${match.field ? `, στο γήπεδο ${match.field.name}` : ""}.`,
-    });
-  }
-
-  const goals = (sheet?.events ?? []).filter(
-    (e) => e.kind === "goal" || e.kind === "penalty_goal" || e.kind === "own_goal",
-  );
-  if (goals.length > 0) {
-    const forTeam = (teamId: number) =>
-      goals
-        .filter((e) =>
-          e.kind === "own_goal" ? e.team_id !== teamId : e.team_id === teamId,
-        )
-        .map((e) => {
-          const name = e.player?.name ?? e.player_name ?? "άγνωστος";
-          const note = e.kind === "penalty_goal" ? ", πέναλτι" : e.kind === "own_goal" ? ", αυτογκόλ" : "";
-          return e.minute != null ? `${name} (${e.minute}′${note})` : `${name}${note ? ` (${note.slice(2)})` : ""}`;
-        });
-    const home = forTeam(match.home_team.id);
-    const away = forTeam(match.away_team.id);
-    faq.push({
-      q: `Ποιος σκόραρε στο ${pair};`,
-      a: [
-        home.length ? `Για ${match.home_team.name}: ${home.join(", ")}.` : null,
-        away.length ? `Για ${match.away_team.name}: ${away.join(", ")}.` : null,
-      ]
-        .filter(Boolean)
-        .join(" "),
-    });
-  }
-
-  if (match.field) {
-    faq.push({
-      q: `Σε ποιο γήπεδο ${played ? "παίχτηκε" : "παίζεται"} το ${pair};`,
-      a: `Στο γήπεδο ${match.field.name}${match.field.city ? `, ${match.field.city}` : ""}.`,
-    });
-  }
-  return faq;
 }
