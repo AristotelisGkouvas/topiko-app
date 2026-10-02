@@ -1,87 +1,304 @@
-.date {
-  margin: 2px 0 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--text-base);
-  color: var(--color-text-muted);
+/* Design "On This Day": the white band with the day and its numbers; the
+   matches by year down the main column; the biggest win, the day's numbers
+   and an invitation beside them. */
+
+.page {
+  display: block;
 }
 
-.year {
-  margin-bottom: 20px;
+.body {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 0 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
 }
 
-.list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+.main {
+  flex: 2 1 520px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.row {
+.side {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* --- the day picker ------------------------------------------------------ */
+
+.dayNav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-grey-100);
-  text-decoration: none;
-  color: var(--color-text);
+  gap: 6px;
 }
 
-.list li:last-child .row {
-  border-bottom: none;
+.step {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-heading);
+  text-decoration: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .row:hover {
+  .step:hover {
     background: var(--color-grey-100);
   }
 }
 
-/* Touch: the same look while pressed. */
-.row:active {
-  background: var(--color-grey-100);
-}
-
-.teams {
+.today {
+  height: 40px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.team {
-  font-size: var(--text-md);
-  font-weight: 600;
-  line-height: 1.25;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-bar);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-on-brand);
   white-space: nowrap;
 }
 
-.score {
-  flex: none;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-lg);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-heading);
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  background: var(--color-grey-100);
+/* --- years ---------------------------------------------------------------- */
+
+.year {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* Five clear is the sort of afternoon people still bring up. */
-.thrashing {
-  background: var(--color-highlight-surface);
+.yearHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.yearTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.375rem;
+  color: var(--color-heading);
+}
+
+.yearMeta {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.78125rem;
+  color: var(--color-text-muted);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+  text-decoration: none;
+}
+
+.game:last-child {
+  border-bottom: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .game:hover {
+    background: var(--color-grey-100);
+  }
+}
+
+.teams,
+.scores {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 0.90625rem;
+  line-height: 20px;
+  color: var(--color-text);
+}
+
+.teams > span {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teams > .won {
+  font-weight: 800;
+}
+
+.scores {
+  align-items: flex-end;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- the side ------------------------------------------------------------- */
+
+.top {
+  --focus-ring: var(--color-on-navy-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: var(--radius-xl);
+  background: var(--color-bar);
+}
+
+.topLabel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 1.2px;
+  color: var(--color-on-navy-muted);
+}
+
+.topScore {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.75rem;
+  line-height: 1;
+  color: var(--color-on-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.topYear {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--color-on-navy-idle);
+}
+
+.topTeams {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  color: var(--color-on-navy);
+}
+
+.topActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.topButton {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-on-navy-fill);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-on-brand);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .topButton {
+    height: 44px;
+  }
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-heading);
+}
+
+.facts {
+  margin: 0;
+  padding: 4px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+}
+
+.facts > div:last-child {
+  border-bottom: none;
+}
+
+.facts dt {
+  color: var(--color-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  color: var(--color-text);
 }
 
 .note {
-  margin: 4px 2px 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed var(--color-chip-border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.78125rem;
+  line-height: 1.55;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.note a {
+  font-weight: 700;
+  color: var(--color-accent-ink);
 }

@@ -326,7 +326,8 @@ export const api = {
 
   // Revalidated hourly rather than per request: the answer only changes when
   // the calendar day does, and it is the same for every reader.
-  getOnThisDay: () => request<OnThisDay>(scoped("/san-simera"), { revalidate: 3600 }),
+  getOnThisDay: (date: { day?: number; month?: number; limit?: number } = {}) =>
+    request<OnThisDay>(scoped("/san-simera"), { searchParams: date, revalidate: 3600 }),
 
   getRecords: () => request<Records>(scoped("/rekor"), { revalidate: 3600 }),
 

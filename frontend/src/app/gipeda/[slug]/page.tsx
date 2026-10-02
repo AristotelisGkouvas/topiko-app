@@ -5,11 +5,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Crest } from "@/components/Crest";
-import { MatchRow } from "@/components/MatchRow";
+import { BandHeader } from "@/components/BandHeader";
+import { Icon } from "@/components/Icon";
 import { ShareButton } from "@/components/ShareButton";
 import { VenueMap } from "@/components/VenueMap";
 import { ApiError, api } from "@/lib/api";
-import type { FieldDetail } from "@/lib/types";
+import { formatDayDate, formatTime } from "@/lib/format";
+import type { FieldDetail, Match } from "@/lib/types";
 import { JsonLd, absolute, breadcrumbs } from "@/lib/seo";
 import styles from "./page.module.css";
 
@@ -87,34 +89,20 @@ export default async function FieldPage({
   const field = await load(slug);
   const matches = await api.getFieldMatches(slug);
 
-  const tenants = field.home_teams.map((team) => team.name);
+
   const located = field.latitude !== null && field.longitude !== null;
-
-  /** Label/value rows, in the design's order. Anything the register left blank
-   *  is dropped rather than printed as "—": a row that says nothing takes the
-   *  same space as one that says something. */
-  const facts: { label: string; value: string }[] = [];
-  if (field.surface) {
-    facts.push({ label: "Επιφάνεια", value: SURFACE_LABELS[field.surface] });
-  }
-  if (field.has_floodlights !== null) {
-    facts.push({
-      label: "Προβολείς",
-      value: field.has_floodlights ? "Ναι" : "Όχι",
-    });
-  }
-  if (field.capacity) {
-    facts.push({ label: "Χωρητικότητα", value: `${field.capacity} θέσεις` });
-  }
-  if (tenants.length > 0) {
-    facts.push({ label: "Έδρα", value: tenants.join(" και ") });
-  }
-  const address = [field.address, field.postal_code, field.city]
-    .filter(Boolean)
-    .join(", ");
-  if (address) facts.push({ label: "Διεύθυνση", value: address });
-
   const directions = directionsUrl(field);
+  const next = matches.find((m) => m.home_score === null && isAhead(m)) ?? null;
+  const address = [field.address, field.postal_code, field.city].filter(Boolean).join(", ");
+
+  /** Label/value rows. Anything the register left blank is dropped rather
+   *  than printed as "—". */
+  const facts: { label: string; value: string }[] = [];
+  if (field.surface) facts.push({ label: "Επιφάνεια", value: SURFACE_LABELS[field.surface] });
+  if (field.has_floodlights !== null) facts.push({ label: "Προβολείς", value: field.has_floodlights ? "Ναι" : "Όχι" });
+  if (field.capacity) facts.push({ label: "Χωρητικότητα", value: `${field.capacity} θέσεις` });
+  if (address) facts.push({ label: "Διεύθυνση", value: address });
+  facts.push({ label: "Αγώνες φέτος", value: String(matches.length) });
 
   return (
     <div className={styles.page}>
@@ -145,102 +133,180 @@ export default async function FieldPage({
           ]),
         ]}
       />
-      {/* The design opens on a 190px band. With coordinates it is the map;
-          without, the hatch the design itself draws — which is honest, since
-          the federation publishes no photographs either. */}
-      <div className={styles.banner}>
-        {located ? (
-          <VenueMap fields={[field]} />
-        ) : (
-          <div className={styles.hatch} aria-hidden="true" />
-        )}
-      </div>
 
-      <div className={styles.titleBlock}>
-        <h1 className={styles.name}>{field.name}</h1>
-        <p className={styles.sub}>
-          {[field.city, tenants.length > 0 ? `έδρα του ${tenants[0]}` : null]
-            .filter(Boolean)
-            .join(" · ") || "Γήπεδο της ένωσης"}
-        </p>
-      </div>
+      <BandHeader
+        crumbs={[{ label: "Ένωση" }, { label: "Γήπεδα", href: "/gipeda" }, { label: field.name }]}
+        lead={
+          <span className={styles.glyph} aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="40" height="40">
+              <rect x="4" y="9" width="32" height="22" rx="2" />
+              <path d="M20 9v22" />
+              <circle cx="20" cy="20" r="4.5" />
+              <path d="M4 15h4v10H4M36 15h-4v10h4" />
+            </svg>
+          </span>
+        }
+        title={field.name}
+        sub={
+          <span className={styles.meta}>
+            {field.city && <span>{field.city}</span>}
+            {field.surface && (
+              <span className={`${styles.tag} ${field.surface === "dirt" ? "" : styles.green}`}>
+                <span className={styles.swatch} aria-hidden="true" />
+                {SURFACE_LABELS[field.surface]}
+              </span>
+            )}
+            {field.has_floodlights !== null && (
+              <span className={styles.tag}>{field.has_floodlights ? "Με προβολείς" : "Χωρίς προβολείς"}</span>
+            )}
+          </span>
+        }
+        aside={
+          <div className={styles.actions}>
+            {directions && (
+              <a className={styles.primary} href={directions} target="_blank" rel="noopener noreferrer">
+                <Icon name="pin" size={17} />
+                Οδηγίες
+              </a>
+            )}
+            <ShareButton title={field.name} className={styles.square} iconOnly />
+          </div>
+        }
+      />
 
       <div className={styles.body}>
-        {facts.length > 0 && (
-          <dl className={styles.facts}>
-            {facts.map((fact) => (
-              <div key={fact.label} className={styles.fact}>
-                <dt className={styles.factLabel}>{fact.label}</dt>
-                <dd className={styles.factValue}>{fact.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
+        <div className={styles.main}>
+          {next && <NextHere match={next} />}
 
-        <div className={styles.actions}>
-          {directions && (
-            <a
-              className={styles.primary}
-              href={directions}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Οδηγίες
-            </a>
-          )}
-          <ShareButton title={field.name} className={styles.secondary} />
-        </div>
-
-        {field.home_teams.length > 0 && (
-          <section className={styles.group}>
-            <p className={styles.groupLabel}>ΣΩΜΑΤΕΙΑ ΜΕ ΕΔΡΑ ΕΔΩ</p>
+          <section className={styles.block} aria-labelledby="here">
+            <div className={styles.blockHead}>
+              <h2 id="here" className={styles.h2}>
+                Αγώνες εδώ
+              </h2>
+              <span className={styles.note}>Τρέχουσα περίοδος</span>
+            </div>
             <div className={styles.card}>
-              {field.home_teams.map((team, i) => (
-                <Link
-                  key={team.slug}
-                  href={`/somateia/${team.slug}`}
-                  className={`${styles.row} ${
-                    i === field.home_teams.length - 1 ? styles.rowLast : ""
-                  }`}
-                >
-                  <Crest team={team} size="sm" />
-                  <span className={styles.rowName}>{team.name}</span>
-                  <span className={styles.chevron} aria-hidden="true">
-                    ›
-                  </span>
-                </Link>
-              ))}
+              {matches.length === 0 ? (
+                <p className={styles.none}>Δεν έχει οριστεί αγώνας σε αυτό το γήπεδο για τη φετινή σεζόν.</p>
+              ) : (
+                matches.map((m) => <Game key={m.id} match={m} />)
+              )}
             </div>
           </section>
-        )}
+        </div>
 
-        <section className={styles.group}>
-          <p className={styles.groupLabel}>ΑΓΩΝΕΣ ΕΔΩ</p>
-          {matches.length === 0 ? (
-            <div className={styles.card}>
-              <p className={styles.none}>
-                Δεν έχει οριστεί αγώνας σε αυτό το γήπεδο για τη φετινή σεζόν.
-              </p>
+        <aside className={styles.side} aria-label="Στοιχεία γηπέδου">
+          {/* With coordinates, the map; without, the hatch of the design: the
+              federation publishes no photographs either. */}
+          <div className={styles.banner}>
+            {located ? <VenueMap fields={[field]} /> : <div className={styles.hatch} aria-hidden="true" />}
+          </div>
+
+          <section className={styles.block} aria-labelledby="facts">
+            <h2 id="facts" className={styles.h2}>
+              Στοιχεία
+            </h2>
+            <div className={styles.factsCard}>
+              <dl className={styles.facts}>
+                {facts.map((f) => (
+                  <div key={f.label}>
+                    <dt>{f.label}</dt>
+                    <dd>{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              {field.notes && <p className={styles.notes}>{field.notes}</p>}
             </div>
-          ) : (
-            <div className={styles.card}>
-              {/* Two lines per match, with the date: a ground's fixtures span
-                  the whole season, so "16:00" alone would not say which
-                  Sunday. */}
-              {matches.map((match, i) => (
-                <MatchRow
-                  key={match.id}
-                  match={match}
-                  last={i === matches.length - 1}
-                  showDate
-                />
-              ))}
-            </div>
+          </section>
+
+          {field.home_teams.length > 0 && (
+            <section className={styles.block} aria-labelledby="home-of">
+              <h2 id="home-of" className={styles.h2}>
+                Έδρα για
+              </h2>
+              <div className={styles.card}>
+                {field.home_teams.map((team) => (
+                  <Link key={team.slug} href={`/somateia/${team.slug}`} className={styles.club}>
+                    <Crest team={team} size="md" />
+                    <span className={styles.clubName}>{team.name}</span>
+                    <span className={styles.chevron} aria-hidden="true">
+                      ›
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
           )}
-        </section>
-
-        {field.notes && <p className={styles.notes}>{field.notes}</p>}
+        </aside>
       </div>
     </div>
+  );
+}
+
+/** Still to be played: no score, and not in the past. A plain function, as
+ *  it reads the clock. */
+function isAhead(m: Match): boolean {
+  return m.status !== "cancelled" && (m.kickoff_at === null || Date.parse(m.kickoff_at) >= Date.now() - 3 * 3600_000);
+}
+
+function NextHere({ match }: { match: Match }) {
+  return (
+    <section className={styles.next} aria-labelledby="next-here">
+      <div className={styles.nextTop}>
+        <h2 id="next-here" className={styles.nextLabel}>
+          ΕΠΟΜΕΝΟΣ ΑΓΩΝΑΣ ΕΔΩ
+        </h2>
+        <span className={styles.nextWhen}>{formatDayDate(match.kickoff_at)}</span>
+      </div>
+      <Link href={`/agones/${match.id}`} className={styles.nextBoard}>
+        <span className={styles.nextSide}>
+          <Crest team={match.home_team} size="md" onNavy />
+          <span>{match.home_team.name}</span>
+        </span>
+        <span className={styles.nextTime}>{formatTime(match.kickoff_at) || "–"}</span>
+        <span className={`${styles.nextSide} ${styles.nextAway}`}>
+          <span>{match.away_team.name}</span>
+          <Crest team={match.away_team} size="md" onNavy />
+        </span>
+      </Link>
+    </section>
+  );
+}
+
+function Game({ match }: { match: Match }) {
+  const hs = match.home_score;
+  const as = match.away_score;
+  const played = hs !== null && as !== null;
+  const [day, date] = formatDayDate(match.kickoff_at).split(" ");
+  return (
+    <Link href={`/agones/${match.id}`} className={styles.game}>
+      <span className={styles.date}>
+        <span>{day ? day.charAt(0) + day.slice(1).toLocaleLowerCase("el-GR") : "—"}</span>
+        <span className={styles.dateNum}>{date ?? ""}</span>
+      </span>
+      <span className={styles.teams}>
+        <span className={played && hs! > as! ? styles.won : undefined}>
+          <Crest team={match.home_team} size="xs" />
+          <span>{match.home_team.name}</span>
+        </span>
+        <span className={played && as! > hs! ? styles.won : undefined}>
+          <Crest team={match.away_team} size="xs" />
+          <span>{match.away_team.name}</span>
+        </span>
+      </span>
+      {played ? (
+        <span className={styles.result}>
+          <span className={styles.scores}>
+            <span>{hs}</span>
+            <span>{as}</span>
+          </span>
+          <span className={styles.final}>ΤΕΛ.</span>
+        </span>
+      ) : (
+        <span className={styles.time}>
+          {match.status === "postponed" ? "ΑΝΑΒΟΛΗ" : formatTime(match.kickoff_at) || "—"}
+        </span>
+      )}
+    </Link>
   );
 }

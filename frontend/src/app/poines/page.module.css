@@ -1,3 +1,120 @@
+/* Design "Suspensions": the white band with the season and division
+   pickers and two tabs, who is out now and every ban; the bans as rows with
+   the number of matches in a box; the per-club bars and the notification
+   invitation beside them. */
+
+.page {
+  display: block;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tabs {
+  margin: 0 0 -22px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabsInner {
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  flex: none;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.tab[aria-current="page"] {
+  font-weight: 700;
+  color: var(--color-heading);
+  box-shadow: inset 0 -3px 0 var(--color-win);
+}
+
+.badge {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-badge-surface);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  color: var(--color-text);
+}
+
+.tab[aria-current="page"] .badge {
+  background: var(--color-live-surface);
+  color: var(--color-live-ink);
+}
+
+/* --- layout -------------------------------------------------------------- */
+
+.body {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 0 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.main {
+  flex: 2 1 520px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.side {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.78125rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.chip[aria-current="true"] {
+  background: var(--color-heading);
+  border-color: var(--color-heading);
+  color: var(--color-surface);
+}
+
+/* --- the bans ------------------------------------------------------------ */
+
 .list {
   list-style: none;
   margin: 0;
@@ -5,160 +122,253 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
+.list li + li {
+  border-top: 1px solid var(--color-hairline);
+}
+
 .row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--color-grey-100);
+  padding: 12px 16px;
+  color: inherit;
+  text-decoration: none;
 }
 
-.row:last-child {
-  border-bottom: none;
+@media (hover: hover) and (pointer: fine) {
+  .row:hover,
+  .barRow:hover {
+    background: var(--color-grey-100);
+  }
 }
 
-/* Brick, not alarm red: a one-match ban is routine, and the palette keeps
-   loss/discipline in the same dark brick rather than a warning colour. */
-.matches {
-  flex: none;
+.box {
+  width: 52px;
+  height: 52px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 46px;
-  padding: 5px 6px;
+  gap: 1px;
   border-radius: var(--radius-md);
-  background: var(--color-loss-tint);
-  color: var(--color-loss-tint-ink);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-xl);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
+  background: var(--color-grey-100);
+  color: var(--color-text-muted);
 }
 
-.matchesLabel {
-  font-size: var(--text-xs);
+/* Still out: the ban's colour. */
+.boxOn {
+  background: var(--color-loss-tint);
+  color: var(--color-live-surface);
+}
+
+.boxNum {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+.boxUnit {
+  font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-top: 3px;
-  opacity: 0.8;
+  font-size: 0.59375rem;
+  letter-spacing: 0.4px;
 }
 
 .who {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
-.player {
-  font-size: var(--text-base);
-  font-weight: 600;
-  line-height: 1.2;
+.nameLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
   color: var(--color-text);
-  text-decoration: none;
-  overflow-wrap: anywhere;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .player:hover {
-    color: var(--color-link-hover);
-  }
+.again {
+  padding: 2px 6px;
+  border-radius: var(--radius-tag);
+  background: var(--color-loss-tint);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.625rem;
+  letter-spacing: 0.6px;
+  color: var(--color-live-surface);
 }
 
-/* Touch: the same look while pressed. */
-.player:active {
-  color: var(--color-link-hover);
-}
-
-.detail {
-  font-size: var(--text-sm);
+.club {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 0.78125rem;
   color: var(--color-text-muted);
+}
+
+.club > span:last-child {
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.team {
-  color: var(--color-text-muted);
-  text-decoration: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .team:hover {
-    color: var(--color-link-hover);
-  }
-}
-
-/* Touch: the same look while pressed. */
-.team:active {
-  color: var(--color-link-hover);
-}
-
-.unknownTeam {
-  font-style: italic;
-}
-
-.when {
-  flex: none;
+.status {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  gap: 4px;
   text-align: right;
 }
 
-.matchday {
-  font-size: var(--text-xs);
-  color: var(--color-nav-idle);
+.out,
+.served {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-live-surface);
+  white-space: nowrap;
 }
 
-.note {
-  margin: 12px 2px 0;
-  font-size: var(--text-sm);
-  line-height: 1.55;
+.served {
   color: var(--color-text-muted);
 }
 
-.filter {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.decided {
+  font-family: var(--font-body);
+  font-size: 0.71875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
-.select,
-.go {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
+/* --- side ---------------------------------------------------------------- */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
   color: var(--color-heading);
+}
+
+.barsCard {
+  padding: 6px 16px 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 22px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+  text-decoration: none;
+}
+
+.barName {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--text-md);
+  font-size: 0.84375rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.go {
-  cursor: pointer;
+.bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-badge-surface);
+  overflow: hidden;
 }
 
-.filtering {
-  margin: 0 2px;
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-live-surface);
+}
+
+.barNum {
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 800;
   font-size: var(--text-base);
+  color: var(--color-text);
+}
+
+.barNote {
+  margin: 0;
+  padding-top: 8px;
+  font-family: var(--font-body);
+  font-size: 0.71875rem;
   color: var(--color-text-muted);
 }
 
-.filtering a {
-  color: var(--color-link);
-  font-weight: 600;
+.notify {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-heading) 10%, var(--color-surface));
+}
+
+.notifyTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-heading);
+}
+
+.notifyText {
+  font-family: var(--font-body);
+  font-size: 0.78125rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.notifyButton {
+  composes: buttonPrimary from "../../styles/primitives.module.css";
+  align-self: flex-start;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .status {
+    grid-column: 2;
+    align-items: flex-start;
+    text-align: left;
+  }
 }

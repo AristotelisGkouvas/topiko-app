@@ -1,0 +1,33 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select {
+  appearance: none;
+  height: 38px;
+  padding: 0 30px 0 12px;
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--color-heading);
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  right: 11px;
+  pointer-events: none;
+  font-size: var(--text-sm);
+  color: var(--color-heading);
+}
+
+@media (pointer: coarse) {
+  .select {
+    height: 44px;
+  }
+}
