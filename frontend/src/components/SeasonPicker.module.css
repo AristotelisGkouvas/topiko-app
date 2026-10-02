@@ -56,6 +56,20 @@
   color: var(--color-text-muted);
 }
 
+/* In a header line: 28px, square-ish corners, as the design draws it. */
+.compact .select {
+  min-height: 28px;
+  padding: 2px 26px 2px 10px;
+  border-radius: var(--radius-sm);
+  border-color: var(--color-chip-border);
+  font-size: 0.78125rem;
+}
+
+.compact .chevron {
+  right: 9px;
+  font-size: var(--text-sm);
+}
+
 /* A finger needs the design's 44px; a mouse keeps the compact size. */
 @media (pointer: coarse) {
   .select {

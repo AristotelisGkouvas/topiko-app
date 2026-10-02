@@ -301,7 +301,7 @@ export default async function PlayerPage({
                   <span className={styles.gameVs}>
                     {a.home ? "εντός" : "εκτός"} με {a.opponent?.name ?? "—"}
                   </span>
-                  <span className={styles.gameScore}>
+                  <span className={`${styles.gameScore} ${verdictClass(a.goals_for, a.goals_against)}`}>
                     {a.goals_for ?? "–"}–{a.goals_against ?? "–"}
                   </span>
                   <span className={styles.gameMe}>
@@ -378,6 +378,12 @@ export default async function PlayerPage({
       )}
     </div>
   );
+}
+
+/** The score chip's colour: won, drawn or lost, from the player's side. */
+function verdictClass(us: number | null, them: number | null): string {
+  if (us === null || them === null) return "";
+  return us > them ? styles.gameWin : us < them ? styles.gameLoss : styles.gameDraw;
 }
 
 const fmt = (n: number) => n.toLocaleString("el-GR");
