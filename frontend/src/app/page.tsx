@@ -163,13 +163,15 @@ async function HomeContent({ searchParams }: { searchParams: SearchParams }) {
         <div className={styles.colSide}>
           <HomeTeasers />
           <Scorers scorers={scorers} league={league} />
-          <p className={styles.volunteer}>
-            Είσαι από σωματείο; Δώσε το σκορ <Link href="/ethelontis">live από το γήπεδο</Link> με
-            τον κωδικό που σου έδωσε η ένωση.
-          </p>
           <InstallCard />
           <LastUpdated timestamp={meta.last_scraped_at} sourceUrl={meta.source_url} />
         </div>
+
+        {/* Under all three columns, on one line where it fits. */}
+        <p className={styles.volunteer}>
+          Είσαι από σωματείο; Δώσε το σκορ <Link href="/ethelontis">live από το γήπεδο</Link> με
+          τον κωδικό που σου έδωσε η ένωση.
+        </p>
       </div>
     </div>
   );
