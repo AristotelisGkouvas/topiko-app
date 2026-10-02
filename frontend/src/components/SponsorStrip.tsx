@@ -61,7 +61,7 @@ export async function SponsorStrip({
 
   return (
     <section
-      className={`${styles.strip} ${moving ? styles.moving : ""}`}
+      className={`${styles.strip} ${moving ? styles.moving : ""} ${kind === "platform" ? styles.big : ""}`}
       aria-label={label ?? "Χορηγοί"}
       // Same speed whatever the count: about 2.5 seconds a sponsor.
       style={{ "--loop": `${plates.length * 2.5}s` } as CSSProperties}

@@ -154,6 +154,56 @@
   }
 }
 
+/* The platform's own sponsors — the ones who pay for the site — get plates
+   big enough to read a logo by. Three fit across a 360px phone. */
+.big .plate {
+  width: 112px;
+  height: 60px;
+  padding: 6px 10px;
+}
+
+.big .row {
+  gap: 10px;
+}
+
+.big.moving .row {
+  padding-right: 10px;
+}
+
+/* Standing still (three or fewer), the plates share the column instead of
+   a fixed width, so on a narrow phone they shrink rather than being cut at
+   the edges. */
+.big:not(.moving) .row {
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 0;
+}
+
+.big:not(.moving) .cell {
+  flex: 0 1 160px;
+  min-width: 0;
+}
+
+.big:not(.moving) .plate {
+  width: 100% !important;
+}
+
+@media (min-width: 600px) {
+  .big .plate {
+    width: 160px;
+    height: 80px;
+    padding: 8px 14px;
+  }
+
+  .big .row {
+    gap: 12px;
+  }
+
+  .big.moving .row {
+    padding-right: 12px;
+  }
+}
+
 /* Touch: the same look while pressed. */
 a.plate:active {
   border-color: var(--color-link);
