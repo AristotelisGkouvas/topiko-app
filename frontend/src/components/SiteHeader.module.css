@@ -323,9 +323,15 @@
 
 /* --- the division chip (phone) -------------------------------------- */
 
+/* Hidden at every width: each page that lists by division has its own
+   picker (tabs, chips), and on a phone the chip only repeated them. */
 .leagueWrap {
+  display: none;
+}
+
+/* With the chip gone, search goes to the bar's right edge on its own. */
+.search {
   margin-left: auto;
-  min-width: 0;
 }
 
 .league {
@@ -417,10 +423,6 @@
 /* On a wide screen the rail owns this, and the chip would be a second control
    for the same thing sitting a few hundred pixels away from the first. */
 @media (min-width: 1040px) {
-  .leagueWrap {
-    display: none;
-  }
-
   /* Three columns: the wordmark left, the nav in the middle of the page —
      not merely of the space left between two controls of unequal width —
      and search at the right edge. */
@@ -435,11 +437,12 @@
 
   .search {
     justify-self: end;
+    margin-left: 0;
   }
 }
 
-/* Nav, division chip and a 240px field do not fit side by side until the
-   chip goes at 1040px: in between, the search is its icon, as on a phone. */
+/* Nav and a 240px field do not fit side by side below 1040px: in between,
+   the search is its icon, as on a phone. */
 @media (min-width: 860px) and (max-width: 1039.98px) {
   .search {
     width: 44px;
