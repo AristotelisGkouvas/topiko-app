@@ -176,7 +176,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr) auto;
+  grid-template-columns: 54px minmax(0, 1fr);
   gap: 14px;
   align-items: center;
   padding: 11px 16px;
@@ -247,46 +247,20 @@
   font-weight: 800;
 }
 
-.s {
-  text-align: right;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.where {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  text-align: right;
-  max-width: 160px;
-}
-
-.tag {
-  padding: 2px 7px;
-  border-radius: var(--radius-tag);
-  background: var(--color-grey-100);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.6875rem;
-  color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-/* An open-age division: the navy wash. */
-.men {
-  background: color-mix(in srgb, var(--color-heading) 10%, var(--color-surface));
-  color: var(--color-heading);
-}
-
-.date {
+.meta {
+  margin-top: 2px;
   font-family: var(--font-body);
   font-size: 0.71875rem;
   color: var(--color-text-muted);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s {
+  text-align: right;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- scorers ------------------------------------------------------------- */
@@ -366,17 +340,4 @@
   font-size: 0.71875rem;
   color: var(--color-text-muted);
   white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-  .row {
-    grid-template-columns: 54px minmax(0, 1fr);
-  }
-
-  .where {
-    grid-column: 2;
-    flex-direction: row;
-    align-items: center;
-    max-width: none;
-  }
 }

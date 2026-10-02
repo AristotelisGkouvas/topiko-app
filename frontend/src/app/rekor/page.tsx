@@ -144,7 +144,7 @@ function RecordList({ title, unit, rows }: { title: string; unit: string; rows: 
         {rows.length === 0 ? (
           <p className={styles.empty}>Κανένας αγώνας σε αυτό το φίλτρο.</p>
         ) : (
-          rows.map(({ match, value, league_name, youth }) => {
+          rows.map(({ match, value, league_name }) => {
             const hs = match.home_score ?? 0;
             const as = match.away_score ?? 0;
             return (
@@ -162,12 +162,10 @@ function RecordList({ title, unit, rows }: { title: string; unit: string; rows: 
                     <span className={as > hs ? styles.won : undefined}>{match.away_team.name}</span>
                     <span className={styles.s}>{as}</span>
                   </span>
-                </span>
-                <span className={styles.where}>
-                  {league_name && (
-                    <span className={`${styles.tag} ${youth ? "" : styles.men}`}>{league_name}</span>
-                  )}
-                  <span className={styles.date}>{when(match.kickoff_at)}</span>
+                  {/* When and where, quietly, under the clubs. */}
+                  <span className={styles.meta}>
+                    {[when(match.kickoff_at), league_name].filter(Boolean).join(" · ")}
+                  </span>
                 </span>
               </Link>
             );
