@@ -52,7 +52,6 @@ export function MatchLineups({
           ))}
         </section>
       ))}
-      <p className={styles.legend}>↑ μπήκε · ↓ βγήκε · Από το φύλλο αγώνα της ένωσης.</p>
     </>
   );
 }

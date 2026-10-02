@@ -298,11 +298,20 @@ export default async function PlayerPage({
                   <span className={styles.gameDate}>
                     {a.kickoff_at ? formatDayDate(a.kickoff_at) : a.season.slug}
                   </span>
+                  {/* Both clubs as played, home first, the player's own in
+                      bold; the score in the same order. */}
                   <span className={styles.gameVs}>
-                    {a.home ? "εντός" : "εκτός"} με {a.opponent?.name ?? "—"}
+                    <span className={a.home ? styles.mine : undefined}>
+                      {(a.home ? a.team : a.opponent)?.name ?? "—"}
+                    </span>
+                    <span className={a.home ? undefined : styles.mine}>
+                      {(a.home ? a.opponent : a.team)?.name ?? "—"}
+                    </span>
                   </span>
                   <span className={`${styles.gameScore} ${verdictClass(a.goals_for, a.goals_against)}`}>
-                    {a.goals_for ?? "–"}–{a.goals_against ?? "–"}
+                    {a.home
+                      ? `${a.goals_for ?? "–"}–${a.goals_against ?? "–"}`
+                      : `${a.goals_against ?? "–"}–${a.goals_for ?? "–"}`}
                   </span>
                   <span className={styles.gameMe}>
                     {a.minutes}′{a.goals ? ` · ${a.goals} γκολ` : ""}
@@ -364,12 +373,6 @@ export default async function PlayerPage({
               </tbody>
             </table>
           </div>
-          <p className={styles.note}>
-            Από τις λίστες σκόρερ της ένωσης, που έχουν μόνο τους πρώτους κάθε
-            λίστας, οπότε είναι <strong>κατώτατο όριο</strong>. Τα «Ανά σεζόν» και
-            «Αγώνες» βγαίνουν από τα φύλλα αγώνα, που το site διαβάζει έναν έναν:
-            όσο γεμίζει το αρχείο, μεγαλώνουν.
-          </p>
         </section>
       )}
 

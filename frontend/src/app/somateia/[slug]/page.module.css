@@ -164,6 +164,13 @@
   color: var(--color-live-ink);
 }
 
+/* A slot with no result in it yet. */
+.empty {
+  box-sizing: border-box;
+  border: 1.5px dashed var(--color-chip-border);
+  background: none;
+}
+
 /* --- the body ---------------------------------------------------------- */
 
 .body {

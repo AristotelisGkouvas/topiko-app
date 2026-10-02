@@ -53,10 +53,3 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-.source {
-  margin: 14px 2px 0;
-  font-size: var(--text-sm);
-  line-height: 1.55;
-  color: var(--color-text-muted);
-}

@@ -212,6 +212,11 @@ export default async function TeamPage({
                           {r}
                         </span>
                       ))}
+                      {/* Five slots always: the ones not yet played as empty
+                          squares, so three results read as three of five. */}
+                      {Array.from({ length: 5 - form.length }, (_, i) => (
+                        <span key={`e${i}`} className={`${styles.verdict} ${styles.empty}`} aria-hidden="true" />
+                      ))}
                     </span>
                   </dd>
                 </div>

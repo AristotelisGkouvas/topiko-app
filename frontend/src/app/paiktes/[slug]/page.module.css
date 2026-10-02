@@ -641,7 +641,7 @@
   grid-template-columns: 82px minmax(0, 1fr) auto;
   grid-template-areas:
     "date vs score"
-    "date me score";
+    "date me me";
   column-gap: 10px;
   row-gap: 2px;
   align-items: center;
@@ -665,12 +665,24 @@
 
 .gameVs {
   grid-area: vs;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.gameVs > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-display);
-  font-weight: 600;
+}
+
+/* The player's own club. */
+.gameVs > .mine {
+  font-weight: 700;
   color: var(--color-heading);
 }
 
